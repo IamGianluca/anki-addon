@@ -5,7 +5,10 @@ from aqt import mw
 from aqt.utils import showInfo
 
 # import all of the Qt GUI library
-from aqt.qt import *
+try:
+    from PyQt6.QtGui import QAction
+except Exception:
+    from PyQt5.QtGui import QAction
 from aqt.qt import qconnect
 
 # We're going to add a menu item below. First we want to create a function to
@@ -15,9 +18,9 @@ from aqt.qt import qconnect
 def testFunction() -> None:
     # get the number of cards in the current collection, which is stored in
     # the main window
-    cardCount = mw.col.cardCount()
+    card_count = mw.col.card_count()
     # show a message box
-    showInfo("Card count: %d" % cardCount)
+    showInfo("Card count: %d" % card_count)
 
 
 # create a new menu item, "Count cards"

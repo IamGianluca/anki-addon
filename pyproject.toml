@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "aqt>=24.11",
+    "pyqt6>=6.8.1",
 ]
 
 [tool.uv]
