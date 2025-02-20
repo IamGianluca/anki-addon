@@ -7,7 +7,7 @@ from aqt.utils import showInfo
 # import all of the Qt GUI library
 try:
     from PyQt6.QtGui import QAction
-except Exception:
+except ImportError:
     from PyQt5.QtGui import QAction
 from aqt.qt import qconnect
 
