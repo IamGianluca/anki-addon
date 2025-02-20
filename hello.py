@@ -15,7 +15,7 @@ from aqt.qt import qconnect
 # be called when the menu item is activated.
 
 
-def testFunction() -> None:
+def test_function() -> None:
     # get the number of cards in the current collection, which is stored in
     # the main window
     card_count = mw.col.card_count()
@@ -23,9 +23,7 @@ def testFunction() -> None:
     showInfo("Card count: %d" % card_count)
 
 
-# create a new menu item, "Count cards"
+# create a new menu item, "Count cards" and assign a functionality to it
 action = QAction("Count cards", mw)
-# set it to call testFunction when it's clicked
-qconnect(action.triggered, testFunction)
-# and add it to the tools menu
+qconnect(action.triggered, test_function)
 mw.form.menuTools.addAction(action)
