@@ -1,29 +1,29 @@
-# import the main window object (mw) from aqt
-from aqt import mw
-
-# import the "show info" tool from utils.py
+import os
+from aqt import gui_hooks
 from aqt.utils import showInfo
 
-# import all of the Qt GUI library
-try:
-    from PyQt6.QtGui import QAction
-except ImportError:
-    from PyQt5.QtGui import QAction
-from aqt.qt import qconnect
 
-# We're going to add a menu item below. First we want to create a function to
-# be called when the menu item is activated.
+def add_custom_button(buttons, editor):
+    # Create a new button
+    addon_dir = os.path.dirname(__file__)
+    icon_path = os.path.join(addon_dir, "imgs", "ai-icon.png")
+    button = editor.addButton(
+        icon=icon_path,
+        cmd="myCustomAction",
+        func=lambda editor=editor: on_custom_action(editor),
+        tip="Format with AI",
+        keys="Ctrl+Alt+M",  # Optional keyboard shortcut
+    )
 
-
-def test_function() -> None:
-    # get the number of cards in the current collection, which is stored in
-    # the main window
-    card_count = mw.col.card_count()
-    # show a message box
-    showInfo("Card count: %d" % card_count)
+    buttons.insert(5, button)  # Media buttons usually start around index 4-5
+    return buttons
 
 
-# create a new menu item, "Count cards" and assign a functionality to it
-action = QAction("Count cards", mw)
-qconnect(action.triggered, test_function)
-mw.form.menuTools.addAction(action)
+def on_custom_action(editor):
+    showInfo("Stay tuned...")
+    # Add your functionality here
+    # editor.note contains the current note being edited
+    # editor.web gives access to the editor's webview
+
+
+gui_hooks.editor_did_init_buttons.append(add_custom_button)
