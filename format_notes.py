@@ -4,7 +4,6 @@ from aqt.utils import showInfo
 
 
 def add_custom_button(buttons, editor):
-    # Create a new button
     addon_dir = os.path.dirname(__file__)
     icon_path = os.path.join(addon_dir, "imgs", "ai-icon.png")
     button = editor.addButton(
