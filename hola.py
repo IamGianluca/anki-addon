@@ -3,22 +3,24 @@ from aqt.qt import qconnect, QAction
 from aqt.utils import showInfo
 
 
-def testFunction() -> None:
+def display_notes_marked_for_review_count() -> None:
     deck_id = mw.col.decks.current()["id"]
     query = f"did:{deck_id}"
     note_ids = mw.col.find_notes(query)
 
-    flagged_cards = 0
+    flagged_notes = 0
     for note_id in note_ids:
-        if is_marked_for_review(note_id):
-            flagged_cards += 1
+        if is_note_marked_for_review(note_id):
+            flagged_notes += 1
 
-    card_count = mw.col.card_count()
-    showInfo(f"Card marked for review: {flagged_cards}/{card_count}")
+    notes_count = len(mw.col.find_notes(f"did:{deck_id}"))
+    showInfo(f"Notes marked for review: {flagged_notes}/{notes_count}")
 
 
-def is_marked_for_review(note_id: int) -> bool:
-    # NOTE: flags are assigned to cards, not notes
+def is_note_marked_for_review(note_id: int) -> bool:
+    # NOTE: Flags are assigned to cards, not notes. For this reason, we are iterating
+    # through the cards associated to a note to find if any of them has an orange (id=2)
+    # flag
     card_ids = mw.col.find_cards(f"nid:{note_id}")
     for card_id in card_ids:
         card = mw.col.get_card(card_id)
@@ -27,6 +29,6 @@ def is_marked_for_review(note_id: int) -> bool:
     return False
 
 
-action = QAction("Count cards marked for review", mw)
-qconnect(action.triggered, testFunction)
+action = QAction("Count notes marked for review", mw)
+qconnect(action.triggered, display_notes_marked_for_review_count)
 mw.form.menuTools.addAction(action)
