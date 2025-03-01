@@ -1,2 +1,2 @@
-from .review_counter import *
+from .count_notes import *
 from .format_notes import *
