@@ -11,7 +11,8 @@ test_slow:
 check: format lint
 
 format:
-	ruff format .
+	ruff check --select I --fix
+	ruff format
 
 lint:
 	ruff check --fix

@@ -1,5 +1,5 @@
 import os
-from aqt import gui_hooks
+
 from aqt.utils import showInfo
 
 
@@ -23,6 +23,3 @@ def on_custom_action(editor):
     # Add your functionality here
     # editor.note contains the current note being edited
     # editor.web gives access to the editor's webview
-
-
-gui_hooks.editor_did_init_buttons.append(add_custom_button)

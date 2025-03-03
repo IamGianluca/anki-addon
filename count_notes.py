@@ -1,8 +1,7 @@
-from typing import Optional
-from anki.collection import Collection
 from aqt import mw
-from aqt.qt import qconnect, QAction
 from aqt.utils import showInfo
+
+from .utils import ensure_collection
 
 
 def display_notes_marked_for_review_count() -> None:
@@ -31,14 +30,3 @@ def is_note_marked_for_review(note_id: int) -> bool:
         if card.flags == 2:  # orange flag, our convention to mark a note for review
             return True
     return False
-
-
-def ensure_collection(col: Optional[Collection]) -> Collection:
-    if col is None:
-        raise RuntimeError("Collection not initialized")
-    return col
-
-
-action = QAction("Count notes marked for review", mw)
-qconnect(action.triggered, display_notes_marked_for_review_count)
-mw.form.menuTools.addAction(action)
