@@ -1,8 +1,10 @@
+from anki.collection import Collection
 from anki.notes import Note
 from aqt import mw
 from aqt.editor import Editor
 from aqt.qt import QDialog, QDialogButtonBox, QVBoxLayout, QWidget
 
+from .count_notes import is_note_marked_for_review
 from .utils import ensure_collection, ensure_deck
 
 
@@ -16,8 +18,7 @@ def open_standalone_editor() -> None:
 
     # Create a temporary note. Later on, we will replace it with a real note
     col = ensure_collection(mw.col)
-    model = col.models.by_name("Basic")  # model is the note type
-    note = Note(col, model)
+    note = get_notes_to_review(col)
 
     # Load an Editor widget
     editor = Editor(mw, QWidget(dialog), dialog)
@@ -34,6 +35,17 @@ def open_standalone_editor() -> None:
 
     # Run as a "modal" dialog (block interactions with other windows in the application)
     dialog.exec()
+
+
+def get_notes_to_review(col: Collection) -> Note:
+    deck_id = col.decks.current()["id"]
+    query = f"did:{deck_id}"
+    note_ids = col.find_notes(query)
+
+    for note_id in note_ids:
+        if is_note_marked_for_review(note_id):
+            return col.get_note(note_id)
+    raise ValueError("No notes marked for review")
 
 
 def save_note(note, editor, dialog):
