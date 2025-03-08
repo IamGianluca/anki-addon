@@ -16,7 +16,7 @@ def open_standalone_editor() -> None:
     layout = QVBoxLayout()
     dialog.setLayout(layout)
 
-    # Create a temporary note. Later on, we will replace it with a real note
+    # Get notes marked for review
     col = ensure_collection(mw.col)
     note = get_notes_to_review(col)
 
@@ -38,6 +38,8 @@ def open_standalone_editor() -> None:
 
 
 def get_notes_to_review(col: Collection) -> Note:
+    """Retrieve notes marked with orange flag."""
+    # TODO: this currently return only the first note marked for review. Return a list
     deck_id = col.decks.current()["id"]
     query = f"did:{deck_id}"
     note_ids = col.find_notes(query)
@@ -49,14 +51,14 @@ def get_notes_to_review(col: Collection) -> Note:
 
 
 def save_note(note, editor, dialog):
-    """Update note with current editor content"""
+    """Update note with current editor content."""
     editor.saveNow(lambda: on_save_complete(note, dialog))
 
 
 def on_save_complete(note, dialog):
-    """Add the note to collection and close dialog"""
+    """Add the note to collection and close dialog."""
     col = ensure_collection(mw.col)
-    deck = ensure_deck(col.decks.id("Default"))
-    col.add_note(note, deck)
+    deck_id = ensure_deck(col.decks.id("Default"))
+    col.add_note(note, deck_id)
     mw.reset()  # Refresh main window to show new card
     dialog.accept()
