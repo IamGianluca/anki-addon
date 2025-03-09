@@ -1,8 +1,9 @@
 import os
 
-from anki.notes import Note
 from aqt.editor import Editor
-from aqt.utils import showInfo
+from aqt.utils import askUser
+
+from .utils import ensure_note
 
 
 def add_custom_button(buttons, editor: Editor):
@@ -20,10 +21,25 @@ def add_custom_button(buttons, editor: Editor):
     return buttons
 
 
-def on_custom_action(editor):
-    note_id = editor.note.id
-    showInfo(f"Stay tuned... we will be use Ollama to edit note {note_id}")
+def on_custom_action(editor: Editor):
+    # Convert front and back of the note to lowercase
+    note = ensure_note(editor.note)
+    original_fields = {}
 
+    for field_name in note.keys():
+        original_fields[field_name] = note[field_name]
 
-def format_one_note(note: Note) -> Note:
-    return note
+    for field_name in note.keys():
+        current_content = note[field_name]
+        transformed_content = current_content.lower()
+        note[field_name] = transformed_content
+
+    # Update the editor display to show the changes
+    editor.loadNote()
+    # Ask the user if they want to keep the changes
+    if not askUser("Apply these changes to the note?"):
+        # User rejected, restore original content
+        for field_name, original_content in original_fields.items():
+            note[field_name] = original_content
+        # Reload the editor with original content
+        editor.loadNote()

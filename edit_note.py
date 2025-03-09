@@ -58,7 +58,8 @@ def save_note(note, editor, dialog):
 def on_save_complete(note, dialog):
     """Add the note to collection and close dialog."""
     col = ensure_collection(mw.col)
-    deck_id = ensure_deck(col.decks.id("Default"))
-    col.add_note(note, deck_id)
+    deck = ensure_deck(col.decks.current())
+
+    col.add_note(note, deck["id"])
     mw.reset()  # Refresh main window to show new card
     dialog.accept()
