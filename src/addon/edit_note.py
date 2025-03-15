@@ -5,7 +5,7 @@ from aqt.editor import Editor
 from aqt.qt import QDialog, QDialogButtonBox, QVBoxLayout, QWidget
 
 from .count_notes import is_note_marked_for_review
-from .utils import ensure_collection, ensure_deck
+from .utils import ensure_collection
 
 
 def open_standalone_editor() -> None:
@@ -50,16 +50,13 @@ def get_notes_to_review(col: Collection) -> Note:
     raise ValueError("No notes marked for review")
 
 
-def save_note(note, editor, dialog):
+def save_note(note, editor, dialog) -> None:
     """Update note with current editor content."""
     editor.saveNow(lambda: on_save_complete(note, dialog))
 
 
-def on_save_complete(note, dialog):
-    """Add the note to collection and close dialog."""
-    col = ensure_collection(mw.col)
-    deck = ensure_deck(col.decks.current())
-
-    col.add_note(note, deck["id"])
-    mw.reset()  # Refresh main window to show new card
+def on_save_complete(note, dialog) -> None:
+    """Update the note in collection and close dialog."""
+    note.flush()  # This saves the note changes to the database
+    mw.reset()  # Refresh main window to show updated card
     dialog.accept()
