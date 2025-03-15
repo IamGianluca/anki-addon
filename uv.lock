@@ -1,30 +1,9 @@
 version = 1
+revision = 1
 requires-python = ">=3.12"
 
 [[package]]
-name = "anki"
-version = "24.11"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "beautifulsoup4" },
-    { name = "decorator" },
-    { name = "distro", marker = "sys_platform != 'darwin' and sys_platform != 'win32'" },
-    { name = "markdown" },
-    { name = "orjson" },
-    { name = "protobuf" },
-    { name = "psutil", marker = "sys_platform == 'win32'" },
-    { name = "requests", extra = ["socks"] },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/ec/8ae4cf3df71e8a34a4858cd3d859fb8b47808b52cf623973000acaed59e4/anki-24.11-cp39-abi3-macosx_10_13_x86_64.whl", hash = "sha256:b602d2eb1f5b852f314d87dfac65694f7d780f3419dee7904bfa8588aa29cd71", size = 9027715 },
-    { url = "https://files.pythonhosted.org/packages/7d/3c/0cffdf3f2c4ffdaaa8b7f4329dbe462c86db445b6333602c3fc7eff76d11/anki-24.11-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:e8a20ebc2b9d54f78a972e2034cf4168061aef419c41fb05b79dc52a0f75e6e7", size = 8627045 },
-    { url = "https://files.pythonhosted.org/packages/ef/fa/6c86371d0e3b71129d2a79e63fc3fdc17733c9ebbf77345c62caad8c9fca/anki-24.11-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:eec843b1f60aa88ed324972b5d11ae10cbba60ccb6219a42a796d7b897e82eb4", size = 10233790 },
-    { url = "https://files.pythonhosted.org/packages/58/6e/9f2d4853a83e57cea48ccae3bc2d887bf7c0550042185e156bab23f524bf/anki-24.11-cp39-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:feeaf1318feecb4b12ca94e88ee4142c08756bb5a32d1c499f393f092f13cfac", size = 9955638 },
-    { url = "https://files.pythonhosted.org/packages/c2/18/97932fd1ea9920a4f0816279ad95bba873e2d7aea18222e5da755aebbd56/anki-24.11-cp39-abi3-win_amd64.whl", hash = "sha256:dd21857de3ae5f2e9f87b0715f04aec512d49b550f9d6dc5f4d5f3162dad1a10", size = 8934203 },
-]
-
-[[package]]
-name = "anki-addon"
+name = "addon"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
@@ -50,6 +29,28 @@ dev = [
     { name = "pytest", specifier = ">=8.3.4" },
     { name = "pytest-cov", specifier = ">=6.0.0" },
     { name = "ruff", specifier = ">=0.9.5" },
+]
+
+[[package]]
+name = "anki"
+version = "24.11"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "beautifulsoup4" },
+    { name = "decorator" },
+    { name = "distro", marker = "sys_platform != 'darwin' and sys_platform != 'win32'" },
+    { name = "markdown" },
+    { name = "orjson" },
+    { name = "protobuf" },
+    { name = "psutil", marker = "sys_platform == 'win32'" },
+    { name = "requests", extra = ["socks"] },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/26/ec/8ae4cf3df71e8a34a4858cd3d859fb8b47808b52cf623973000acaed59e4/anki-24.11-cp39-abi3-macosx_10_13_x86_64.whl", hash = "sha256:b602d2eb1f5b852f314d87dfac65694f7d780f3419dee7904bfa8588aa29cd71", size = 9027715 },
+    { url = "https://files.pythonhosted.org/packages/7d/3c/0cffdf3f2c4ffdaaa8b7f4329dbe462c86db445b6333602c3fc7eff76d11/anki-24.11-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:e8a20ebc2b9d54f78a972e2034cf4168061aef419c41fb05b79dc52a0f75e6e7", size = 8627045 },
+    { url = "https://files.pythonhosted.org/packages/ef/fa/6c86371d0e3b71129d2a79e63fc3fdc17733c9ebbf77345c62caad8c9fca/anki-24.11-cp39-abi3-manylinux_2_28_x86_64.whl", hash = "sha256:eec843b1f60aa88ed324972b5d11ae10cbba60ccb6219a42a796d7b897e82eb4", size = 10233790 },
+    { url = "https://files.pythonhosted.org/packages/58/6e/9f2d4853a83e57cea48ccae3bc2d887bf7c0550042185e156bab23f524bf/anki-24.11-cp39-abi3-manylinux_2_31_aarch64.whl", hash = "sha256:feeaf1318feecb4b12ca94e88ee4142c08756bb5a32d1c499f393f092f13cfac", size = 9955638 },
+    { url = "https://files.pythonhosted.org/packages/c2/18/97932fd1ea9920a4f0816279ad95bba873e2d7aea18222e5da755aebbd56/anki-24.11-cp39-abi3-win_amd64.whl", hash = "sha256:dd21857de3ae5f2e9f87b0715f04aec512d49b550f9d6dc5f4d5f3162dad1a10", size = 8934203 },
 ]
 
 [[package]]
@@ -153,7 +154,7 @@ name = "click"
 version = "8.1.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "platform_system == 'Windows'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/b9/2e/0090cbf739cee7d23781ad4b89a9894a41538e4fcf4c31dcdd705b78eb8b/click-8.1.8.tar.gz", hash = "sha256:ed53c9d8990d83c2a27deae68e4ee337473f6330c040a31d4225c9574d16096a", size = 226593 }
 wheels = [
@@ -449,8 +450,6 @@ version = "6.1.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/1f/5a/07871137bb752428aa4b659f910b399ba6f291156bdea939be3e96cae7cb/psutil-6.1.1.tar.gz", hash = "sha256:cf8496728c18f2d0b45198f06895be52f36611711746b7f30c464b422b50e2f5", size = 508502 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d2/d4/8095b53c4950f44dc99b8d983b796f405ae1f58d80978fcc0421491b4201/psutil-6.1.1-cp27-none-win32.whl", hash = "sha256:6d4281f5bbca041e2292be3380ec56a9413b790579b8e593b1784499d0005dac", size = 246855 },
-    { url = "https://files.pythonhosted.org/packages/b1/63/0b6425ea4f2375988209a9934c90d6079cc7537847ed58a28fbe30f4277e/psutil-6.1.1-cp27-none-win_amd64.whl", hash = "sha256:c777eb75bb33c47377c9af68f30e9f11bc78e0f07fbf907be4a5d70b2fe5f030", size = 250110 },
     { url = "https://files.pythonhosted.org/packages/38/53/bd755c2896f4461fd4f36fa6a6dcb66a88a9e4b9fd4e5b66a77cf9d4a584/psutil-6.1.1-cp37-abi3-win32.whl", hash = "sha256:eaa912e0b11848c4d9279a93d7e2783df352b082f40111e078388701fd479e53", size = 250602 },
     { url = "https://files.pythonhosted.org/packages/7b/d7/7831438e6c3ebbfa6e01a927127a6cb42ad3ab844247f3c5b96bea25d73d/psutil-6.1.1-cp37-abi3-win_amd64.whl", hash = "sha256:f35cfccb065fff93529d2afb4a2e89e363fe63ca1e4a5da22b603a85833c2649", size = 254444 },
 ]
