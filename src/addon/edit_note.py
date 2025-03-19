@@ -50,12 +50,12 @@ def get_notes_to_review(col: Collection) -> Note:
     raise ValueError("No notes marked for review")
 
 
-def save_note(note, editor, dialog) -> None:
+def save_note(note: Note, editor: Editor, dialog: QDialog) -> None:
     """Update note with current editor content."""
     editor.saveNow(lambda: on_save_complete(note, dialog))
 
 
-def on_save_complete(note, dialog) -> None:
+def on_save_complete(note: Note, dialog: QDialog) -> None:
     """Update the note in collection and close dialog."""
     note.flush()  # This saves the note changes to the database
     mw.reset()  # Refresh main window to show updated card
