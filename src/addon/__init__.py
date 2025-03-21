@@ -1,6 +1,5 @@
 from aqt import QAction, gui_hooks, mw, qconnect
 
-# from addon.utils import *
 from .count_notes import (
     display_notes_marked_for_review_count,
 )

@@ -1,9 +1,9 @@
 import os
 
 from aqt.editor import Editor
-from aqt.utils import askUser
+from aqt.utils import askUser, tooltip
 
-from .utils import ensure_note
+from .utils import ensure_collection, ensure_note
 
 
 def add_custom_button(buttons, editor: Editor):
@@ -22,13 +22,14 @@ def add_custom_button(buttons, editor: Editor):
 
 
 def on_custom_action(editor: Editor):
-    # Convert front and back of the note to lowercase
     note = ensure_note(editor.note)
     original_fields = {}
 
     for field_name in note.keys():
         original_fields[field_name] = note[field_name]
 
+    # Convert front and back of the note to lowercase
+    # TODO: Call LLM to improve note
     for field_name in note.keys():
         current_content = note[field_name]
         transformed_content = current_content.lower()
@@ -36,10 +37,14 @@ def on_custom_action(editor: Editor):
 
     # Update the editor display to show the changes
     editor.loadNote()
+
     # Ask the user if they want to keep the changes
-    if not askUser("Apply these changes to the note?"):
-        # User rejected, restore original content
+    if askUser("Apply changes?"):
+        col = ensure_collection(editor.mw.col)
+        col.update_note(note)
+        tooltip("Changes applied")
+    else:
+        # User rejected changes, restore original content
         for field_name, original_content in original_fields.items():
             note[field_name] = original_content
-        # Reload the editor with original content
         editor.loadNote()
