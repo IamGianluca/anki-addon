@@ -65,7 +65,8 @@ def open_standalone_editor() -> None:
         return
 
     # Load an Editor widget
-    editor = Editor(mw, QWidget(dialog), dialog)
+    editor_widget = QWidget(dialog)
+    editor = Editor(mw, editor_widget, dialog)
     editor.setNote(editor_state.current_note())
     layout.addWidget(editor.widget)
 
@@ -82,8 +83,7 @@ def open_standalone_editor() -> None:
 
     # Define our button handlers
     def save_handler():
-        note = editor_state.current_note()
-        editor.saveNow(lambda: on_save_complete(note))
+        editor.saveNow(lambda: on_save_complete(editor_state.current_note()))
 
         if editor_state.has_next_note():
             next_note = editor_state.next_note()
