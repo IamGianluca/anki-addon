@@ -1,7 +1,7 @@
 from anki.notes import Note
 from aqt import mw
 from aqt.editor import Editor
-from aqt.qt import QDialog, QVBoxLayout, QWidget, QPushButton
+from aqt.qt import QDialog, QHBoxLayout, QVBoxLayout, QWidget, QPushButton
 from .note_counter import is_note_marked_for_review
 from .utils import ensure_collection
 
@@ -70,7 +70,7 @@ def open_standalone_editor() -> None:
     layout.addWidget(editor.widget)
 
     # Create button layout with manual buttons
-    button_layout = QVBoxLayout()
+    button_layout = QHBoxLayout()
     save_button = QPushButton("Save")
     skip_button = QPushButton("Skip")
     cancel_button = QPushButton("Cancel")
@@ -83,7 +83,15 @@ def open_standalone_editor() -> None:
     # Define our button handlers
     def save_handler():
         note = editor_state.current_note()
-        editor.saveNow(lambda: on_save_complete(note, dialog))
+        editor.saveNow(lambda: on_save_complete(note))
+
+        if editor_state.has_next_note():
+            next_note = editor_state.next_note()
+            editor.setNote(next_note)
+        else:
+            # No more notes to review
+            dialog.accept()
+            mw.reset()
 
     def skip_handler():
         if editor_state.has_next_note():
@@ -103,8 +111,7 @@ def open_standalone_editor() -> None:
     dialog.exec()
 
 
-def on_save_complete(note: Note, dialog: QDialog) -> None:
+def on_save_complete(note: Note) -> None:
     """Update the note in collection and close dialog."""
-    note.flush()  # This saves the note changes to the database
+    note.flush()  # Saves the note changes to the database
     mw.reset()  # Refresh main window to show updated card
-    dialog.accept()
