@@ -1,3 +1,5 @@
+from typing import Optional
+from anki.collection import Collection
 from anki.notes import Note
 from aqt import mw
 from aqt.editor import Editor
@@ -11,7 +13,7 @@ class EditorDialog:
     the collection of notes marked for review.
     """
 
-    def __init__(self, collection):
+    def __init__(self, collection: Collection) -> None:
         self.col = collection
         self.review_notes = self.get_all_notes_to_review()
         self.current_index = 0
@@ -19,7 +21,7 @@ class EditorDialog:
         if not self.review_notes:
             raise ValueError("No notes marked for review")
 
-    def get_all_notes_to_review(self):
+    def get_all_notes_to_review(self) -> list[Note]:
         """Retrieve all notes marked for review."""
         deck_id = self.col.decks.current()["id"]
         query = f"did:{deck_id}"
@@ -32,13 +34,13 @@ class EditorDialog:
 
         return review_notes
 
-    def current_note(self):
+    def current_note(self) -> Note:
         return self.review_notes[self.current_index]
 
-    def has_next_note(self):
+    def has_next_note(self) -> bool:
         return self.current_index < len(self.review_notes) - 1
 
-    def next_note(self):
+    def next_note(self) -> Optional[Note]:
         if self.has_next_note():
             self.current_index += 1
             return self.review_notes[self.current_index]
@@ -82,7 +84,7 @@ def open_standalone_editor() -> None:
     layout.addLayout(button_layout)
 
     # Define our button handlers
-    def save_handler():
+    def save_handler() -> None:
         editor.saveNow(lambda: on_save_complete(editor_state.current_note()))
 
         if editor_state.has_next_note():
@@ -93,7 +95,7 @@ def open_standalone_editor() -> None:
             dialog.accept()
             mw.reset()
 
-    def skip_handler():
+    def skip_handler() -> None:
         if editor_state.has_next_note():
             next_note = editor_state.next_note()
             editor.setNote(next_note)
