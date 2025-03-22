@@ -1,37 +1,27 @@
-# Understanding the AnkiConnect Python Client (aqt)
+# Understanding the AnkiConnect Python Client (`aqt`)
 
 The `aqt` package is Anki's Python client library, which allows you to interact with and extend Anki programmatically. Here's a concise guide to its main components:
 
 ## Core Components
 
-1. **`mw` (Main Window)**: The central object that provides access to the Anki application state
-   ```python
-   from aqt import mw
-   ```
+#### UI Infrastructure
 
-2. **Collection (`col`)**: Access to your cards, notes, decks and models
-   ```python
-   collection = mw.col
-   ```
+* `mw` (Main Window): The central object that provides access to the Anki application state
+* `QDialog`: A window that pops up over the main application window
 
-3. **Editor**: The interface for editing notes
-   ```python
-   from aqt.editor import Editor
-   ```
+#### Data & Logic Components
 
-4. **Reviewer**: Controls the card review process
-   ```python
-   from aqt.reviewer import Reviewer
-   ```
+* `Collection` (`col`): The fundamental database access layer for cards, notes, and models
 
-5. **Browser**: For searching and managing cards
-   ```python
-   from aqt.browser import Browser
-   ```
+#### Interactive Components
+
+* `Editor`: The interface for editing notes
+* `Reviewer`: Controls the card review process
+* `Browser`: For searching and managing cards
 
 ## Common Operations
 
-### Working with Notes and Cards
+#### Working with Notes and Cards
 ```python
 # Get all note IDs from a deck
 deck_name = "MyDeck"
@@ -43,7 +33,7 @@ note = mw.col.get_note(note_ids[0])
 print(note.fields)  # Access fields
 ```
 
-### Creating New Cards
+#### Creating New Cards
 ```python
 # Create a new note
 model = mw.col.models.by_name("Basic")
@@ -53,7 +43,7 @@ note.fields[1] = "Back text"
 mw.col.add_note(note, mw.col.decks.id("MyDeck"))
 ```
 
-### Modifying the UI
+#### Modifying the UI
 ```python
 from aqt.utils import showInfo
 from aqt.qt import QAction, qconnect
@@ -61,22 +51,6 @@ from aqt.qt import QAction, qconnect
 # Add a menu item
 action = QAction("My Add-on Action", mw)
 qconnect(action.triggered, lambda: showInfo("Hello from my add-on!"))
-mw.form.menuTools.addAction(action)
-```
-
-## Add-on Development Pattern
-```python
-from aqt import mw
-from aqt.utils import showInfo
-from aqt.qt import *
-
-def my_function():
-    # Your add-on functionality here
-    showInfo("Add-on was triggered!")
-
-# Create a menu action
-action = QAction("My Add-on", mw)
-qconnect(action.triggered, my_function)
 mw.form.menuTools.addAction(action)
 ```
 
