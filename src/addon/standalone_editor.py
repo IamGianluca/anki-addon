@@ -4,7 +4,7 @@ from aqt import mw
 from aqt.editor import Editor
 from aqt.qt import QDialog, QDialogButtonBox, QVBoxLayout, QWidget
 
-from .count_notes import is_note_marked_for_review
+from .note_counter import is_note_marked_for_review
 from .utils import ensure_collection
 
 

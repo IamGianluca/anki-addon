@@ -1,10 +1,10 @@
 from aqt import QAction, gui_hooks, mw, qconnect
 
-from .count_notes import (
+from .note_counter import (
     display_notes_marked_for_review_count,
 )
-from .edit_note import open_standalone_editor
-from .format_notes import add_custom_button
+from .standalone_editor import open_standalone_editor
+from .note_formatter import add_custom_button
 
 
 def setup_addon():
