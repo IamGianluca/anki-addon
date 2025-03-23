@@ -129,10 +129,20 @@ def open_standalone_editor() -> None:
             dialog.accept()
             mw.reset()
 
+    def cancel_handler() -> None:
+        # First discard any changes made to the note in the current editing
+        # session
+        reloaded_note = editor_state.current_note_backup()
+        reloaded_note.flush()
+
+        # Then close editor
+        dialog.reject()
+        mw.reset()
+
     # Connect the signals
     save_button.clicked.connect(save_handler)
     skip_button.clicked.connect(skip_handler)
-    cancel_button.clicked.connect(dialog.reject)
+    cancel_button.clicked.connect(cancel_handler)
 
     # Run as a "modal" dialog
     dialog.exec()
