@@ -33,7 +33,20 @@ class EditorDialog:
         return review_notes
 
     def current_note(self) -> Note:
-        return self.review_notes[self.current_index]
+        note = self.review_notes[self.current_index]
+
+        # Store fields and content for possible backup needs
+        self.original_fields = {}
+        for field_name in note.keys():
+            self.original_fields[field_name] = note[field_name]
+
+        return note
+
+    def current_note_backup(self) -> Note:
+        note = self.review_notes[self.current_index]
+        for field_name, original_content in self.original_fields.items():
+            note[field_name] = original_content
+        return note
 
     def has_next_note(self) -> bool:
         return self.current_index < len(self.review_notes) - 1
@@ -84,9 +97,9 @@ def open_standalone_editor() -> None:
 
     # Define our button handlers
     def save_handler() -> None:
-        editor.saveNow(lambda: after_save_complete())
+        editor.saveNow(lambda: after_save_complete_callback())
 
-    def after_save_complete() -> None:
+    def after_save_complete_callback() -> None:
         """Update the note in collection and close dialog."""
         # First save the current note
         current_note = editor_state.current_note()
@@ -102,6 +115,12 @@ def open_standalone_editor() -> None:
             mw.reset()
 
     def skip_handler() -> None:
+        # First discard any changes made to the note in the current editing
+        # session
+        reloaded_note = editor_state.current_note_backup()
+        reloaded_note.flush()
+
+        # Then handle navigation to next note
         if editor_state.has_next_note():
             next_note = editor_state.next_note()
             editor.setNote(next_note)
