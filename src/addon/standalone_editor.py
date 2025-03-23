@@ -9,9 +9,7 @@ from .utils import ensure_collection
 
 
 class EditorDialog:
-    """Manage the state of our editor session. For instance, iterating through
-    the collection of notes marked for review.
-    """
+    """Manage the state of the editor session."""
 
     def __init__(self, collection: Collection) -> None:
         self.col = collection
@@ -48,6 +46,7 @@ class EditorDialog:
 
 
 def open_standalone_editor() -> None:
+    """Create and manage the editor UI."""
     # Create a new window
     dialog = QDialog(mw)
     dialog.setWindowTitle("Standalone Editor")
@@ -85,8 +84,15 @@ def open_standalone_editor() -> None:
 
     # Define our button handlers
     def save_handler() -> None:
-        editor.saveNow(lambda: on_save_complete(editor_state.current_note()))
+        editor.saveNow(lambda: after_save_complete())
 
+    def after_save_complete() -> None:
+        """Update the note in collection and close dialog."""
+        # First save the current note
+        current_note = editor_state.current_note()
+        current_note.flush()
+
+        # Then handle navigation to next note
         if editor_state.has_next_note():
             next_note = editor_state.next_note()
             editor.setNote(next_note)
@@ -111,9 +117,3 @@ def open_standalone_editor() -> None:
 
     # Run as a "modal" dialog
     dialog.exec()
-
-
-def on_save_complete(note: Note) -> None:
-    """Update the note in collection and close dialog."""
-    note.flush()  # Saves the note changes to the database
-    mw.reset()  # Refresh main window to show updated card
