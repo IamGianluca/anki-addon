@@ -1,9 +1,11 @@
 from typing import Optional
+
 from anki.collection import Collection
 from anki.notes import Note
 from aqt import mw
 from aqt.editor import Editor
-from aqt.qt import QDialog, QHBoxLayout, QVBoxLayout, QWidget, QPushButton
+from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
+
 from .note_counter import is_note_marked_for_review
 from .utils import ensure_collection
 
