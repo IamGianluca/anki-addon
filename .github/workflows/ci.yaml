@@ -25,7 +25,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install the project
-        run: uv sync --all-extras --dev
+        run: make install
 
       - name: Run test suite
-        run: uv run make test
+        run: make test
