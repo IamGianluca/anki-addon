@@ -1,4 +1,4 @@
-from src.addon.standalone_editor import EditorDialog
+from addon.standalone_editor import EditorDialog
 
 
 def test_init_editor_dialog(mw, collection):
