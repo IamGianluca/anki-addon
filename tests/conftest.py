@@ -50,7 +50,7 @@ def collection(note1, note2, note3):
     return collection
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def mw(monkeypatch, collection):
     fake_mw = FakeMainWindow(collection)
     monkeypatch.setattr("aqt.mw", fake_mw)

@@ -20,9 +20,9 @@ def display_notes_marked_for_review_count() -> None:
 
 
 def is_note_marked_for_review(note_id: int) -> bool:
-    # NOTE: Flags are assigned to cards, not notes. For this reason, we are iterating
-    # through the cards associated to a note to find if any of them has an orange (id=2)
-    # flag
+    # NOTE: Flags are assigned to cards, not notes. For this reason, we are
+    # iterating through the cards associated to a note to find if any of them
+    # has an orange (id=2) flag
     col = ensure_collection(mw.col)
     card_ids = col.find_cards(f"nid:{note_id}")
     for card_id in card_ids:

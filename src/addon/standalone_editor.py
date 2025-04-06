@@ -24,8 +24,8 @@ class EditorDialog:
         deck_id = self.col.decks.current()["id"]
         query = f"did:{deck_id}"
         note_ids = self.col.find_notes(query)
-        review_notes = []
 
+        review_notes = []
         for note_id in note_ids:
             if is_note_marked_for_review(note_id):
                 review_notes.append(self.col.get_note(note_id))

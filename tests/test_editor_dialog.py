@@ -1,7 +1,10 @@
+import sys
+import pytest
 from addon.standalone_editor import EditorDialog
+from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 
-def test_init_editor_dialog(mw, collection):
+def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
     """Test initializing EditorDialog with notes marked for review"""
     # When
     editor_dialog = EditorDialog(collection)
@@ -13,17 +16,32 @@ def test_init_editor_dialog(mw, collection):
     assert editor_dialog.current_index == 0
 
 
-# def test_init_no_notes():
-#     """Test initializing EditorDialog with no notes marked for review"""
-#     collection = FakeCollection()
-#     is_marked_for_review = lambda note_id: False
-#
-#     with pytest.raises(ValueError) as excinfo:
-#         EditorDialog(collection)
-#
-#     assert "No notes marked for review" in str(excinfo.value)
-#
-#
+def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
+    """Test initializing EditorDialog with no notes marked for review"""
+    # Given
+    collection = FakeCollection()
+    note = FakeNote(
+        1,
+        {
+            "Front": "Question 1",
+            "Back": "Answer 1",
+        },
+    )
+    collection.notes = {1: note}
+
+    fake_mw = FakeMainWindow(collection)
+    monkeypatch.setattr("aqt.mw", fake_mw)
+    for name, module in list(sys.modules.items()):
+        if hasattr(module, "mw"):
+            monkeypatch.setattr(f"{name}.mw", fake_mw)
+
+    # When and Then
+    with pytest.raises(ValueError) as exc_info:
+        EditorDialog(collection)  # type: ignore
+
+    assert "No notes marked for review" in str(exc_info.value)
+
+
 # def test_current_note(collection):
 #     """Test current_note retrieves correct note and stores original fields"""
 #     collection, is_marked_for_review = collection
