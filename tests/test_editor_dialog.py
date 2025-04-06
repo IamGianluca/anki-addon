@@ -5,7 +5,9 @@ from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 
 def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
-    """Test initializing EditorDialog with notes marked for review"""
+    """EditorDialog is correctly initialized with three notes, two of them
+    marked for review.
+    """
     # When
     editor_dialog = EditorDialog(collection)
 
@@ -17,7 +19,9 @@ def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
 
 
 def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
-    """Test initializing EditorDialog with no notes marked for review"""
+    """EditorDialog raises an error if initialized without any card marked
+    for review.
+    """
     # Given
     collection = FakeCollection()
     note = FakeNote(
