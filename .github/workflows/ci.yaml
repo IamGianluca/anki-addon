@@ -27,5 +27,5 @@ jobs:
       - name: Install the project
         run: uv sync --all-extras --dev
 
-      - name: Run tests
-        run: uv run make tests
+      - name: Run test suite
+        run: uv run make test
