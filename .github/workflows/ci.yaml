@@ -19,6 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install system dependencies for PyQt
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libxkbcommon-x11-0 libxcb-icccm4 \
+            libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 \
+            libxcb-xinerama0 libxcb-xkb1 x11-utils libegl1
+
       - name: Install uv and set up the python version
         uses: astral-sh/setup-uv@v5
         with:
@@ -27,5 +34,8 @@ jobs:
       - name: Install the project
         run: uv run make install
 
-      - name: Run test suite
-        run: uv run make test
+      - name: Run test suite with Xvfb
+        run: |
+          xvfb-run --auto-servernum uv run make test
+        env:
+          QT_QPA_PLATFORM: offscreen
