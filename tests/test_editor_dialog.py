@@ -103,22 +103,24 @@ def test_has_next_note(mw, collection):
     assert editor_dialog.has_next_note() is False
 
 
-# def test_next_note(collection):
-#     """Test next_note advances to the next note correctly"""
-#     collection, is_marked_for_review = collection
-#     editor_dialog = EditorDialog(collection)
-#
-#     next_note = editor_dialog.next_note()
-#
-#     assert editor_dialog.current_index == 1
-#     assert next_note.id == 3
-#     assert next_note["Front"] == "Question 3"
-#
-#     # No more notes after this
-#     assert editor_dialog.next_note() is None
-#     assert editor_dialog.current_index == 1  # Index doesn't change when no more notes
-#
-#
+def test_next_note(mw, collection):
+    """Test next_note() advances to the next note correctly"""
+    # Given
+    editor_dialog = EditorDialog(collection)
+
+    # When
+    next_note = editor_dialog.next_note()
+
+    # Then
+    assert next_note is not None
+    assert next_note.id == 3
+    assert next_note["Front"] == "Question 3"
+
+    assert editor_dialog.current_index == 1
+    assert editor_dialog.next_note() is None
+    assert editor_dialog.current_index == 1  # Index doesn't change when no more notes
+
+
 # def test_flush_on_restore(collection):
 #     """Test that flush is called when restoring a note"""
 #     collection, is_marked_for_review = collection
