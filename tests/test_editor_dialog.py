@@ -88,19 +88,21 @@ def test_restore_note_to_original(mw, collection):
     assert restored_note["Back"] == "Answer 1"
 
 
-# def test_has_next_note(collection):
-#     """Test has_next_note returns correct value"""
-#     collection, is_marked_for_review = collection
-#     editor_dialog = EditorDialog(collection)
-#
-#     assert editor_dialog.has_next_note() is True
-#
-#     # Move to the last note
-#     editor_dialog.current_index = 1
-#
-#     assert editor_dialog.has_next_note() is False
-#
-#
+def test_has_next_note(mw, collection):
+    """Test has_next_note() returns correct value"""
+    # Given
+    editor_dialog = EditorDialog(collection)
+
+    # Then
+    assert editor_dialog.has_next_note() is True
+
+    # When
+    editor_dialog.current_index = 1  # There are only two notes flagged for review
+
+    # Then
+    assert editor_dialog.has_next_note() is False
+
+
 # def test_next_note(collection):
 #     """Test next_note advances to the next note correctly"""
 #     collection, is_marked_for_review = collection
