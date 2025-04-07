@@ -48,22 +48,26 @@ def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
     assert "No notes marked for review" in str(exc_info.value)
 
 
-# def test_current_note(collection):
-#     """Test current_note retrieves correct note and stores original fields"""
-#     collection, is_marked_for_review = collection
-#     editor_dialog = EditorDialog(collection)
-#
-#     note = editor_dialog.current_note()
-#
-#     assert note.id == 1
-#     assert note["Front"] == "Question 1"
-#     assert note["Back"] == "Answer 1"
-#     assert editor_dialog.original_fields == {
-#         "Front": "Question 1",
-#         "Back": "Answer 1",
-#     }
-#
-#
+def test_current_note(mw, collection):
+    """Test current_note() retrieves correct note and creates backup of
+    original fields.
+    """
+    # Given
+    editor_dialog = EditorDialog(collection)
+
+    # When
+    note = editor_dialog.current_note()
+
+    # Then
+    assert note.id == 1
+    assert note["Front"] == "Question 1"
+    assert note["Back"] == "Answer 1"
+    assert editor_dialog.original_fields == {
+        "Front": "Question 1",
+        "Back": "Answer 1",
+    }
+
+
 # def test_restore_note_to_original(collection):
 #     """Test restoring note fields to original values"""
 #     collection, is_marked_for_review = collection
