@@ -21,8 +21,6 @@ def note3():
 @pytest.fixture
 def collection(note1, note2, note3):
     collection = FakeCollection()
-
-    # Add notes to collection
     collection.notes = {1: note1, 2: note2, 3: note3}
 
     # Create cards for each note
@@ -129,11 +127,3 @@ class FakeCard:
         self.id = card_id
         self.note_id = note_id
         self.flags = flags
-
-
-# class FakeMarkReviewStatus:
-#     def __init__(self, marked_ids):
-#         self.marked_ids = marked_ids
-#
-#     def is_marked_for_review(self, note_id):
-#         return note_id in self.marked_ids
