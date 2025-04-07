@@ -68,26 +68,26 @@ def test_current_note(mw, collection):
     }
 
 
-# def test_restore_note_to_original(collection):
-#     """Test restoring note fields to original values"""
-#     collection, is_marked_for_review = collection
-#     editor_dialog = EditorDialog(collection)
-#
-#     # First get the current note to store original values
-#     note = editor_dialog.current_note()
-#
-#     # Modify the note
-#     note["Front"] = "Modified Question"
-#     note["Back"] = "Modified Answer"
-#
-#     # Restore to original
-#     restored_note = editor_dialog.restore_note_to_original()
-#
-#     assert restored_note.id == 1
-#     assert restored_note["Front"] == "Question 1"
-#     assert restored_note["Back"] == "Answer 1"
-#
-#
+def test_restore_note_to_original(mw, collection):
+    """Test restoring note fields to original values"""
+    # Given
+    editor_dialog = EditorDialog(collection)
+    note = editor_dialog.current_note()
+
+    # Modify the note
+    note["Front"] = "Modified Question"
+    note["Back"] = "Modified Answer"
+
+    # When
+    editor_dialog.restore_note_to_original()
+    restored_note = editor_dialog.current_note()
+
+    # Then
+    assert restored_note.id == 1
+    assert restored_note["Front"] == "Question 1"
+    assert restored_note["Back"] == "Answer 1"
+
+
 # def test_has_next_note(collection):
 #     """Test has_next_note returns correct value"""
 #     collection, is_marked_for_review = collection

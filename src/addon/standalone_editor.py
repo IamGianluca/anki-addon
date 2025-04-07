@@ -59,6 +59,10 @@ class EditorDialog:
             return self.review_notes[self.current_index]
         return None
 
+    def restore_note_to_original(self) -> None:
+        reloaded_note = self.current_note_backup()
+        reloaded_note.flush()
+
 
 def open_standalone_editor() -> None:
     """Create and manage the editor UI."""
@@ -117,10 +121,8 @@ def open_standalone_editor() -> None:
             mw.reset()
 
     def skip_handler() -> None:
-        # First discard any changes made to the note in the current editing
-        # session
-        reloaded_note = editor_state.current_note_backup()
-        reloaded_note.flush()
+        # Discard any changes made to the note in the current editing session
+        editor_state.restore_note_to_original()
 
         # Then handle navigation to next note
         if editor_state.has_next_note():
@@ -132,10 +134,8 @@ def open_standalone_editor() -> None:
             mw.reset()
 
     def cancel_handler() -> None:
-        # First discard any changes made to the note in the current editing
-        # session
-        reloaded_note = editor_state.current_note_backup()
-        reloaded_note.flush()
+        # Discard any changes made to the note in the current editing session
+        editor_state.restore_note_to_original()
 
         # Then close editor
         dialog.reject()
