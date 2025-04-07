@@ -119,21 +119,3 @@ def test_next_note(mw, collection):
     assert editor_dialog.current_index == 1
     assert editor_dialog.next_note() is None
     assert editor_dialog.current_index == 1  # Index doesn't change when no more notes
-
-
-# def test_flush_on_restore(collection):
-#     """Test that flush is called when restoring a note"""
-#     collection, is_marked_for_review = collection
-#     editor_dialog = EditorDialog(collection)
-#
-#     # First get the current note to store original values
-#     note = editor_dialog.current_note()
-#
-#     # Modify the note
-#     note["Front"] = "Modified Question"
-#
-#     # Restore to original and flush
-#     restored_note = editor_dialog.restore_note_to_original()
-#     restored_note.flush()
-#
-#     assert restored_note.flushed is True
