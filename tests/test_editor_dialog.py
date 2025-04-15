@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-from addon.standalone_editor import EditorDialog
+from addon.editor import EditorDialog
 from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 
