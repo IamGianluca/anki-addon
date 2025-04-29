@@ -11,12 +11,18 @@ from .utils import ensure_collection
 
 
 class EditorDialog:
-    """Manage the state of the editor session."""
+    """The EditorDialog class manages the state of editing sessions:
+
+    - It retrieves all notes from the current deck that are marked for review
+    - It keeps track of which note is currently being edited
+    - It provides methods to navigate between notes, backup original content,
+      and restore notes to their original state
+    """
 
     def __init__(self, collection: Collection) -> None:
         self.col = collection
         self.review_notes = self.get_all_notes_to_review()
-        self.current_index = 0
+        self._current_index = 0
 
         if not self.review_notes:
             raise ValueError("No notes marked for review")
@@ -35,7 +41,7 @@ class EditorDialog:
         return review_notes
 
     def current_note(self) -> Note:
-        note = self.review_notes[self.current_index]
+        note = self.review_notes[self._current_index]
 
         # Store fields and content for possible backup needs
         self.original_fields = {}
@@ -45,27 +51,42 @@ class EditorDialog:
         return note
 
     def current_note_backup(self) -> Note:
-        note = self.review_notes[self.current_index]
+        note = self.review_notes[self._current_index]
         for field_name, original_content in self.original_fields.items():
             note[field_name] = original_content
         return note
 
     def has_next_note(self) -> bool:
-        return self.current_index < len(self.review_notes) - 1
+        return self._current_index < len(self.review_notes) - 1
 
     def next_note(self) -> Optional[Note]:
         if self.has_next_note():
-            self.current_index += 1
-            return self.review_notes[self.current_index]
+            self._current_index += 1
+            return self.review_notes[self._current_index]
         return None
 
     def restore_note_to_original(self) -> None:
         reloaded_note = self.current_note_backup()
         reloaded_note.flush()
 
+    def strip_orange_flag(self, current_note: Note) -> Note:
+        card_ids = self.col.find_cards(f"nid:{current_note.id}")
+        for card_id in card_ids:
+            card = self.col.get_card(card_id)
+            if card.flags == 2:
+                card.flags = 0
+                card.flush()
+        return current_note
+
 
 def open_standalone_editor() -> None:
-    """Create and manage the editor UI."""
+    """The open_standalone_editor() function creates the actual user interface:
+
+    - It creates a dialog window with an Anki editor widget
+    - It adds buttons for saving changes, skipping to the next note, or
+      canceling the editing session
+    - It implements handlers for each button's functionality
+    """
     # Create a new window
     dialog = QDialog(mw)
     dialog.setWindowTitle("Standalone Editor")
@@ -109,6 +130,7 @@ def open_standalone_editor() -> None:
         """Update the note in collection and close dialog."""
         # First save the current note
         current_note = editor_state.current_note()
+        current_note = editor_state.strip_orange_flag(current_note)
         current_note.flush()
 
         # Then handle navigation to next note

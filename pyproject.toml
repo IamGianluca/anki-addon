@@ -8,6 +8,7 @@ dependencies = [
     "aqt>=24.11",
     "pyqt6>=6.8.1",
     "pyqt6-webengine>=6.8.0",
+    "requests>=2.32.3",
 ]
 
 [tool.uv]

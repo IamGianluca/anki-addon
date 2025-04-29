@@ -13,6 +13,7 @@ wheels/
 .venv
 
 # Secrets
+.env
 .envrc
 
 # MacOS

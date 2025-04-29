@@ -17,7 +17,7 @@ def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
     assert len(editor_dialog.review_notes) == 2
     assert editor_dialog.review_notes[0].id == 1
     assert editor_dialog.review_notes[1].id == 3
-    assert editor_dialog.current_index == 0
+    assert editor_dialog._current_index == 0
 
 
 def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
@@ -97,7 +97,7 @@ def test_has_next_note(mw, collection):
     assert editor_dialog.has_next_note() is True
 
     # When
-    editor_dialog.current_index = 1  # There are only two notes flagged for review
+    editor_dialog._current_index = 1  # There are only two notes flagged for review
 
     # Then
     assert editor_dialog.has_next_note() is False
@@ -116,6 +116,42 @@ def test_next_note(mw, collection):
     assert next_note.id == 3
     assert next_note["Front"] == "Question 3"
 
-    assert editor_dialog.current_index == 1
+    assert editor_dialog._current_index == 1
     assert editor_dialog.next_note() is None
-    assert editor_dialog.current_index == 1  # Index doesn't change when no more notes
+    assert editor_dialog._current_index == 1  # Index doesn't change when no more notes
+
+
+def test_orange_flag_is_removed_after_saving_changes(mw, collection):
+    """After making changes to a note and pressing `Save` in the editor, the
+    orange flag should be remove in each card of that note.
+    """
+    # Given
+    editor_dialog = EditorDialog(collection)
+    current_note = editor_dialog.current_note()
+
+    # Then
+    card_ids = mw.col.find_cards(f"nid:{current_note.id}")
+    for card_id in card_ids:
+        card = mw.col.get_card(card_id)
+        assert card.flags == 2 and not card.was_flushed()
+
+    # When
+    editor_dialog.strip_orange_flag(current_note)
+
+    # Then
+    for card_id in card_ids:
+        card = mw.col.get_card(card_id)
+        assert card.flags != 2 and card.was_flushed()
+
+
+"""
+EditorDialog is controlled by the open_standalone_editor() function. We need
+to find a good way to test such function, and specifically the user behavior, 
+like Skipping, Saving, and Cancelling.
+
+Test: 
+1. Save changes to one note (which will move the UI to the next note
+2. Press Cancel
+Assert content in Note 1 and Note 2. It seems that Note 2 inherits the content
+of Note 1.
+"""

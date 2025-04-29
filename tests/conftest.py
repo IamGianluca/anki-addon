@@ -102,12 +102,16 @@ class FakeDeckManager:
 
 
 class FakeNote:
+    """A simplified version of Anki's Note class for testing purposes.
+    Only implements the essential functionality needed for basic operations.
+    """
+
     def __init__(self, note_id, fields=None):
         self.id = note_id
         self._fields = fields or {}
         self.model = {"flds": [{"name": k} for k in self._fields.keys()]}
         self.tags = []
-        self.flushed = False
+        self._was_flushed = False
 
     def keys(self):
         return self._fields.keys()
@@ -118,12 +122,29 @@ class FakeNote:
     def __setitem__(self, key, value):
         self._fields[key] = value
 
-    def flush(self):
-        self.flushed = True
+    def flush(self) -> None:
+        self._was_flushed = True
+
+    # Helper method for testing
+    def was_flushed(self) -> bool:
+        return self._was_flushed
 
 
 class FakeCard:
-    def __init__(self, card_id, note_id, flags=0):
+    """A simplified version of Anki's Card class for testing purposes.
+    Only implements the essential functionality needed for basic operations.
+    """
+
+    def __init__(self, card_id, note_id, flags=0) -> None:
         self.id = card_id
         self.note_id = note_id
         self.flags = flags
+        self._was_flushed = False
+
+    def flush(self) -> None:
+        """Simulate saving the card to the database"""
+        self._was_flushed = True
+
+    # Helper method for testing
+    def was_flushed(self) -> bool:
+        return self._was_flushed
