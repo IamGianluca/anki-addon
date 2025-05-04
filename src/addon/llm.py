@@ -9,7 +9,7 @@ class OpenAIClient:
         return OpenAIClient(requests)
 
     @staticmethod
-    def create_nullable(responses=["ciao"]):
+    def create_nullable(responses: list[str]):
         def _format_response_as_openai_api(response: str) -> dict:
             return {
                 "choices": [{"text": response, "index": 0, "finish_reason": "length"}],

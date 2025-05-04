@@ -39,3 +39,6 @@ jobs:
           xvfb-run --auto-servernum uv run make test
         env:
           QT_QPA_PLATFORM: offscreen
+          OPENAI_HOST: localhost
+          OPENAI_PORT: 5000
+          OPENAI_MODEL: test-model
