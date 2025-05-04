@@ -1,13 +1,14 @@
-from addon.llm import FakeLLM
+from addon.llm import OpenAIClient
 
 
 def test_llm_engine_collab():
     # Given
-    llm = FakeLLM()
-    prompt = "Respond with one word. The Italian word for Hello is: "
+    expected = "ciao"
+    openai_client = OpenAIClient.create_nullable([expected])
+    prompt = "What is the Italian word for hello?"
 
     # When
-    result = llm.run(prompt)
+    result = openai_client.run(prompt)
 
     # Then
-    assert result == "ciao"
+    assert result == expected
