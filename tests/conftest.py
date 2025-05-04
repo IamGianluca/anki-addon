@@ -1,7 +1,8 @@
 import sys
 
 import pytest
-from .fakes.aqt_fakes import FakeMainWindow, FakeCollection, FakeCard, FakeNote
+
+from .fakes.aqt_fakes import FakeCard, FakeCollection, FakeMainWindow, FakeNote
 
 
 @pytest.fixture
