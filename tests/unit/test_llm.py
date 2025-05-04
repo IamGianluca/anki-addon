@@ -1,13 +1,13 @@
-from addon.llm import LLM
+from addon.llm import FakeLLM
 
 
 def test_llm_engine_collab():
     # Given
-    llm = LLM()
+    llm = FakeLLM()
     prompt = "Respond with one word. The Italian word for Hello is: "
 
     # When
     result = llm.run(prompt)
 
     # Then
-    assert result == " Ciao"
+    assert result == "ciao"

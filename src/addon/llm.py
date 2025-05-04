@@ -1,5 +1,10 @@
 import os
+from typing import Protocol
 import requests
+
+
+class Model(Protocol):
+    def run(self, prompt: str) -> str: ...
 
 
 class LLM:
@@ -19,3 +24,8 @@ class LLM:
 
         response = requests.post(self.url, json=data)
         return response.json()["choices"][0]["text"]
+
+
+class FakeLLM:
+    def run(self, prompt: str) -> str:
+        return "ciao"
