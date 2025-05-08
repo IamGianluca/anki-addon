@@ -5,7 +5,11 @@ install:
 	uv pip install -e . 
 
 test:
-	python -m pytest ./tests/ -vv
+	pytest . -m "not slow" --ignore=tests/integration/ --durations=5 --cov=src/addon/ --cov-report term-missing -vv
+
+test_slow:
+	pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
+
 
 check: format lint
 

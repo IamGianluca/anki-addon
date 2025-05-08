@@ -21,3 +21,16 @@ dev-dependencies = [
 
 [tool.pyright] 
 typeCheckingMode = "standard"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = [
+    "*.egg-info",
+    ".*",
+    "build",
+    "dist",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
