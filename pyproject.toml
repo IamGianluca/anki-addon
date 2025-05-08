@@ -18,3 +18,6 @@ dev-dependencies = [
     "ruff>=0.9.5",
     "ipdb>=0.13.13",
 ]
+
+[tool.pyright] 
+typeCheckingMode = "standard"
