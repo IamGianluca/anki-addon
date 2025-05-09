@@ -1,12 +1,18 @@
 import os
+from pathlib import Path
 
 from aqt import mw
 from aqt.editor import Editor
 from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import askUser, tooltip
 
-from addon.domain.models.editor import EditorDialog
-from addon.utils import ensure_collection, ensure_note
+from ..application.services.ai_completion_service import (
+    AICompletionService,
+    format_note_using_llm,
+)
+from ..domain.models.editor import EditorDialog
+from ..infrastructure.openai import OpenAIClient
+from ..utils import ensure_collection, ensure_note
 
 
 def open_standalone_editor() -> None:
@@ -104,7 +110,7 @@ def open_standalone_editor() -> None:
 
 def add_custom_button(buttons, editor: Editor):
     """Add button to retrieve AI suggestions to Editor."""
-    addon_dir = os.path.dirname(__file__)
+    addon_dir = Path(__file__).parents[1]
     icon_path = os.path.join(addon_dir, "imgs", "ai-icon.png")
     button = editor.addButton(
         icon=icon_path,
@@ -125,11 +131,10 @@ def on_custom_action(editor: Editor):
         original_fields[field_name] = note[field_name]
 
     # Convert front and back of the note to lowercase
-    # TODO: Call LLM to improve note
-    for field_name in note.keys():
-        current_content = note[field_name]
-        transformed_content = current_content.lower()
-        note[field_name] = transformed_content
+    # TODO: instantiater openai and completer higher in the stack
+    openai = OpenAIClient.create()
+    completer = AICompletionService(openai)
+    note = format_note_using_llm(note, completer)
 
     # Update the editor display to show the changes
     editor.loadNote()

@@ -1,7 +1,7 @@
 from aqt import mw
 from aqt.utils import showInfo
 
-from addon.utils import ensure_collection
+from ..utils import ensure_collection
 
 
 def display_notes_marked_for_review_count() -> None:
@@ -27,6 +27,8 @@ def is_note_marked_for_review(note_id: int) -> bool:
     card_ids = col.find_cards(f"nid:{note_id}")
     for card_id in card_ids:
         card = col.get_card(card_id)
-        if card.flags == 2:  # orange flag, our convention to mark a note for review
+        if (
+            card.flags == 2
+        ):  # orange flag, our convention to mark a note for review
             return True
     return False

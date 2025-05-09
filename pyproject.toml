@@ -22,6 +22,9 @@ dev-dependencies = [
 [tool.pyright] 
 typeCheckingMode = "standard"
 
+[tool.ruff]
+line-length = 79
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = [

@@ -3,7 +3,10 @@ from aqt import QAction, QKeySequence, gui_hooks, mw, qconnect
 from .application.note_counter import (
     display_notes_marked_for_review_count,
 )
-from .application.note_formatter import add_custom_button, open_standalone_editor
+from .application.note_formatter import (
+    add_custom_button,
+    open_standalone_editor,
+)
 
 
 def setup_addon():

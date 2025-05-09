@@ -97,7 +97,9 @@ def test_has_next_note(mw, collection):
     assert editor_dialog.has_next_note() is True
 
     # When
-    editor_dialog._current_index = 1  # There are only two notes flagged for review
+    editor_dialog._current_index = (
+        1  # There are only two notes flagged for review
+    )
 
     # Then
     assert editor_dialog.has_next_note() is False
@@ -118,7 +120,9 @@ def test_next_note(mw, collection):
 
     assert editor_dialog._current_index == 1
     assert editor_dialog.next_note() is None
-    assert editor_dialog._current_index == 1  # Index doesn't change when no more notes
+    assert (
+        editor_dialog._current_index == 1
+    )  # Index doesn't change when no more notes
 
 
 def test_orange_flag_is_removed_after_saving_changes(mw, collection):

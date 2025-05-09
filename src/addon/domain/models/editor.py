@@ -3,7 +3,7 @@ from typing import Optional
 from anki.collection import Collection
 from anki.notes import Note
 
-from addon.application.note_counter import is_note_marked_for_review
+from ...application.note_counter import is_note_marked_for_review
 
 
 class EditorDialog:
