@@ -13,10 +13,16 @@ export OPENAI_MODEL=your_llm_model
 
 # Structure
 
+This projects tries to adopt a Domain-Driven Design, and the project structure reflects this decision, with a clear separation between domain, application, and infrastructure layers.
+
 ```
-src/addon/
-├── domain/           # Core domain models, entities, value objects
-├── application/      # Application services, use cases
-├── infrastructure/   # External systems adapters, repositories
-...
+addon/
+├── domain/            # Core domain models, entities, value objects
+│   ├── models/
+│   └── services/
+├── application/       # Application services, use cases
+│   └── services/
+└── infrastructure/    # External systems adapters, repositories
+    ├── adapters/
+    └── repositories/
 ```

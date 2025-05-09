@@ -5,7 +5,7 @@ from aqt.editor import Editor
 from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import askUser, tooltip
 
-from addon.domain.editor import EditorDialog
+from addon.domain.models.editor import EditorDialog
 from addon.utils import ensure_collection, ensure_note
 
 
