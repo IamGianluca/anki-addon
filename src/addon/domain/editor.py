@@ -6,8 +6,8 @@ from aqt import mw
 from aqt.editor import Editor
 from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 
-from .note_counter import is_note_marked_for_review
-from .utils import ensure_collection
+from ..application.note_counter import is_note_marked_for_review
+from ..utils import ensure_collection
 
 
 class EditorDialog:

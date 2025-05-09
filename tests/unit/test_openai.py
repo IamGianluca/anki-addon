@@ -1,4 +1,4 @@
-from addon.llm import OpenAIClient
+from addon.infrastructure.openai import OpenAIClient
 
 
 def test_llm_engine_collab():

@@ -1,6 +1,6 @@
 import pytest
 
-from addon.llm import OpenAIClient
+from addon.infrastructure.openai import OpenAIClient
 
 
 @pytest.mark.slow

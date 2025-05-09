@@ -3,7 +3,7 @@ import os
 from aqt.editor import Editor
 from aqt.utils import askUser, tooltip
 
-from .utils import ensure_collection, ensure_note
+from ..utils import ensure_collection, ensure_note
 
 
 def add_custom_button(buttons, editor: Editor):
