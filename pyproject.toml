@@ -19,9 +19,6 @@ dev-dependencies = [
     "ipdb>=0.13.13",
 ]
 
-[tool.pyright] 
-typeCheckingMode = "standard"
-
 [tool.ruff]
 line-length = 79
 
