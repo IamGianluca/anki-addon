@@ -3,7 +3,12 @@ A simple plugin to refactor notes in Anki with the help of LLMs.
 
 # Usage
 
-To use the plugin, you must set the following environment variables.
+After adding the addon to your addon folder, start `anki`. You will need to go to `Tools > Addons`, select the plugin, and then `Config`. There you will need to fill the necessary secrets to connect to the OpenAI-compatible inference server. 
+
+# Contributing
+
+To run the test suite, you must first set the following environment variables:
+
 ```bash
 export OPENAI_HOST=your_host_url
 export OPENAI_PORT=your_host_port

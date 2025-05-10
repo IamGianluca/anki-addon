@@ -15,6 +15,7 @@ wheels/
 # Secrets
 .env
 .envrc
+meta.json
 
 # MacOS
 .DS_Store
