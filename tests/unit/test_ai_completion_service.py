@@ -32,7 +32,3 @@ def test_format_note_using_llm(note1):
     # Then
     assert result["Front"] == expected_front
     assert result["Back"] == expected_back
-
-
-def test_format_note_does_not_change_in_place_existing_note():
-    pass

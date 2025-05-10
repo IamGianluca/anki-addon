@@ -130,8 +130,10 @@ def on_custom_action(editor: Editor):
     for field_name in note.keys():
         original_fields[field_name] = note[field_name]
 
-    # Convert front and back of the note to lowercase
-    # TODO: instantiater openai and completer higher in the stack
+    # NOTE: At the moment, we are only using the LLM to convert the front and
+    # back of the note to lowercase
+    # TODO: instantiate OpenAI and completer only once, and outside of this
+    # function
     openai = OpenAIClient.create()
     completer = AICompletionService(openai)
     note = format_note_using_llm(note, completer)
