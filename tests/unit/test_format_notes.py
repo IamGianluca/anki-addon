@@ -1,14 +1,15 @@
 from anki.notes import Note
 
-from addon.application.services.ai_completion_service import (
+from addon.application.services.completion_service import (
     CompletionService,
     format_note,
 )
-from addon.infrastructure.openai import AddonConfig, OpenAIClient
+from addon.infrastructure.aqt import AddonConfig
+from addon.infrastructure.openai import OpenAIClient
 from tests.fakes.aqt_fakes import FakeNote
 
 
-def test_ai_completion_service():
+def test_completion_service():
     # Given
     expected = "fake response"
     config = AddonConfig.create_nullable()
@@ -16,7 +17,7 @@ def test_ai_completion_service():
     completion = CompletionService(openai)
 
     # When
-    result = completion.generate_completion("fake prompt")
+    result = completion.generate("fake prompt")
 
     # Then
     assert result.text == expected
