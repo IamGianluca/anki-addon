@@ -5,6 +5,12 @@ from anki.decks import DeckDict
 from anki.notes import Note
 
 
+def ensure_config(config: Optional[dict]) -> dict:
+    if config is None:
+        raise RuntimeError("Config not initialized")
+    return config
+
+
 def ensure_collection(col: Optional[Collection]) -> Collection:
     if col is None:
         raise RuntimeError("Collection not initialized")

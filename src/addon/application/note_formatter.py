@@ -11,7 +11,7 @@ from ..application.services.ai_completion_service import (
     format_note_using_llm,
 )
 from ..domain.models.editor import EditorDialog
-from ..infrastructure.openai import OpenAIClient
+from ..infrastructure.openai import LLMProviderConfig, OpenAIClient
 from ..utils import ensure_collection, ensure_note
 
 
@@ -134,7 +134,8 @@ def on_custom_action(editor: Editor):
     # back of the note to lowercase
     # TODO: instantiate OpenAI and completer only once, and outside of this
     # function
-    openai = OpenAIClient.create()
+    config = LLMProviderConfig.create(mw)
+    openai = OpenAIClient.create(config)
     completer = AICompletionService(openai)
     note = format_note_using_llm(note, completer)
 

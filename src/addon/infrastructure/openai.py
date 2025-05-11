@@ -2,14 +2,41 @@ import os
 
 import requests
 
+from ..utils import ensure_config
+
+
+class LLMProviderConfig:
+    """An infrastructure wrapper for Anki's configuration system."""
+
+    @staticmethod
+    def create(mw):
+        c: dict = ensure_config(mw.addonManager.getConfig("anki-addon"))
+        config = dict()
+        config["host"] = c.get("openai_host")
+        config["port"] = c.get("openai_port")
+        config["model_name"] = c.get("openai_model")
+        return LLMProviderConfig(config)
+
+    @staticmethod
+    def create_nullable():
+        config = dict()
+        config["host"] = os.environ.get("OPENAI_HOST")
+        config["port"] = os.environ.get("OPENAI_PORT")
+        config["model_name"] = os.environ.get("OPENAI_MODEL")
+        return LLMProviderConfig(config)
+
+    def __init__(self, config) -> None:
+        self.url = f"http://{config['host']}:{config['port']}/v1/completions"
+        self.model_name = config["model_name"]
+
 
 class OpenAIClient:
     @staticmethod
-    def create():
-        return OpenAIClient(requests)
+    def create(config: LLMProviderConfig):
+        return OpenAIClient(config, requests)
 
     @staticmethod
-    def create_nullable(responses: list[str]):
+    def create_nullable(config: LLMProviderConfig, responses: list[str]):
         def _format_response_as_openai_api(response: str) -> dict:
             return {
                 "choices": [
@@ -24,14 +51,12 @@ class OpenAIClient:
             }
 
         r = [_format_response_as_openai_api(res) for res in responses]
-        return OpenAIClient(OpenAIClient.StubbedRequests(r))
+        return OpenAIClient(config, OpenAIClient.StubbedRequests(r))
 
-    def __init__(self, http_client) -> None:
+    def __init__(self, config, http_client) -> None:
         self._http_client = http_client
-        host = os.environ.get("OPENAI_HOST")
-        port = os.environ.get("OPENAI_PORT")
-        self.url = f"http://{host}:{port}/v1/completions"
-        self.model = os.environ.get("OPENAI_MODEL")
+        self.url = config.url
+        self.model = config.model_name
 
     def run(self, prompt: str) -> str:
         data = {
