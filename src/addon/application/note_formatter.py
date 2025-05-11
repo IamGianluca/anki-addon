@@ -7,11 +7,11 @@ from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import askUser, tooltip
 
 from ..application.services.ai_completion_service import (
-    AICompletionService,
-    format_note_using_llm,
+    CompletionService,
+    format_note,
 )
 from ..domain.models.editor import EditorDialog
-from ..infrastructure.openai import LLMProviderConfig, OpenAIClient
+from ..infrastructure.openai import AddonConfig, OpenAIClient
 from ..utils import ensure_collection, ensure_note
 
 
@@ -134,10 +134,10 @@ def on_custom_action(editor: Editor):
     # back of the note to lowercase
     # TODO: instantiate OpenAI and completer only once, and outside of this
     # function
-    config = LLMProviderConfig.create(mw)
+    config = AddonConfig.create(mw)
     openai = OpenAIClient.create(config)
-    completer = AICompletionService(openai)
-    note = format_note_using_llm(note, completer)
+    completer = CompletionService(openai)
+    note = format_note(note, completer)
 
     # Update the editor display to show the changes
     editor.loadNote()

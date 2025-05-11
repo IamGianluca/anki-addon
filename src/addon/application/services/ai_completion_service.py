@@ -6,7 +6,7 @@ from ...domain.models.completion_result import CompletionResult
 from ...infrastructure.openai import OpenAIClient
 
 
-class AICompletionService:
+class CompletionService:
     def __init__(self, client: OpenAIClient):
         self._client = client
 
@@ -20,9 +20,7 @@ class AICompletionService:
         return completion
 
 
-def format_note_using_llm(
-    note: Note, completion_service: AICompletionService
-) -> Note:
+def format_note(note: Note, completion_service: CompletionService) -> Note:
     for field_name in note.keys():
         ctx = note[field_name]
         prompt = f"Convert this text to lowercase: {ctx}"
