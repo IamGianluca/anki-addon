@@ -10,17 +10,17 @@ class CompletionService:
     def __init__(self, client: OpenAIClient):
         self._client = client
 
-    def generate(self, prompt: str) -> CompletionResult:
-        raw_response = self._client.run(prompt)
+    def generate(self, prompt: str, **kwargs) -> CompletionResult:
+        raw_response = self._client.run(prompt, **kwargs)
 
         # Transform the raw response into a domain object
         completion = CompletionResult(
-            text=raw_response, source="openai", timestamp=datetime.now()
+            text=raw_response, source="vllm", timestamp=datetime.now()
         )
         return completion
 
 
-def format_note(note: Note, completion_service: CompletionService) -> Note:
+def format_note_old(note: Note, completion_service: CompletionService) -> Note:
     for field_name in note.keys():
         ctx = note[field_name]
         prompt = f"Convert this text to lowercase: {ctx}"

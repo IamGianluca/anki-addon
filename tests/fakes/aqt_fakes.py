@@ -52,6 +52,7 @@ class FakeNote:
 
     def __init__(self, note_id, fields=None):
         self.id = note_id
+        self.guid = str(self.id)  # TODO: properly implement guid
         self._fields = fields or {}
         self.model = {"flds": [{"name": k} for k in self._fields.keys()]}
         self.tags = []

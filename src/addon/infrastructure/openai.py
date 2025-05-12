@@ -33,15 +33,17 @@ class OpenAIClient:
         self.url = config.url
         self.model = config.model_name
 
-    def run(self, prompt: str) -> str:
-        data = {
+    def run(self, prompt: str, **kwargs) -> str:
+        payload = {
             "model": self.model,
             "prompt": prompt,
-            "max_tokens": 2,
+            "max_tokens": 500,
             "temperature": 0,
         }
+        if kwargs:
+            payload.update(kwargs)
 
-        response = self._http_client.post(self.url, json=data)
+        response = self._http_client.post(self.url, json=payload)
         return response.json()["choices"][0]["text"]
 
     class StubbedRequests:

@@ -8,7 +8,7 @@ from aqt.utils import askUser, tooltip
 
 from ..application.services.completion_service import (
     CompletionService,
-    format_note,
+    format_note_old,
 )
 from ..domain.models.editor import EditorDialog
 from ..infrastructure.aqt import AddonConfig
@@ -138,7 +138,7 @@ def on_custom_action(editor: Editor):
     config = AddonConfig.create(mw)
     openai = OpenAIClient.create(config)
     completer = CompletionService(openai)
-    note = format_note(note, completer)
+    note = format_note_old(note, completer)
 
     # Update the editor display to show the changes
     editor.loadNote()
