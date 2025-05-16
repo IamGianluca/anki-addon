@@ -1,4 +1,4 @@
-## 🧑‍💻 Development
+## 🧑‍💻 CONTRIBUTING
 
 ### Project Structure
 
@@ -20,11 +20,11 @@ The domain model should not have any dependencies with application and infrastru
 
 This separation is not arbitrary. Having a domain layer without application and infrastructure dependencies gives us more freedom to test things rapidly, and keeps the logic simple.
 
-For more information on the architectural patterns used in this project, see ![Architecture Patterns in Python](https://www.cosmicpython.com/).
+For more information on the architectural patterns used in this project, see [Architecture Patterns in Python](https://www.cosmicpython.com/).
 
 ### Testing
 
-This project follows a testing approach similar to what's described in ![Testing without Mocks](https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks).
+This project follows a testing approach similar to what's described in [Testing without Mocks](https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks).
 
 To run the test suite:
 

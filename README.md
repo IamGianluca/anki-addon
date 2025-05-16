@@ -44,41 +44,6 @@ git clone https://github.com/iamgianluca/anki-addon.git [your-anki-addons-path]/
 3. Choose your refactoring options from the dialog
 4. Review and approve the suggested changes
 
-## 🧑‍💻 Development
-
-### Project Structure
-
-This project adopts Domain-Driven Design principles with a clear separation between domain, application, and infrastructure layers:
-
-```
-addon/
-├── domain/            # Core domain models, entities, value objects
-│   ├── models/
-│   └── services/
-├── application/       # Application services, use cases
-│   └── services/
-└── infrastructure/    # External systems adapters, repositories
-    ├── adapters/
-    └── repositories/
-```
-
-### Testing
-
-To run the test suite:
-
-1. Set up the necessary environment variables:
-   ```bash
-   export OPENAI_HOST=your_host_url
-   export OPENAI_PORT=your_host_port
-   export OPENAI_MODEL=your_llm_model
-   ```
-
-2. Run the tests:
-   ```bash
-   make test        # run unit tests
-   make test_slow   # run unit, integration, and end-to-end tests
-   ```
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please check the CONTRIBUTING.md file and feel free to submit a Pull Request.
