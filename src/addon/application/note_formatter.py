@@ -6,9 +6,13 @@ from aqt.editor import Editor
 from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import askUser, tooltip
 
+from ..application.services.formatter_service import (
+    NoteFormatter,
+    format_note_workflow,
+)
+
 from ..application.services.completion_service import (
     CompletionService,
-    format_note_old,
 )
 from ..domain.models.editor import EditorDialog
 from ..infrastructure.aqt import AddonConfig
@@ -137,8 +141,9 @@ def on_custom_action(editor: Editor):
     # function
     config = AddonConfig.create(mw)
     openai = OpenAIClient.create(config)
-    completer = CompletionService(openai)
-    note = format_note_old(note, completer)
+    completion = CompletionService(openai)
+    formatter = NoteFormatter(completion)
+    note = format_note_workflow(note, formatter)
 
     # Update the editor display to show the changes
     editor.loadNote()
