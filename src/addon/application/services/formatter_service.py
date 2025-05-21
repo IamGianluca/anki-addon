@@ -5,10 +5,9 @@ from copy import deepcopy
 from anki.notes import Note
 from jinja2 import Template
 
-from addon.utils import is_cloze_note
-
 from ...application.services.completion_service import CompletionService
 from ...domain.models.note import AddonNote, AddonNoteChanges
+from ...utils import is_cloze_note
 
 
 # NOTE: Should we move this as a service in the domain? Revisit after the
