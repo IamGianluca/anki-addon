@@ -1,9 +1,11 @@
-from copy import deepcopy
 import html
 import re
+from copy import deepcopy
 
 from anki.notes import Note
 from jinja2 import Template
+
+from addon.utils import is_cloze_note
 
 from ...application.services.completion_service import CompletionService
 from ...domain.models.note import AddonNote, AddonNoteChanges
@@ -56,8 +58,7 @@ def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
 
 
 def convert_note_to_addon_note(note: Note) -> AddonNote:
-    is_cloze = note.model.get("type") == 1
-    if is_cloze:
+    if is_cloze_note(note):
         front, back = note["Text"], note["Back Extra"]
     else:
         front, back = note["Front"], note["Back"]
@@ -66,8 +67,7 @@ def convert_note_to_addon_note(note: Note) -> AddonNote:
 
 
 def update_note(note: Note, addon_note: AddonNote) -> Note:
-    is_cloze = note.model.get("type") == 1
-    if is_cloze:
+    if is_cloze_note(note):
         note["Text"] = addon_note.front
         note["Back Extra"] = addon_note.back
     else:

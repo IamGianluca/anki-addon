@@ -1,6 +1,7 @@
 from typing import Optional
 
 from anki.collection import Collection
+from anki.consts import MODEL_CLOZE
 from anki.decks import DeckDict
 from anki.notes import Note
 
@@ -27,3 +28,8 @@ def ensure_note(note: Optional[Note]) -> Note:
     if note is None:
         raise RuntimeError("Note not initialized")
     return note
+
+
+def is_cloze_note(note) -> bool:
+    # NOTE: type: 0 = basic, 1 = cloze
+    return note.note_type()["type"] == MODEL_CLOZE

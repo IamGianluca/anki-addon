@@ -2,6 +2,7 @@
 # a real l
 
 import pytest
+
 from addon.application.services.completion_service import CompletionService
 from addon.application.services.formatter_service import (
     NoteFormatter,
@@ -32,6 +33,6 @@ def test_format_note_using_llm():
     result = format_note_workflow(note, formatter)
 
     # Then
-    # assert isinstance(result, (Note, FakeNote))
+    # assert isinstance(result, (Note, FakeNote)) # FIX: circular import
     assert "NHL most winning team" in result["Front"]
     assert "Montreal Canadiens" in result["Back"]

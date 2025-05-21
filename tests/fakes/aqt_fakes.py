@@ -58,6 +58,10 @@ class FakeNote:
         self.tags = []
         self._was_flushed = False
 
+    def note_type(self) -> dict:
+        note_type = self._fields.get("type", 0)  # 0 = basic, 1 = cloze
+        return dict(type=note_type)
+
     def keys(self):
         return self._fields.keys()
 

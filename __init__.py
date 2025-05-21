@@ -1,6 +1,5 @@
-import sys
-
 import os
+import sys
 
 # Add bundled dependencies (e.g., pydantic) to module search path
 vendor_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor")

@@ -21,6 +21,13 @@ def note3():
 
 
 @pytest.fixture
+def cloze1():
+    return FakeNote(
+        1, {"type": 1, "Text": "This is a {{c1::fake note}}", "Back Extra": ""}
+    )
+
+
+@pytest.fixture
 def collection(note1, note2, note3):
     collection = FakeCollection()
     collection.notes = {1: note1, 2: note2, 3: note3}

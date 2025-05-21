@@ -6,13 +6,12 @@ from aqt.editor import Editor
 from aqt.qt import QDialog, QHBoxLayout, QPushButton, QVBoxLayout, QWidget
 from aqt.utils import askUser, tooltip
 
+from ..application.services.completion_service import (
+    CompletionService,
+)
 from ..application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
-)
-
-from ..application.services.completion_service import (
-    CompletionService,
 )
 from ..domain.models.editor import EditorDialog
 from ..infrastructure.aqt import AddonConfig

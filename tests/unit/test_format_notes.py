@@ -1,4 +1,5 @@
 import json
+
 from anki.notes import Note
 
 from addon.application.services.completion_service import (
@@ -10,6 +11,7 @@ from addon.application.services.formatter_service import (
 )
 from addon.infrastructure.aqt import AddonConfig
 from addon.infrastructure.openai import OpenAIClient
+from addon.utils import is_cloze_note
 from tests.fakes.aqt_fakes import FakeNote
 
 
@@ -31,3 +33,25 @@ def test_format_note_using_llm(note1):
     assert isinstance(result, (Note, FakeNote))
     assert result["Front"] == expected_front
     assert result["Back"] == expected_back
+    assert not is_cloze_note(result)
+
+
+def test_format_cloze_note_using_llm(cloze1):
+    # Given
+    config = AddonConfig.create_nullable()
+
+    expected_front, expected_back = "Q1", "A1"
+    response = json.dumps({"front": expected_front, "back": expected_back})
+    openai = OpenAIClient.create_nullable(config, responses=[response])
+
+    completion = CompletionService(openai)
+    formatter = NoteFormatter(completion)
+
+    # When
+    result = format_note_workflow(cloze1, formatter)
+
+    # Then
+    assert isinstance(result, (Note, FakeNote))
+    assert result["Text"] == expected_front
+    assert result["Back Extra"] == expected_back
+    assert is_cloze_note(result)

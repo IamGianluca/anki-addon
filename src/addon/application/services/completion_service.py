@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 from ...domain.models.completion_result import CompletionResult
 from ...infrastructure.openai import OpenAIClient
 
