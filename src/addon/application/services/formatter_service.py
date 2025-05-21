@@ -136,13 +136,13 @@ Tags: ['linux']
 Output: { "front": "Extract zip files", "back": "```bash<br>$ unzip <file><br>```", "tags": ['linux'] }
 
 Example 2: Cloze completion
-Input: Front: What type of memory do GPUs come equipped with?
+Input: Text: What type of memory do GPUs come equipped with?
 * \{\{c1::Dynamic RAM (HBM)\}\}
 * \{\{c2::Static RAM (L1 + L2 + Registers)\}\}
-Back:
+Back Extra:
 Tags: ['recsys']
 ```
-Output: { "front": "Type of memory on a GPU:<br>* \{\{c1::Dynamic RAM (HBM)\}\}<br>* \{\{c2::Static RAM (L1 + L2 + Registers)\}\}", "back": "", "tags": ['linux'] }
+Output: { "text": "Type of memory on a GPU:<br>* \{\{c1::Dynamic RAM (HBM)\}\}<br>* \{\{c2::Static RAM (L1 + L2 + Registers)\}\}", "back extra": "", "tags": ['linux'] }
 
 Example 3: Code block with placeholders
 Input: Front: What command creates a soft link?

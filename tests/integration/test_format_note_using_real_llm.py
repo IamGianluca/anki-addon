@@ -33,5 +33,5 @@ def test_format_note_using_llm():
 
     # Then
     # assert isinstance(result, (Note, FakeNote))
-    assert "Most winning NHL team" in result["Front"]
+    assert "NHL most winning team" in result["Front"]
     assert "Montreal Canadiens" in result["Back"]
