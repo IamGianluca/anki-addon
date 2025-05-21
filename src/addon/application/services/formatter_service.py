@@ -133,7 +133,7 @@ Back: ```bash
 $ unzip <file>
 Tags: ['linux']
 ```
-Output: { "front": "Extract zip files", "back": "\"```bash<br>$ unzip <file><br>```\"", "tags": ['linux'] }
+Output: { "front": "Extract zip files", "back": "```bash<br>$ unzip <file><br>```", "tags": ['linux'] }
 
 Example 2: Cloze completion
 Input: Front: What type of memory do GPUs come equipped with?
@@ -142,7 +142,7 @@ Input: Front: What type of memory do GPUs come equipped with?
 Back:
 Tags: ['recsys']
 ```
-Output: { "front": "Type of memory on a GPU:<br>* \{\{c1::Dynamic RAM (HBM)\}\}<br>* \{\{c2::Static RAM (L1 + L2 + Registers)\}\}", "back": "\"\"", "tags": ['linux'] }
+Output: { "front": "Type of memory on a GPU:<br>* \{\{c1::Dynamic RAM (HBM)\}\}<br>* \{\{c2::Static RAM (L1 + L2 + Registers)\}\}", "back": "", "tags": ['linux'] }
 
 Example 3: Code block with placeholders
 Input: Front: What command creates a soft link?
@@ -150,7 +150,7 @@ Back: ```bash
 $ ln -s <file_name> <link_name>
 ```
 Tags: ['linux']
-Output: { "front": "Create soft link", "back": "\"```bash<br>$ ln -s <file> <link><br>```\"", "tags": ['linux'] }
+Output: { "front": "Create soft link", "back": "```bash<br>$ ln -s <file> <link><br>```", "tags": ['linux'] }
 
 Example 4: Code block and inline code block
 Input: Front: In the `ln -s` command, what is the order of file name and link name?
@@ -158,19 +158,19 @@ Back: ```bash
 $ ln -s <file_name> <link_name>
 ```
 Tags: ['linux']
-Output: { "front": "`ln -s` argument order", "back": "\"<file> then <link>\"", "tags": ['linux'] }
+Output: { "front": "`ln -s` argument order", "back": "<file> then <link>", "tags": ['linux'] }
 
 Example 5: Math
 Input: Front: What is the range of the Leaky ReLU function?
 Back: $ [ -0.01, + \infty ] $
 Tags: ['dl']
-Output: { "front": "Leaky ReLU range", "back": "\"$ [-0.01, +\infty] $\"", "tags": ['dl'] }
+Output: { "front": "Leaky ReLU range", "back": "$ [-0.01, +\infty] $", "tags": ['dl'] }
 
 Example 6: Inline code block
 Input: Front: What key returns the `^` in the shifted state?
 Back: "`6`"
 Tags: ['keyboard']
-Output: { "front": "Keyboard key for `^` in shifted state", "back": "\"`6`\"", "tags": ['keyboard'] }
+Output: { "front": "Keyboard key for `^` in shifted state", "back": "`6`", "tags": ['keyboard'] }
 
 
 Input: {{ note }}
