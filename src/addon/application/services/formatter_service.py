@@ -56,16 +56,23 @@ def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
 
 
 def convert_note_to_addon_note(note: Note) -> AddonNote:
-    addon_note = AddonNote(
-        guid=note.guid, front=note["Front"], back=note["Back"]
-    )
+    is_cloze = note.model.get("type") == 1
+    if is_cloze:
+        front, back = note["Text"], note["Back Extra"]
+    else:
+        front, back = note["Front"], note["Back"]
+    addon_note = AddonNote(guid=note.guid, front=front, back=back)
     return addon_note
 
 
 def update_note(note: Note, addon_note: AddonNote) -> Note:
-    note["Front"] = addon_note.front
-    note["Back"] = addon_note.back
-    # TODO: update tags
+    is_cloze = note.model.get("type") == 1
+    if is_cloze:
+        note["Text"] = addon_note.front
+        note["Back Extra"] = addon_note.back
+    else:
+        note["Front"] = addon_note.front
+        note["Back"] = addon_note.back
     return note
 
 
