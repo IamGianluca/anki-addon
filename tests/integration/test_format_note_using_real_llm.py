@@ -23,6 +23,7 @@ def test_format_note_using_llm():
             "Back": "The Montreal Canadiens are the most winning team in NHL history with 24 Stanley Cup championships, far more than any other franchise.",
         },
     )
+    note.tags = ["hockey"]
     config = AddonConfig.create_nullable()
     openai = OpenAIClient.create(config)
 
@@ -34,5 +35,5 @@ def test_format_note_using_llm():
 
     # Then
     # assert isinstance(result, (Note, FakeNote)) # FIX: circular import
-    assert "NHL most winning team" in result["Front"]
+    assert "Most winning NHL team" in result["Front"]
     assert "Montreal Canadiens" in result["Back"]
