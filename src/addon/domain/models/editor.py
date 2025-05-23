@@ -17,13 +17,16 @@ class EditorDialog:
 
     def __init__(self, collection: Collection) -> None:
         self.col = collection
-        self.review_notes = self.get_all_notes_to_review()
+        self.review_notes = self._get_all_notes_to_review()
         self._current_index = 0
 
         if not self.review_notes:
             raise ValueError("No notes marked for review")
 
-    def get_all_notes_to_review(self) -> list[Note]:
+    def notes_count(self) -> int:
+        return len(self.review_notes)
+
+    def _get_all_notes_to_review(self) -> list[Note]:
         """Retrieve all notes marked for review."""
         deck_id = self.col.decks.current()["id"]
         query = f"did:{deck_id}"
@@ -46,24 +49,27 @@ class EditorDialog:
 
         return note
 
-    def current_note_backup(self) -> Note:
+    def backup_current_note(self) -> Note:
         note = self.review_notes[self._current_index]
         for field_name, original_content in self.original_fields.items():
             note[field_name] = original_content
         return note
 
+    def restore_current_note(self) -> None:
+        reloaded_note = self.backup_current_note()
+        reloaded_note.flush()
+
     def has_next_note(self) -> bool:
         return self._current_index < len(self.review_notes) - 1
 
-    def next_note(self) -> Optional[Note]:
+    def move_to_next_note(self) -> Optional[Note]:
         if self.has_next_note():
             self._current_index += 1
-            return self.review_notes[self._current_index]
+            # NOTE: It's important to execute the `current_note()` method
+            # because it also updates the backup for the current note
+            current_note = self.current_note()
+            return current_note
         return None
-
-    def restore_note_to_original(self) -> None:
-        reloaded_note = self.current_note_backup()
-        reloaded_note.flush()
 
     def strip_orange_flag(self, current_note: Note) -> Note:
         card_ids = self.col.find_cards(f"nid:{current_note.id}")

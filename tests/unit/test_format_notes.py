@@ -40,7 +40,7 @@ def test_format_cloze_note_using_llm(cloze1):
     # Given
     config = AddonConfig.create_nullable()
 
-    expected_front, expected_back = "Q1", "A1"
+    expected_front, expected_back = "This is a {{c1::fake note}}", ""
     response = json.dumps({"front": expected_front, "back": expected_back})
     openai = OpenAIClient.create_nullable(config, responses=[response])
 

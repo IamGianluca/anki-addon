@@ -14,7 +14,7 @@ def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
     editor_dialog = EditorDialog(collection)
 
     # Then
-    assert len(editor_dialog.review_notes) == 2
+    assert editor_dialog.notes_count() == 3
     assert editor_dialog.review_notes[0].id == 1
     assert editor_dialog.review_notes[1].id == 3
     assert editor_dialog._current_index == 0
@@ -79,7 +79,7 @@ def test_restore_note_to_original(mw, collection):
     note["Back"] = "Modified Answer"
 
     # When
-    editor_dialog.restore_note_to_original()
+    editor_dialog.restore_current_note()
     restored_note = editor_dialog.current_note()
 
     # Then
@@ -94,15 +94,19 @@ def test_has_next_note(mw, collection):
     editor_dialog = EditorDialog(collection)
 
     # Then
-    assert editor_dialog.has_next_note() is True
+    assert editor_dialog.has_next_note()
 
     # When
-    editor_dialog._current_index = (
-        1  # There are only two notes flagged for review
-    )
+    editor_dialog.move_to_next_note()
 
     # Then
-    assert editor_dialog.has_next_note() is False
+    assert editor_dialog.has_next_note()
+
+    # When
+    editor_dialog.move_to_next_note()
+
+    # Then
+    assert not editor_dialog.has_next_note()
 
 
 def test_next_note(mw, collection):
@@ -110,19 +114,21 @@ def test_next_note(mw, collection):
     # Given
     editor_dialog = EditorDialog(collection)
 
+    # Then
+    next_note = editor_dialog.current_note()
+    assert next_note.id == 1
+
     # When
-    next_note = editor_dialog.next_note()
+    next_note = editor_dialog.move_to_next_note()
 
     # Then
-    assert next_note is not None
     assert next_note.id == 3
-    assert next_note["Front"] == "Question 3"
 
-    assert editor_dialog._current_index == 1
-    assert editor_dialog.next_note() is None
-    assert (
-        editor_dialog._current_index == 1
-    )  # Index doesn't change when no more notes
+    # When
+    next_note = editor_dialog.move_to_next_note()
+
+    # Then
+    assert next_note.id == 4
 
 
 def test_orange_flag_is_removed_after_saving_changes(mw, collection):
@@ -148,14 +154,51 @@ def test_orange_flag_is_removed_after_saving_changes(mw, collection):
         assert card.flags != 2 and card.was_flushed()
 
 
-"""
-EditorDialog is controlled by the open_standalone_editor() function. We need
-to find a good way to test such function, and specifically the user behavior, 
-like Skipping, Saving, and Cancelling.
+def test_editor_review_counts(mw, collection):
+    # Given
+    editor_dialog = EditorDialog(collection)
+    assert editor_dialog.notes_count() == 3
 
-Test: 
-1. Save changes to one note (which will move the UI to the next note
-2. Press Cancel
-Assert content in Note 1 and Note 2. It seems that Note 2 inherits the content
-of Note 1.
-"""
+
+def test_skip_multiple_notes_preserves_original_content(mw, collection):
+    """Test that skipping multiple notes and then making changes doesn't
+    overwrite previous notes with wrong content.
+    """
+    """
+    To reproduce the issue:
+    1. Skip one or more cards
+    2. Make some changes to the note and press Save.
+
+    The skipped cards will change content and become duplicated of the first card skipped. The last card is correct.
+    """
+    # Given
+    editor_dialog = EditorDialog(collection)
+    assert editor_dialog.notes_count() == 3
+
+    # Store original content for verification
+    original_note1_front = editor_dialog.review_notes[0]["Front"]
+    original_note1_back = editor_dialog.review_notes[0]["Back"]
+    original_note2_front = editor_dialog.review_notes[1]["Front"]
+    original_note2_back = editor_dialog.review_notes[1]["Back"]
+    original_note3_front = editor_dialog.review_notes[2]["Text"]
+    original_note3_back = editor_dialog.review_notes[2]["Back Extra"]
+
+    # When: Skip to note 3
+    _ = editor_dialog.move_to_next_note()  # Note 2
+    note3 = editor_dialog.move_to_next_note()  # Note 3
+    assert note3
+
+    # Now restore current note to original
+    note3["Text"] = "changes"
+    editor_dialog.restore_current_note()
+
+    # Then: Each note should have its own original content restored
+    restored_note1 = editor_dialog.review_notes[0]
+    restored_note2 = editor_dialog.review_notes[1]
+
+    assert restored_note1["Front"] == original_note1_front
+    assert restored_note1["Back"] == original_note1_back
+    assert restored_note2["Front"] == original_note2_front
+    assert restored_note2["Back"] == original_note2_back
+    assert note3["Text"] == original_note3_front
+    assert note3["Back Extra"] == original_note3_back

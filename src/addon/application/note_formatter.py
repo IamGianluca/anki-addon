@@ -75,7 +75,7 @@ def open_standalone_editor() -> None:
 
         # Then handle navigation to next note
         if editor_state.has_next_note():
-            next_note = editor_state.next_note()
+            next_note = editor_state.move_to_next_note()
             editor.setNote(next_note)
         else:
             # No more notes to review
@@ -84,11 +84,12 @@ def open_standalone_editor() -> None:
 
     def skip_handler() -> None:
         # Discard any changes made to the note in the current editing session
-        editor_state.restore_note_to_original()
+        editor_state.current_note()
+        editor_state.restore_current_note()
 
         # Then handle navigation to next note
         if editor_state.has_next_note():
-            next_note = editor_state.next_note()
+            next_note = editor_state.move_to_next_note()
             editor.setNote(next_note)
         else:
             # No more notes to review
@@ -97,7 +98,8 @@ def open_standalone_editor() -> None:
 
     def cancel_handler() -> None:
         # Discard any changes made to the note in the current editing session
-        editor_state.restore_note_to_original()
+        editor_state.current_note()
+        editor_state.restore_current_note()
 
         # Then close editor
         dialog.reject()

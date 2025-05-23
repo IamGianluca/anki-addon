@@ -23,14 +23,15 @@ def note3():
 @pytest.fixture
 def cloze1():
     return FakeNote(
-        1, {"type": 1, "Text": "This is a {{c1::fake note}}", "Back Extra": ""}
+        4,
+        {"type": 1, "Text": "This is a {{c1::fake note}}", "Back Extra": ""},
     )
 
 
 @pytest.fixture
-def collection(note1, note2, note3):
+def collection(note1, note2, note3, cloze1):
     collection = FakeCollection()
-    collection.notes = {1: note1, 2: note2, 3: note3}
+    collection.notes = {1: note1, 2: note2, 3: note3, 4: cloze1}
 
     # Create cards for each note
     card_id = 100
@@ -44,7 +45,7 @@ def collection(note1, note2, note3):
     # Set orange flag (id=2) to cards of notes 1 and 3
     # In Anki, flags are set on cards, not notes
     for card in collection.cards.values():
-        if card.note_id in [1, 3]:  # Notes marked for review
+        if card.note_id in [1, 3, 4]:  # Notes marked for review
             card.flags = 2  # Orange flag
 
     return collection
