@@ -84,7 +84,6 @@ def open_standalone_editor() -> None:
 
     def skip_handler() -> None:
         # Discard any changes made to the note in the current editing session
-        editor_state.current_note()
         editor_state.restore_current_note()
 
         # Then handle navigation to next note
@@ -98,7 +97,6 @@ def open_standalone_editor() -> None:
 
     def cancel_handler() -> None:
         # Discard any changes made to the note in the current editing session
-        editor_state.current_note()
         editor_state.restore_current_note()
 
         # Then close editor
