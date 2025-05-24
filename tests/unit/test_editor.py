@@ -14,7 +14,7 @@ def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
     editor_dialog = EditorDialog(collection)
 
     # Then
-    assert editor_dialog.notes_count() == 3
+    assert len(editor_dialog) == 3
     assert editor_dialog.review_notes[0].id == 1
     assert editor_dialog.review_notes[1].id == 3
     assert editor_dialog._current_index == 0
@@ -157,7 +157,7 @@ def test_orange_flag_is_removed_after_saving_changes(mw, collection):
 def test_editor_review_counts(mw, collection):
     # Given
     editor_dialog = EditorDialog(collection)
-    assert editor_dialog.notes_count() == 3
+    assert len(editor_dialog) == 3
 
 
 def test_skip_multiple_notes_preserves_original_content(mw, collection):
@@ -173,7 +173,7 @@ def test_skip_multiple_notes_preserves_original_content(mw, collection):
     """
     # Given
     editor_dialog = EditorDialog(collection)
-    assert editor_dialog.notes_count() == 3
+    assert len(editor_dialog) == 3
 
     # Store original content for verification
     original_note1_front = editor_dialog.review_notes[0]["Front"]

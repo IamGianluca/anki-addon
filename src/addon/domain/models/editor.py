@@ -23,7 +23,7 @@ class EditorDialog:
         if not self.review_notes:
             raise ValueError("No notes marked for review")
 
-    def notes_count(self) -> int:
+    def __len__(self) -> int:
         return len(self.review_notes)
 
     def _get_all_notes_to_review(self) -> list[Note]:
