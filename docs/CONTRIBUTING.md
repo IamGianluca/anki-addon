@@ -1,6 +1,56 @@
 ## 🧑‍💻 CONTRIBUTING
 
-### Project Structure
+This is an open-source project and contributors are welcome!
+
+#### Pre-requisites
+
+* Python 3.9+
+* [uv](https://github.com/astral-sh/uv) (recommended package manager)
+
+#### Setup
+
+1. Clone the repository
+```bash
+git clone https://github.com/IamGianluca/anki-addon.git
+cd anki-addon
+```
+1. Create and sync the Python virtual environment
+```bash
+make install
+```
+
+1. Activate the virtual environment (e.g., `source .venv/bin/activate` or via your IDE).
+
+#### Testing
+
+This project follows a testing approach similar to what's described in [Testing without Mocks](https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks).
+
+To run the test suite:
+
+1. Set up the necessary environment variables:
+   ```bash
+   export OPENAI_HOST=your_host_url
+   export OPENAI_PORT=your_host_port
+   export OPENAI_MODEL=your_llm_model
+   ```
+
+2. Run the tests:
+   ```bash
+   make test        # run unit tests
+   make test_slow   # run unit, integration, and end-to-end tests
+   ```
+
+#### Pre-commits
+
+`pre-commit` will be installed as part of the dev dependencies. We are using pre-commits for code formatting, linting, and type-checking. All Pull Requests must pass these checks, as they run as part of CI).
+
+These pre-commits will run also before you create a commit locally. You can also run them manually at any time:
+
+```bash 
+pre-commit run --all-files
+```
+
+## Project Structure
 
 The project adopts Domain-Driven Design principles with a clear separation between domain, application, and infrastructure layers:
 
@@ -21,25 +71,6 @@ The domain model should not have any dependencies with application and infrastru
 This separation is not arbitrary. Having a domain layer without application and infrastructure dependencies gives us more freedom to test things rapidly, and keeps the logic simple.
 
 For more information on the architectural patterns used in this project, see [Architecture Patterns in Python](https://www.cosmicpython.com/).
-
-### Testing
-
-This project follows a testing approach similar to what's described in [Testing without Mocks](https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks).
-
-To run the test suite:
-
-1. Set up the necessary environment variables:
-   ```bash
-   export OPENAI_HOST=your_host_url
-   export OPENAI_PORT=your_host_port
-   export OPENAI_MODEL=your_llm_model
-   ```
-
-2. Run the tests:
-   ```bash
-   make test        # run unit tests
-   make test_slow   # run unit, integration, and end-to-end tests
-   ```
 
 ### Development Gotchas
 
