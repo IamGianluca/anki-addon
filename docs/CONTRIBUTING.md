@@ -14,12 +14,11 @@ This is an open-source project and contributors are welcome!
 git clone https://github.com/IamGianluca/anki-addon.git
 cd anki-addon
 ```
-1. Create and sync the Python virtual environment
+2. Create and sync the Python virtual environment
 ```bash
 make install
 ```
-
-1. Activate the virtual environment (e.g., `source .venv/bin/activate` or via your IDE).
+3. Activate the virtual environment (e.g., `source .venv/bin/activate` or via your IDE).
 
 #### Testing
 
