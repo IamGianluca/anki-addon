@@ -10,13 +10,6 @@ test:
 test_slow:
 	pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
 
-
-ready: format lint
-
-format:
-	ruff check --select I --fix  # Fix Python imports
-	ruff format
-
 lint:
 	ruff check --fix
 
