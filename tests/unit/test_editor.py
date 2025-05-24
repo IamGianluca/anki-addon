@@ -17,7 +17,6 @@ def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
     assert len(editor_dialog) == 3
     assert editor_dialog.review_notes[0].id == 1
     assert editor_dialog.review_notes[1].id == 3
-    assert editor_dialog._current_index == 0
 
 
 def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
@@ -62,10 +61,6 @@ def test_current_note(mw, collection):
     assert note.id == 1
     assert note["Front"] == "Question 1"
     assert note["Back"] == "Answer 1"
-    assert editor_dialog.original_fields == {
-        "Front": "Question 1",
-        "Back": "Answer 1",
-    }
 
 
 def test_restore_note_to_original(mw, collection):

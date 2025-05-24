@@ -11,14 +11,17 @@ test_slow:
 	pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
 
 
-check: format lint
+ready: format lint
 
 format:
-	ruff check --select I --fix
+	ruff check --select I --fix  # Fix Python imports
 	ruff format
 
 lint:
 	ruff check --fix
+
+check:
+	pyrefly check
 
 clean:
 	@echo "Cleaning Python cache files..."

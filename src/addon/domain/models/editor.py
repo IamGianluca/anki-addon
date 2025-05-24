@@ -18,7 +18,8 @@ class EditorDialog:
     def __init__(self, collection: Collection) -> None:
         self.col = collection
         self.review_notes = self._get_all_notes_to_review()
-        self._current_index = 0
+        self.__current_index = 0
+        self.__original_fields = {}
 
         if not self.review_notes:
             raise ValueError("No notes marked for review")
@@ -40,18 +41,18 @@ class EditorDialog:
         return review_notes
 
     def current_note(self) -> Note:
-        note = self.review_notes[self._current_index]
+        note = self.review_notes[self.__current_index]
 
         # Store fields and content for possible backup needs
-        self.original_fields = {}
+        self.__original_fields = {}
         for field_name in note.keys():
-            self.original_fields[field_name] = note[field_name]
+            self.__original_fields[field_name] = note[field_name]
 
         return note
 
     def backup_current_note(self) -> Note:
-        note = self.review_notes[self._current_index]
-        for field_name, original_content in self.original_fields.items():
+        note = self.review_notes[self.__current_index]
+        for field_name, original_content in self.__original_fields.items():
             note[field_name] = original_content
         return note
 
@@ -60,11 +61,11 @@ class EditorDialog:
         reloaded_note.flush()
 
     def has_next_note(self) -> bool:
-        return self._current_index < len(self.review_notes) - 1
+        return self.__current_index < len(self.review_notes) - 1
 
     def move_to_next_note(self) -> Optional[Note]:
         if self.has_next_note():
-            self._current_index += 1
+            self.__current_index += 1
             # NOTE: It's important to execute the `current_note()` method
             # because it also updates the backup for the current note
             current_note = self.current_note()

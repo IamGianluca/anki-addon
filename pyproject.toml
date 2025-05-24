@@ -18,6 +18,7 @@ dev-dependencies = [
     "pytest-cov>=6.0.0",
     "ruff>=0.9.5",
     "ipdb>=0.13.13",
+    "pyrefly>=0.16.2",
 ]
 
 [tool.ruff]
@@ -44,3 +45,9 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
 
+[tool.pyrefly]
+project_includes = ["./src/"]
+project_excludes = [
+    "**/.[!/.]*",
+    "**/*venv/**/*",
+]
