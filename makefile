@@ -1,4 +1,4 @@
-.PHONY: install test test_slow check format lint clean 
+.PHONY: install test test_slow static_check clean 
 
 install:
 	uv sync --all-extras && \
@@ -10,10 +10,7 @@ test:
 test_slow:
 	pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
 
-lint:
-	ruff check --fix
-
-check:
+static_check:
 	pyrefly check
 
 clean:
