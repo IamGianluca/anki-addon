@@ -1,5 +1,5 @@
-from aqt import QAction, QKeySequence, gui_hooks, mw, qconnect
-
+from aqt import gui_hooks, mw, qconnect
+from PyQt6.QtGui import QAction, QKeySequence
 from .application.note_counter import (
     display_notes_marked_for_review_count,
 )
