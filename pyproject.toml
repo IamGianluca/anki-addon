@@ -20,6 +20,7 @@ dev-dependencies = [
     "ipdb>=0.13.13",
     "pyrefly>=0.16.2",
     "pre-commit>=4.2.0",
+    "ty>=0.0.1a7",
 ]
 
 [tool.ruff]
