@@ -34,6 +34,9 @@ def test_format_note_using_llm():
     result = format_note_workflow(note, formatter)
 
     # Then
-    # assert isinstance(result, (Note, FakeNote)) # FIX: circular import
+
+    from anki.notes import Note  # Prevents circular import
+
+    assert isinstance(result, (Note, FakeNote))
     assert "Most winning NHL team" in result["Front"]
     assert "Montreal Canadiens" in result["Back"]
