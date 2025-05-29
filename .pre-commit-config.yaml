@@ -5,3 +5,12 @@ repos:
     - id: ruff-check # Run the linter
       args: [ --fix ]
     - id: ruff-format # Run the formatter
+- repo: local
+  hooks:
+    - id: ty
+      name: ty type checker
+      entry: uvx ty check ./src/
+      language: system
+      types: [python]
+      pass_filenames: false
+      always_run: true
