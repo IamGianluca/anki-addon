@@ -8,7 +8,7 @@ repos:
 - repo: local
   hooks:
     - id: ty
-      name: ty type checker
+      name: ty type check
       entry: uvx ty check ./src/
       language: system
       types: [python]
