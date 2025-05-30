@@ -28,7 +28,7 @@ class OpenAIClient:
         r = [_format_response_as_openai_api(res) for res in responses]
         return OpenAIClient(config, OpenAIClient.StubbedRequests(r))
 
-    def __init__(self, config, http_client) -> None:
+    def __init__(self, config: AddonConfig, http_client) -> None:
         self._http_client = http_client
         self.url = config.url
         self.model = config.model_name

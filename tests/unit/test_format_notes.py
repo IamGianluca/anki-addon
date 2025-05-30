@@ -1,6 +1,7 @@
 import json
 
 from anki.notes import Note
+from tests.fakes.aqt_fakes import FakeNote
 
 from addon.application.services.completion_service import (
     CompletionService,
@@ -12,7 +13,6 @@ from addon.application.services.formatter_service import (
 from addon.infrastructure.aqt import AddonConfig
 from addon.infrastructure.openai import OpenAIClient
 from addon.utils import is_cloze_note
-from tests.fakes.aqt_fakes import FakeNote
 
 
 def test_format_note_using_llm(note1):

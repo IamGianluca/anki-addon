@@ -4,6 +4,10 @@ import pytest
 
 from .fakes.aqt_fakes import FakeCard, FakeCollection, FakeMainWindow, FakeNote
 
+# ---------
+# Anki
+# ---------
+
 
 @pytest.fixture
 def note1():
@@ -62,3 +66,23 @@ def mw(monkeypatch, collection):
             monkeypatch.setattr(f"{name}.mw", fake_mw)
 
     return fake_mw
+
+
+# ---------
+# Qdrant
+# ---------
+
+
+@pytest.fixture
+def first_response():
+    return {"id": "doc_1", "score": 0.95, "payload": {"text": "Result 1"}}
+
+
+@pytest.fixture
+def second_response():
+    return {"id": "doc_2", "score": 0.87, "payload": {"text": "Result 2"}}
+
+
+@pytest.fixture
+def third_response():
+    return {"id": "doc_3", "score": 0.75, "payload": {"text": "Result 3"}}

@@ -2,6 +2,7 @@
 # a real l
 
 import pytest
+from tests.fakes.aqt_fakes import FakeNote
 
 from addon.application.services.completion_service import CompletionService
 from addon.application.services.formatter_service import (
@@ -10,7 +11,6 @@ from addon.application.services.formatter_service import (
 )
 from addon.infrastructure.aqt import AddonConfig
 from addon.infrastructure.openai import OpenAIClient
-from tests.fakes.aqt_fakes import FakeNote
 
 
 @pytest.mark.slow

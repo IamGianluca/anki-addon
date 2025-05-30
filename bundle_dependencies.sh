@@ -1,11 +1,11 @@
 #!/bin/bash
-# Script to bundle pydantic dependency for Anki addon
+# Script to bundle dependencies for Anki addon
 
 # Exit on error
 set -e
 
-echo "=== Bundling pydantic dependency for Anki addon ==="
-echo "This script will create a Python 3.9 venv and bundle pydantic for Anki"
+echo "=== Bundling dependencies for Anki addon ==="
+echo "This script will create a Python 3.9 venv and bundle pydantic and qdrant for Anki"
 
 # Check if Python 3.9 is available
 if ! command -v python3.9 &> /dev/null; then
@@ -25,8 +25,8 @@ echo "Creating virtual environment with Python 3.9..."
 uv venv .venv --python python3.9
 
 # Install pydantic into the virtual environment
-echo "Installing pydantic..."
-uv pip install --python .venv/bin/python pydantic
+echo "Installing pydantic and qdrant..."
+uv pip install --python .venv/bin/python pydantic qdrant-client
 
 # Create or clean vendor directory
 echo "Preparing vendor directory..."
@@ -42,4 +42,4 @@ echo "Cleaning up..."
 rm -rf .venv
 
 echo "=== Bundling complete! ==="
-echo "pydantic and its dependencies are now available in the vendor directory"
+echo "pydantic, qdrant, and their dependencies are now available in the vendor directory"

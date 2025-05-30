@@ -3,6 +3,7 @@ from pathlib import Path
 
 from aqt import mw
 from aqt.editor import Editor
+from aqt.utils import askUser, tooltip
 from PyQt6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -10,7 +11,6 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from aqt.utils import askUser, tooltip
 
 from ..application.services.completion_service import (
     CompletionService,

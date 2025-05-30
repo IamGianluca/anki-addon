@@ -1,9 +1,9 @@
 import sys
 
 import pytest
+from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 from addon.domain.models.editor import EditorDialog
-from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 
 def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
