@@ -11,7 +11,7 @@ class OpenAIClient:
         return OpenAIClient(config, requests)
 
     @staticmethod
-    def create_nullable(config: AddonConfig, responses: list[str]):
+    def create_null(config: AddonConfig, responses: list[str]):
         def _format_response_as_openai_api(response: str) -> dict:
             return {
                 "choices": [

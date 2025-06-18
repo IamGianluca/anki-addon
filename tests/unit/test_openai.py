@@ -6,7 +6,7 @@ def test_llm_engine_collab():
     # Given
     expected = "ciao"
     config = AddonConfig.create_nullable()
-    openai_client = OpenAIClient.create_nullable(config, [expected])
+    openai_client = OpenAIClient.create_null(config, [expected])
     prompt = "What is the Italian word for hello?"
 
     # When

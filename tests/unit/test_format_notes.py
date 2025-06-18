@@ -21,7 +21,7 @@ def test_format_note_using_llm(note1):
 
     expected_front, expected_back = "Q1", "A1"
     response = json.dumps({"front": expected_front, "back": expected_back})
-    openai = OpenAIClient.create_nullable(config, responses=[response])
+    openai = OpenAIClient.create_null(config, responses=[response])
 
     completion = CompletionService(openai)
     formatter = NoteFormatter(completion)
@@ -42,7 +42,7 @@ def test_format_cloze_note_using_llm(cloze1):
 
     expected_front, expected_back = "This is a {{c1::fake note}}", ""
     response = json.dumps({"front": expected_front, "back": expected_back})
-    openai = OpenAIClient.create_nullable(config, responses=[response])
+    openai = OpenAIClient.create_null(config, responses=[response])
 
     completion = CompletionService(openai)
     formatter = NoteFormatter(completion)

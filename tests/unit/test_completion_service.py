@@ -9,7 +9,7 @@ def test_completion_service():
     # Given
     expected = "fake response"
     config = AddonConfig.create_nullable()
-    openai = OpenAIClient.create_nullable(config, [expected])
+    openai = OpenAIClient.create_null(config, [expected])
     completion = CompletionService(openai)
 
     # When
