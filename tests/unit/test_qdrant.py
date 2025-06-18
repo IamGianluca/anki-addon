@@ -31,7 +31,7 @@ def test_null_instance_is_connected_by_default():
     # When
     vector_db = VectorDB.create_null()
 
-    # Then - state-based test
+    # Then
     assert vector_db.is_connected is True
 
 
@@ -44,7 +44,7 @@ def test_search_returns_configured_results(first_response, second_response):
     # When
     actual_results = vector_db.search("test query")
 
-    # Then - state-based test focusing on behavior
+    # Then
     assert actual_results == expected_results
 
 
