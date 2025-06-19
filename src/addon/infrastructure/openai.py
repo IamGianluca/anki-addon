@@ -1,4 +1,5 @@
 import requests
+import requests.exceptions
 
 from ..infrastructure.aqt import AddonConfig
 
@@ -43,7 +44,13 @@ class OpenAIClient:
         if kwargs:
             payload.update(kwargs)
 
-        response = self._http_client.post(self.url, json=payload)
+        try:
+            response = self._http_client.post(self.url, json=payload)
+        except requests.exceptions.ConnectionError as e:
+            raise ConnectionError(
+                f"Cannot reach LLM server at {self.url}. "
+                "Please check if the server is running."
+            ) from e
         return response.json()["choices"][0]["text"]
 
     class StubbedRequests:

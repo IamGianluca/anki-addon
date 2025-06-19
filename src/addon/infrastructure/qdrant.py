@@ -1,243 +1,282 @@
-import uuid
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from qdrant_client import QdrantClient
+from qdrant_client.http.models import PointStruct
 
-COLLECTION_NAME = "anki_collection"
+from ..domain.models.document_repository import (
+    Document,
+    DocumentRepository,
+    SearchQuery,
+    SearchResult,
+)
 
 
-class VectorDB:
-    """Infrastructure wrapper for Qdrant vector database."""
+class QdrantDocumentRepository(DocumentRepository):
+    """Infrastructure wrapper with Nullable pattern"""
 
     @staticmethod
     def create():
-        """Production factory - uses real QdrantClient with sensible defaults"""
+        from qdrant_client import QdrantClient
+
         client = QdrantClient(":memory:")
-        return VectorDB(client)
+        repo = QdrantDocumentRepository(client)
+        repo._ensure_collection_exists()  # Create collection on startup
+        return repo
 
     @staticmethod
     def create_null(
-        search_responses: Optional[List[List[Dict[str, Any]]]] = None,
+        search_responses: Optional[List[List[SearchResult]]] = None,
+        stored_documents: Optional[List[Document]] = None,
     ):
-        """Null factory - uses stubbed QdrantClient with configurable responses"""
-
-        def _format_response_as_qdrant_search(
-            results: List[Dict[str, Any]],
-        ) -> List[Dict[str, Any]]:
-            """Format search results to match Qdrant's expected response format"""
-            formatted_results = []
-            for i, result in enumerate(results):
-                formatted_results.append(
-                    {
-                        "id": result.get("id", f"null_result_{i}"),
-                        "score": result.get("score", 0.95),
-                        "payload": result.get(
-                            "payload",
-                            {
-                                "source": "null_source",
-                                "text": f"Default null result {i}",
-                            },
-                        ),
-                    }
-                )
-            return formatted_results
-
-        # Default search responses if none provided
+        """Nullable with configurable responses"""
+        # Create default responses if none provided
         if search_responses is None:
-            search_responses = [
-                [
-                    {
-                        "id": "null_result_1",
-                        "score": 0.95,
-                        "payload": {
-                            "source": "null_source",
-                            "text": "Default null result",
-                        },
-                    }
-                ]
-            ]
+            default_doc = Document(
+                id="null_doc_1",
+                content="Default null content",
+                source="null_source",
+                metadata={},
+            )
+            search_responses = [[SearchResult(default_doc, 0.95)]]
 
-        # Format all responses
-        formatted_responses = [
-            _format_response_as_qdrant_search(response)
-            for response in search_responses
-        ]
+        return QdrantDocumentRepository(
+            QdrantDocumentRepository._StubbedQdrantClient(
+                search_responses, stored_documents or []
+            )
+        )
 
-        return VectorDB(VectorDB.StubbedQdrantClient(formatted_responses))
+    def __init__(self, client):
+        self._client = client
+        self._collection_name = "docs"
 
-    def __init__(self, qdrant_client) -> None:
-        """Shared initialization - works with both real and stubbed clients"""
-        self._client = qdrant_client
-        self.is_connected = self._check_connection()
-        self._event_listeners = {"document_added": [], "search_performed": []}
+    def _ensure_collection_exists(self):
+        """Create the collection if it doesn't exist"""
+        # Skip for stubbed clients (they don't need real collections)
+        if hasattr(self._client, "_search_responses"):
+            return
 
-    def _check_connection(self) -> bool:
-        """Check if client is connected"""
         try:
-            info = self._client.info()
-            return info is not None
+            # Try to get collection info
+            _ = self._client.get_collection(self._collection_name)
+            # If we get here, collection exists
+            return
         except Exception:
-            return False
-
-    def add_documents(
-        self,
-        documents: List[str],
-        metadata: List[Dict[str, Any]],
-        ids: Optional[List[Any]] = None,
-    ) -> None:
-        """Add documents to the vector database"""
-        if not self.is_connected:
-            raise RuntimeError("VectorDB is not connected")
-
-        if ids is None:
-            ids = [str(uuid.uuid4()) for _ in documents]
-
-        # Perform the actual operation
-        self._client.add(
-            collection_name=COLLECTION_NAME,
-            documents=documents,
-            metadata=metadata,
-            ids=ids,
-        )
-
-        # Emit behavior event (not method call tracking)
-        self._emit_event(
-            "document_added",
-            {
-                "collection_name": COLLECTION_NAME,
-                "document_count": len(documents),
-                "ids": ids,
-            },
-        )
-
-    def search(self, query_text: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Search for similar documents"""
-        if not self.is_connected:
-            raise RuntimeError("VectorDB is not connected")
-
-        # Perform the actual operation
-        results = self._client.query(
-            collection_name=COLLECTION_NAME, query_text=query_text, limit=limit
-        )
-
-        # Emit behavior event (not method call tracking)
-        self._emit_event(
-            "search_performed",
-            {
-                "collection_name": COLLECTION_NAME,
-                "query_text": query_text,
-                "result_count": len(results),
-                "limit": limit,
-            },
-        )
-
-        return results
-
-    def _emit_event(self, event_type: str, event_data: Dict[str, Any]) -> None:
-        """Emit events for output tracking"""
-        if event_type in self._event_listeners:
-            for listener in self._event_listeners[event_type]:
-                listener(event_data)
-
-    def on_document_added(self, listener_fn) -> None:
-        """Register listener for document addition events"""
-        self._event_listeners["document_added"].append(listener_fn)
-
-    def on_search_performed(self, listener_fn) -> None:
-        """Register listener for search events"""
-        self._event_listeners["search_performed"].append(listener_fn)
-
-    def track_document_additions(self) -> "DocumentAdditionTracker":
-        """Output tracking for document additions"""
-        return DocumentAdditionTracker(self)
-
-    def track_searches(self) -> "SearchTracker":
-        """Output tracking for searches"""
-        return SearchTracker(self)
-
-    class StubbedQdrantClient:
-        """Embedded stub that mimics QdrantClient behavior"""
-
-        def __init__(self, search_responses: List[List[Dict[str, Any]]]):
-            self._search_responses = search_responses
-
-        def info(self):
-            """Stub for connection check"""
-            return {"version": "stubbed_version", "status": "ok"}
-
-        def add(
-            self,
-            collection_name: str,
-            documents: List[str],
-            metadata: List[Dict[str, Any]],
-            ids: List[Any],
-        ) -> None:
-            """Stub for adding documents - just succeeds silently"""
-            # In a real stub, you might store these for later verification
-            # but we're focusing on behavior events rather than method call tracking
+            # Collection doesn't exist, create it
             pass
 
-        def query(
-            self, collection_name: str, query_text: str, limit: int = 5
-        ) -> List[Dict[str, Any]]:
-            """Stub for querying - returns configured results"""
-            return self._get_next_response(self._search_responses, limit)
+        try:
+            from qdrant_client.models import Distance, VectorParams
 
-        @staticmethod
-        def _get_next_response(
-            responses: List[List[Dict[str, Any]]], limit: int
-        ) -> List[Dict[str, Any]]:
-            """Get next configured response"""
-            if isinstance(responses, list):
-                # If it's a list, pop the next response
-                if not responses:
-                    raise Exception(
-                        "No more search responses configured in nulled VectorDB"
-                    )
-                response = responses.pop(0)
-                # Return up to 'limit' results
-                return response[:limit]
-            else:
-                # If it's a single value, always return that (up to limit)
-                return responses[:limit]
+            self._client.create_collection(
+                collection_name=self._collection_name,
+                vectors_config=VectorParams(
+                    size=384, distance=Distance.COSINE
+                ),
+            )
+        except Exception as e:
+            # Re-raise if we can't create the collection
+            raise RuntimeError(
+                f"Failed to create Qdrant collection '{self._collection_name}': {e}"
+            )
 
+    def store(self, document: Document) -> None:
+        # Ensure collection exists before storing
+        self._ensure_collection_exists()
 
-# Output tracking classes
-class DocumentAdditionTracker:
-    """Tracks document addition events"""
+        # Real implementation would vectorize and store
+        # breakpoint()
+        self._client.upsert(
+            collection_name=self._collection_name,
+            points=[
+                PointStruct(
+                    id=document.id,
+                    vector=self._vectorize(document.content),
+                    payload={
+                        "content": document.content,
+                        "source": document.source,
+                        "metadata": document.metadata,
+                    },
+                )
+            ],
+        )
 
-    def __init__(self, vector_db: VectorDB):
-        self._data = []
-        vector_db.on_document_added(self._track_event)
+    def store_batch(self, documents: List[Document]) -> None:
+        """Efficient batch storage"""
+        if not documents:
+            return
 
-    def _track_event(self, event_data: Dict[str, Any]) -> None:
-        self._data.append(event_data)
+        # Ensure collection exists before storing
+        self._ensure_collection_exists()
 
-    @property
-    def data(self) -> List[Dict[str, Any]]:
-        return self._data.copy()
+        # Create all points first, then do single upsert
+        points = []
+        for doc in documents:
+            points.append(
+                PointStruct(
+                    id=doc.id,
+                    vector=self._vectorize(doc.content),
+                    payload={
+                        "content": doc.content,
+                        "source": doc.source,
+                        "metadata": doc.metadata,
+                    },
+                )
+            )
 
-    def clear(self) -> List[Dict[str, Any]]:
-        data = self._data.copy()
-        self._data.clear()
-        return data
+        self._client.upsert(
+            collection_name=self._collection_name, points=points
+        )
 
+    def find_similar(self, query: SearchQuery) -> List[SearchResult]:
+        # Ensure collection exists before searching
+        self._ensure_collection_exists()
 
-class SearchTracker:
-    """Tracks search events"""
+        results = self._client.query_points(
+            collection_name=self._collection_name,
+            query=self._vectorize(query.text),
+            limit=query.max_results,
+        )
+        return [self._map_result(hit) for hit in results.points]
 
-    def __init__(self, vector_db: VectorDB):
-        self._data = []
-        vector_db.on_search_performed(self._track_event)
+    def find_by_id(self, doc_id: str) -> Optional[Document]:
+        # Ensure collection exists before retrieving
+        self._ensure_collection_exists()
 
-    def _track_event(self, event_data: Dict[str, Any]) -> None:
-        self._data.append(event_data)
+        result = self._client.retrieve(
+            collection_name=self._collection_name, ids=[doc_id]
+        )
+        return self._map_document(result[0]) if result else None
 
-    @property
-    def data(self) -> List[Dict[str, Any]]:
-        return self._data.copy()
+    def _vectorize(self, text: str) -> List[float]:
+        # Dummy implementation - in real code, use sentence transformers or similar
+        import hashlib
 
-    def clear(self) -> List[Dict[str, Any]]:
-        data = self._data.copy()
-        self._data.clear()
-        return data
+        hash_obj = hashlib.md5(text.encode())
+        # Generate dummy 384-dimensional vector from hash
+        vector = []
+        hex_str = hash_obj.hexdigest()
+        for i in range(384):
+            # Use modulo to cycle through hash characters
+            char_index = i % len(hex_str)
+            # Convert hex char to float between -1 and 1
+            char_value = int(hex_str[char_index], 16)
+            normalized_value = (char_value / 15.0) * 2 - 1
+            vector.append(normalized_value)
+        return vector
+
+    def _map_result(self, hit) -> SearchResult:
+        """Map Qdrant search result to domain object"""
+        # Handle both dict and object formats from Qdrant
+        if isinstance(hit, dict):
+            doc_id = str(hit.get("id", ""))
+            score = hit.get("score", 0.0)
+            payload = hit.get("payload", {})
+        else:
+            doc_id = str(hit.id)
+            score = hit.score
+            payload = hit.payload
+
+        doc = Document(
+            id=doc_id,
+            content=payload.get("content", ""),
+            source=payload.get("source", ""),
+            metadata=payload.get("metadata", {}),
+        )
+        return SearchResult(doc, score)
+
+    def _map_document(self, point) -> Document:
+        """Map Qdrant point to domain document"""
+        # Handle both dict and object formats from Qdrant
+        if isinstance(point, dict):
+            doc_id = str(point.get("id", ""))
+            payload = point.get("payload", {})
+        else:
+            doc_id = str(point.id)
+            payload = point.payload
+
+        return Document(
+            id=doc_id,
+            content=payload.get("content", ""),
+            source=payload.get("source", ""),
+            metadata=payload.get("metadata", {}),
+        )
+
+    class _StubbedQdrantClient:
+        """Embedded stub that mimics Qdrant behavior"""
+
+        def __init__(
+            self,
+            search_responses: List[List[SearchResult]],
+            stored_docs: List[Document],
+        ):
+            self._search_responses = search_responses.copy()
+            self._stored_docs = {doc.id: doc for doc in stored_docs}
+            self._points = {}
+
+        def get_collection(self, collection_name: str):
+            """Stub - always succeeds"""
+            return {"status": "green"}
+
+        def create_collection(self, collection_name: str, vectors_config):
+            """Stub - always succeeds"""
+            pass
+
+        def upsert(self, collection_name: str, points: List[PointStruct]):
+            for point in points:
+                self._points[point.id] = point
+
+        def query_points(
+            self, collection_name: str, query: List[float], limit: int
+        ):
+            class MockScoredPoint:
+                def __init__(self, result: SearchResult):
+                    self.id = result.document.id
+                    self.score = result.relevance_score
+                    self.payload = {
+                        "content": result.document.content,
+                        "source": result.document.source,
+                        "metadata": result.document.metadata,
+                    }
+
+            class MockQueryResponse:
+                def __init__(self, points):
+                    self.points = points
+
+            if not self._search_responses:
+                return MockQueryResponse([])
+
+            results = self._search_responses.pop(0)
+
+            mock_points = [MockScoredPoint(r) for r in results[:limit]]
+            return MockQueryResponse(mock_points)
+
+            # if not self._search_responses:
+            #     return []
+            #
+            # results = self._search_responses.pop(0)
+            #
+            # # Convert back to mock Qdrant format
+            # class MockHit:
+            #     def __init__(self, result: SearchResult):
+            #         self.id = result.document.id
+            #         self.score = result.relevance_score
+            #         self.payload = {
+            #             "content": result.document.content,
+            #             "source": result.document.source,
+            #             "metadata": result.document.metadata,
+            #         }
+            #
+            # return [MockHit(r) for r in results[:limit]]
+
+        def retrieve(self, collection_name: str, ids: List[str]):
+            results = []
+            for doc_id in ids:
+                if doc_id in self._points:
+                    point = self._points[doc_id]
+
+                    class MockPoint:
+                        def __init__(self, point_data):
+                            self.id = point_data.id
+                            self.payload = point_data.payload
+
+                    results.append(MockPoint(point))
+            return results
