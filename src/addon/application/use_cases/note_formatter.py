@@ -12,17 +12,17 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-from ..application.services.completion_service import (
+from ...application.services.completion_service import (
     CompletionService,
 )
-from ..application.services.formatter_service import (
+from ...application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
 )
-from ..domain.models.editor import EditorDialog
-from ..infrastructure.aqt import AddonConfig
-from ..infrastructure.openai import OpenAIClient
-from ..utils import ensure_collection, ensure_note
+from ...domain.entities.editor import EditorDialog
+from ...infrastructure.configuration.settings import AddonConfig
+from ...infrastructure.external_services.openai import OpenAIClient
+from ...utils import ensure_collection, ensure_note
 
 
 def open_standalone_editor() -> None:

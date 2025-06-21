@@ -6,7 +6,7 @@ from anki.notes import Note
 from jinja2 import Template
 
 from ...application.services.completion_service import CompletionService
-from ...domain.models.note import AddonNote, AddonNoteChanges
+from ...domain.entities.note import AddonNote, AddonNoteChanges
 from ...utils import is_cloze_note
 
 

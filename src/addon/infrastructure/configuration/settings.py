@@ -2,7 +2,7 @@ import os
 
 from aqt.main import AnkiQt
 
-from ..utils import ensure_config
+from ...utils import ensure_config
 
 
 class AddonConfig:

@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from ...domain.models.completion_result import CompletionResult
-from ...infrastructure.openai import OpenAIClient
+from ...domain.value_objects.completion_result import CompletionResult
+from ...infrastructure.external_services.openai import OpenAIClient
 
 
 class CompletionService:

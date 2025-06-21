@@ -5,7 +5,9 @@ from addon.domain.repositories.document_repository import (
     SearchQuery,
     SearchResult,
 )
-from addon.infrastructure.qdrant_repository import QdrantDocumentRepository
+from addon.infrastructure.persistence.qdrant_repository import (
+    QdrantDocumentRepository,
+)
 
 
 # Fixtures for test data

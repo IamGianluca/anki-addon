@@ -3,7 +3,9 @@ import uuid
 import pytest
 
 from addon.domain.repositories.document_repository import Document, SearchQuery
-from addon.infrastructure.qdrant_repository import QdrantDocumentRepository
+from addon.infrastructure.persistence.qdrant_repository import (
+    QdrantDocumentRepository,
+)
 
 
 @pytest.mark.slow

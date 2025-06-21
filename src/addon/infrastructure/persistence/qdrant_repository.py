@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from qdrant_client.http.models import PointStruct
 
-from ..domain.repositories.document_repository import (
+from ...domain.repositories.document_repository import (
     Document,
     DocumentRepository,
     SearchQuery,

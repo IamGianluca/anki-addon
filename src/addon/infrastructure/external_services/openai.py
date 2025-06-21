@@ -1,7 +1,7 @@
 import requests
 import requests.exceptions
 
-from ..infrastructure.aqt import AddonConfig
+from ...infrastructure.configuration.settings import AddonConfig
 
 
 class OpenAIClient:

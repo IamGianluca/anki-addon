@@ -1,8 +1,8 @@
 from addon.application.services.completion_service import (
     CompletionService,
 )
-from addon.infrastructure.aqt import AddonConfig
-from addon.infrastructure.openai import OpenAIClient
+from addon.infrastructure.configuration.settings import AddonConfig
+from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 def test_completion_service():

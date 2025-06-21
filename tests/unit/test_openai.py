@@ -1,5 +1,5 @@
-from addon.infrastructure.aqt import AddonConfig
-from addon.infrastructure.openai import OpenAIClient
+from addon.infrastructure.configuration.settings import AddonConfig
+from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 def test_llm_engine_collab():

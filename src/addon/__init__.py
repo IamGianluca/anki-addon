@@ -1,10 +1,10 @@
 from aqt import gui_hooks, mw, qconnect
 from PyQt6.QtGui import QAction, QKeySequence
 
-from .application.note_counter import (
+from .application.use_cases.note_counter import (
     display_notes_marked_for_review_count,
 )
-from .application.note_formatter import (
+from .application.use_cases.note_formatter import (
     add_custom_button,
     open_standalone_editor,
 )

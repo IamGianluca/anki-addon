@@ -1,7 +1,7 @@
 from aqt import mw
 from aqt.utils import showInfo
 
-from ..utils import ensure_collection
+from ...utils import ensure_collection
 
 
 def display_notes_marked_for_review_count() -> None:

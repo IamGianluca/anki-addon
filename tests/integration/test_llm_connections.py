@@ -1,7 +1,7 @@
 import pytest
 
-from addon.infrastructure.aqt import AddonConfig
-from addon.infrastructure.openai import OpenAIClient
+from addon.infrastructure.configuration.settings import AddonConfig
+from addon.infrastructure.external_services.openai import OpenAIClient
 
 # NOTE: This test requires a live inference server. The test will fail if the
 # inference server is not live.
