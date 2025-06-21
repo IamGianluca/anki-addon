@@ -120,7 +120,7 @@ def open_standalone_editor() -> None:
 
 def add_custom_button(buttons, editor: Editor):
     """Add button to retrieve AI suggestions to Editor."""
-    addon_dir = Path(__file__).parents[1]
+    addon_dir = Path(__file__).parents[2]
     icon_path = os.path.join(addon_dir, "imgs", "ai-icon.png")
     button = editor.addButton(
         icon=icon_path,
