@@ -1,11 +1,11 @@
 import pytest
 
-from addon.domain.models.document_repository import (
+from addon.domain.repositories.document_repository import (
     Document,
     SearchQuery,
     SearchResult,
 )
-from addon.infrastructure.qdrant import QdrantDocumentRepository
+from addon.infrastructure.qdrant_repository import QdrantDocumentRepository
 
 
 # Fixtures for test data

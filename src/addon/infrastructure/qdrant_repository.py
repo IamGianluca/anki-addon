@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from qdrant_client.http.models import PointStruct
 
-from ..domain.models.document_repository import (
+from ..domain.repositories.document_repository import (
     Document,
     DocumentRepository,
     SearchQuery,
@@ -11,7 +11,7 @@ from ..domain.models.document_repository import (
 
 
 class QdrantDocumentRepository(DocumentRepository):
-    """Infrastructure wrapper with Nullable pattern"""
+    """Infrastructure implementation with Nullable pattern"""
 
     @staticmethod
     def create():
@@ -248,24 +248,6 @@ class QdrantDocumentRepository(DocumentRepository):
 
             mock_points = [MockScoredPoint(r) for r in results[:limit]]
             return MockQueryResponse(mock_points)
-
-            # if not self._search_responses:
-            #     return []
-            #
-            # results = self._search_responses.pop(0)
-            #
-            # # Convert back to mock Qdrant format
-            # class MockHit:
-            #     def __init__(self, result: SearchResult):
-            #         self.id = result.document.id
-            #         self.score = result.relevance_score
-            #         self.payload = {
-            #             "content": result.document.content,
-            #             "source": result.document.source,
-            #             "metadata": result.document.metadata,
-            #         }
-            #
-            # return [MockHit(r) for r in results[:limit]]
 
         def retrieve(self, collection_name: str, ids: List[str]):
             results = []
