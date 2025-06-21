@@ -19,9 +19,9 @@ from ...application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
 )
-from ...domain.entities.editor import EditorDialog
 from ...infrastructure.configuration.settings import AddonConfig
 from ...infrastructure.external_services.openai import OpenAIClient
+from ...infrastructure.ui.editor import EditorDialog
 from ...utils import ensure_collection, ensure_note
 
 
