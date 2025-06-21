@@ -1,5 +1,7 @@
 # Anki AI
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IamGianluca/anki-addon)
+
 A powerful Anki add-on that leverages Large Language Models (LLMs) to help you refactor and improve your notes with AI assistance.
 
 ## 🌟 Features
