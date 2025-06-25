@@ -30,6 +30,9 @@ def ensure_note(note: Optional[Note]) -> Note:
     return note
 
 
-def is_cloze_note(note) -> bool:
+def is_cloze_note(note: Note) -> bool:
     # NOTE: type: 0 = basic, 1 = cloze
-    return note.note_type()["type"] == MODEL_CLOZE
+    note_type = note.note_type()
+    if note_type is None:
+        raise RuntimeError("Note not initialized")
+    return note_type["type"] == MODEL_CLOZE

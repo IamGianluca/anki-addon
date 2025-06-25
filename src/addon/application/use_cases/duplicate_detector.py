@@ -67,17 +67,7 @@ class DuplicateDetectionService:
         similarity_threshold: float = 0.85,
         max_candidates_per_note: int = 3,
     ) -> DuplicateDetectionResult:
-        """
-        Find potential duplicate notes using semantic similarity.
-
-        Args:
-            notes: List of notes to analyze
-            similarity_threshold: Minimum similarity score to consider as duplicate
-            max_candidates_per_note: Maximum number of similar notes to check per note
-
-        Returns:
-            DuplicateDetectionResult with found duplicates
-        """
+        """Find potential duplicate notes using semantic similarity"""
         # First, store all notes in the vector database
         self._store_notes_as_documents(notes)
 
@@ -140,9 +130,7 @@ class DuplicateDetectionService:
                 content=content,
                 source="anki_note",
                 metadata={
-                    "note_type": "cloze"
-                    if self._is_cloze_note_from_addon_note(note)
-                    else "basic",
+                    "note_type": "cloze" if note.is_cloze() else "basic",
                     "tags": note.tags or [],
                     "deck_name": note.deck_name,
                 },

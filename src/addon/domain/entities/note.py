@@ -11,6 +11,9 @@ class AddonNote(BaseModel):
     notetype: Optional[str] = None
     deck_name: Optional[str] = None
 
+    def is_cloze(self):
+        return self.notetype == 1
+
 
 class AddonNoteChanges(BaseModel):
     front: str
