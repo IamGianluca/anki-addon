@@ -302,24 +302,6 @@ def test_prepare_search_text_handles_basic_notes():
     # Should combine front and back
 
 
-def test_cloze_note_detection():
-    """Test the cloze note detection method"""
-    # Given
-    repository = QdrantDocumentRepository.create_null()
-    service = DuplicateDetectionService(repository)
-
-    cloze_note = AddonNote(
-        guid="1", front="{{c1::Paris}} is the capital", back="back", tags=[]
-    )
-    basic_note = AddonNote(
-        guid="2", front="What is the capital?", back="Paris", tags=[]
-    )
-
-    # When & Then
-    assert service._is_cloze_note_from_addon_note(cloze_note) is True
-    assert service._is_cloze_note_from_addon_note(basic_note) is False
-
-
 def test_find_note_by_guid(sample_notes):
     """Test finding notes by GUID"""
     # Given

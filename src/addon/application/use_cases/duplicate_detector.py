@@ -130,7 +130,7 @@ class DuplicateDetectionService:
                 content=content,
                 source="anki_note",
                 metadata={
-                    "note_type": "cloze" if note.is_cloze() else "basic",
+                    "note_type": note.notetype,
                     "tags": note.tags or [],
                     "deck_name": note.deck_name,
                 },
@@ -148,20 +148,12 @@ class DuplicateDetectionService:
         back_text = remove_html_tags(note.back) if note.back else ""
 
         # For cloze notes, focus more on the main text
-        if self._is_cloze_note_from_addon_note(note):
+        if note.notetype:
             return front_text  # Cloze text is in the front field
 
         # For basic notes, combine front and back
         combined = f"{front_text} {back_text}".strip()
         return combined
-
-    def _is_cloze_note_from_addon_note(self, note: AddonNote) -> bool:
-        """Check if an AddonNote is a cloze note based on content patterns"""
-        # Simple heuristic: check for cloze patterns like {{c1::text}}
-        import re
-
-        cloze_pattern = r"\{\{c\d+::[^}]+\}\}"
-        return bool(re.search(cloze_pattern, note.front or ""))
 
     def _find_note_by_guid(
         self, notes: List[AddonNote], guid: str
