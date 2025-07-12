@@ -6,7 +6,7 @@ from anki.notes import Note
 from jinja2 import Template
 
 from ...application.services.completion_service import CompletionService
-from ...domain.entities.note import AddonNote, AddonNoteChanges
+from ...domain.entities.note import AddonNote, AddonNoteChanges, AddonNoteType
 from ...utils import is_cloze_note
 
 
@@ -59,10 +59,16 @@ def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
 def convert_note_to_addon_note(note: Note) -> AddonNote:
     if is_cloze_note(note):
         front, back = note["Text"], note["Back Extra"]
+        notetype = AddonNoteType.CLOZE
     else:
         front, back = note["Front"], note["Back"]
+        notetype = AddonNoteType.BASIC
     addon_note = AddonNote(
-        guid=note.guid, front=front, back=back, tags=note.tags
+        guid=note.guid,
+        front=front,
+        back=back,
+        tags=note.tags,
+        notetype=notetype,
     )
     return addon_note
 

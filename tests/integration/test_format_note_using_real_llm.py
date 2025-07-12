@@ -14,7 +14,7 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 @pytest.mark.slow
-def test_format_note_using_llm():
+def test_format_basic_note_using_llm():
     # Given
     note = FakeNote(
         note_id="1111",
@@ -40,3 +40,32 @@ def test_format_note_using_llm():
     assert isinstance(result, (Note, FakeNote))
     assert "Most winning NHL team" in result["Front"]
     assert "Montreal Canadiens" in result["Back"]
+
+
+@pytest.mark.slow
+def test_format_cloze_note_using_llm():
+    # Given
+    note = FakeNote(
+        note_id="1111",
+        fields={
+            "type": 1,  # cloze
+            "Text": "The most winning team in NHL history is {{c1::The Montreal Canadiens}}",
+            "Back Extra": "",
+        },
+    )
+    note.tags = ["hockey"]
+    config = AddonConfig.create_nullable()
+    openai = OpenAIClient.create(config)
+
+    completion = CompletionService(openai)
+    formatter = NoteFormatter(completion)
+
+    # When
+    result = format_note_workflow(note, formatter)
+
+    # Then
+
+    from anki.notes import Note  # Prevents circular import
+
+    assert isinstance(result, (Note, FakeNote))
+    assert "Montreal Canadiens" in result["Text"]
