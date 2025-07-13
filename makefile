@@ -1,8 +1,11 @@
-.PHONY: install test test_slow static_check clean 
+.PHONY: install jupyter test test_slow static_check clean 
 
 install:
 	uv sync --all-extras && \
 	uv pip install -e . 
+
+jupyter:
+	jupyter lab --ip 0.0.0.0 --no-browser --allow-root --port 8888
 
 test:
 	pytest . -m "not slow" --ignore=tests/integration/ --durations=5 --cov=src/addon/ --cov-report term-missing -vv
