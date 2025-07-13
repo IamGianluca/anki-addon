@@ -1,6 +1,3 @@
-# create integration test to ensure we can format a semi-real note using
-# a real l
-
 import pytest
 from tests.fakes.aqt_fakes import FakeNote
 

@@ -10,8 +10,6 @@ from ...domain.entities.note import AddonNote, AddonNoteChanges, AddonNoteType
 from ...utils import is_cloze_note
 
 
-# NOTE: Should we move this as a service in the domain? Revisit after the
-# class is fully built out.
 class NoteFormatter:
     def __init__(self, completion: CompletionService) -> None:
         self._completion = completion
