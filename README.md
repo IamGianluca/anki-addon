@@ -22,7 +22,7 @@ A powerful Anki add-on that leverages Large Language Models (LLMs) to help you r
 Clone this repository into your Anki add-ons folder:
 
 ```bash
-git clone https://github.com/iamgianluca/anki-addon.git [your-anki-addons-path]/anki-addon
+git clone https://github.com/iamgianluca/anki-addon.git [your-anki-addons-path]/addons21/anki-addon
 ```
 
 ## ⚙️ Configuration
