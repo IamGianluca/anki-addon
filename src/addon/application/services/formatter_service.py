@@ -44,9 +44,6 @@ class NoteFormatter:
 
 
 def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
-    # TODO: I'm not convinced we should get as input and return an Anki `Note`
-    # object. Consider operating with AddonNote objects and do the conversion
-    # elsewhere
     addon_note = convert_note_to_addon_note(note)
     addon_note = _format_note(addon_note, formatter)
     addon_note = _remove_alt_tags(addon_note)
