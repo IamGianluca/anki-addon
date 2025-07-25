@@ -6,6 +6,9 @@ dist/
 wheels/
 *.egg-info
 
+# Jupyter notebooks
+.ipynb_checkpoints/
+
 # Dev files
 .coverage
 
