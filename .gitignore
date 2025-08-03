@@ -22,3 +22,6 @@ meta.json
 
 # MacOS
 .DS_Store
+
+# Jupyter Notebook cache
+.ipynb_checkpoints/
