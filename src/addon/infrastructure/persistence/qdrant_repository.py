@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from qdrant_client.http.models import PointStruct
+from sentence_transformers import SentenceTransformer
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -47,6 +48,7 @@ class QdrantDocumentRepository(DocumentRepository):
     def __init__(self, client):
         self._client = client
         self._collection_name = "docs"
+        self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
 
     def _ensure_collection_exists(self):
         """Create the collection if it doesn't exist"""
@@ -69,7 +71,8 @@ class QdrantDocumentRepository(DocumentRepository):
             self._client.create_collection(
                 collection_name=self._collection_name,
                 vectors_config=VectorParams(
-                    size=384, distance=Distance.COSINE
+                    size=self.encoder.get_sentence_embedding_dimension(),
+                    distance=Distance.COSINE,
                 ),
             )
         except Exception as e:
@@ -147,21 +150,7 @@ class QdrantDocumentRepository(DocumentRepository):
         return self._map_document(result[0]) if result else None
 
     def _vectorize(self, text: str) -> List[float]:
-        # Dummy implementation - in real code, use sentence transformers or similar
-        import hashlib
-
-        hash_obj = hashlib.md5(text.encode())
-        # Generate dummy 384-dimensional vector from hash
-        vector = []
-        hex_str = hash_obj.hexdigest()
-        for i in range(384):
-            # Use modulo to cycle through hash characters
-            char_index = i % len(hex_str)
-            # Convert hex char to float between -1 and 1
-            char_value = int(hex_str[char_index], 16)
-            normalized_value = (char_value / 15.0) * 2 - 1
-            vector.append(normalized_value)
-        return vector
+        return self.encoder.encode(text)
 
     def _map_result(self, hit) -> SearchResult:
         """Map Qdrant search result to domain object"""
