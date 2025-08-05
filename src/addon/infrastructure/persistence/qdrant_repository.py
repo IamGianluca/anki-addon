@@ -72,7 +72,7 @@ class QdrantDocumentRepository(DocumentRepository):
                 collection_name=self._collection_name,
                 vectors_config=VectorParams(
                     size=self.encoder.get_sentence_embedding_dimension(),
-                    distance=Distance.COSINE,
+                    distance=Distance.DOT,
                 ),
             )
         except Exception as e:
