@@ -9,7 +9,7 @@ dependencies = [
     "pydantic>=2.11.4",
     "pyqt6>=6.8.1",
     "pyqt6-webengine>=6.8.0",
-    "qdrant-client[fastembed]>=1.14.2",
+    "qdrant-client>=1.15.1",
     "requests>=2.32.3",
     "sentence-transformers[onnx]>=5.0.0",
 ]

@@ -1,7 +1,8 @@
-from typing import List, Optional
+from __future__ import (
+    annotations,  # avoid slow import of torch.Tensor, which is only required for type hint
+)
 
-from qdrant_client.http.models import PointStruct
-from sentence_transformers import SentenceTransformer
+from typing import List, Optional
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -9,6 +10,14 @@ from ...domain.repositories.document_repository import (
     SearchQuery,
     SearchResult,
 )
+
+
+class FakeSentenceTransformer:
+    def __init__(self, x):
+        pass
+
+    def encode(self, text):
+        return [0, 0, 0, 0, 0, 0, 0]
 
 
 class QdrantDocumentRepository(DocumentRepository):
@@ -48,7 +57,14 @@ class QdrantDocumentRepository(DocumentRepository):
     def __init__(self, client):
         self._client = client
         self._collection_name = "docs"
-        self.encoder = SentenceTransformer("all-MiniLM-L6-v2")
+        if isinstance(
+            self._client, QdrantDocumentRepository._StubbedQdrantClient
+        ):
+            self._encoder = FakeSentenceTransformer("doesnotmatter")
+        else:
+            from sentence_transformers import SentenceTransformer
+
+            self._encoder = SentenceTransformer("all-MiniLM-L6-v2")
 
     def _ensure_collection_exists(self):
         """Create the collection if it doesn't exist"""
@@ -71,7 +87,7 @@ class QdrantDocumentRepository(DocumentRepository):
             self._client.create_collection(
                 collection_name=self._collection_name,
                 vectors_config=VectorParams(
-                    size=self.encoder.get_sentence_embedding_dimension(),
+                    size=self._encoder.get_sentence_embedding_dimension(),
                     distance=Distance.DOT,
                 ),
             )
@@ -81,50 +97,49 @@ class QdrantDocumentRepository(DocumentRepository):
                 f"Failed to create Qdrant collection '{self._collection_name}': {e}"
             )
 
-    def store(self, document: Document) -> None:
-        # Ensure collection exists before storing
-        self._ensure_collection_exists()
-
-        # Real implementation would vectorize and store
-        # breakpoint()
-        self._client.upsert(
-            collection_name=self._collection_name,
-            points=[
-                PointStruct(
-                    id=document.id,
-                    vector=self._vectorize(document.content),
-                    payload={
+    def _create_point(self, document: Document):
+        """Create a point object (real or mock depending on client type)"""
+        if hasattr(self._client, "_search_responses"):
+            # Test mode - simple mock object
+            return type(
+                "MockPoint",
+                (),
+                {
+                    "id": document.id,
+                    "vector": self._vectorize(document.content),
+                    "payload": {
                         "content": document.content,
                         "source": document.source,
                         "metadata": document.metadata,
                     },
-                )
-            ],
+                },
+            )()
+        else:
+            # Production mode - real PointStruct
+            from qdrant_client.models import PointStruct
+
+            return PointStruct(
+                id=document.id,
+                vector=self._vectorize(document.content),
+                payload={
+                    "content": document.content,
+                    "source": document.source,
+                    "metadata": document.metadata,
+                },
+            )
+
+    def store(self, document: Document) -> None:
+        self._ensure_collection_exists()
+        point = self._create_point(document)
+        self._client.upsert(
+            collection_name=self._collection_name, points=[point]
         )
 
     def store_batch(self, documents: List[Document]) -> None:
-        """Efficient batch storage"""
         if not documents:
             return
-
-        # Ensure collection exists before storing
         self._ensure_collection_exists()
-
-        # Create all points first, then do single upsert
-        points = []
-        for doc in documents:
-            points.append(
-                PointStruct(
-                    id=doc.id,
-                    vector=self._vectorize(doc.content),
-                    payload={
-                        "content": doc.content,
-                        "source": doc.source,
-                        "metadata": doc.metadata,
-                    },
-                )
-            )
-
+        points = [self._create_point(doc) for doc in documents]
         self._client.upsert(
             collection_name=self._collection_name, points=points
         )
@@ -149,8 +164,10 @@ class QdrantDocumentRepository(DocumentRepository):
         )
         return self._map_document(result[0]) if result else None
 
-    def _vectorize(self, text: str) -> List[float]:
-        return self.encoder.encode(text)
+    def _vectorize(
+        self, text: str
+    ) -> Tensor:  # Not imported since it has slow side effects
+        return self._encoder.encode(text)
 
     def _map_result(self, hit) -> SearchResult:
         """Map Qdrant search result to domain object"""

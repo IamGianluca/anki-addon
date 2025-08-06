@@ -8,7 +8,10 @@ jupyter:
 	jupyter lab --ip 0.0.0.0 --no-browser --allow-root --port 8888
 
 test:
-	pytest . -m "not slow" --ignore=tests/integration/ --durations=5 --cov=src/addon/ --cov-report term-missing -vv
+	pytest tests/unit/ -m "not slow"
+
+test_with_coverage:
+	pytest . -m "not slow" --ignore=tests/integration/ --ignore=tests/e2e/ --durations=5 --cov=src/addon/ --cov-report term-missing -vv
 
 test_slow:
 	pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv

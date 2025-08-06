@@ -1,6 +1,5 @@
 import json
 
-from anki.notes import Note
 from tests.fakes.aqt_fakes import FakeNote
 
 from addon.application.services.completion_service import (
@@ -16,6 +15,8 @@ from addon.utils import is_cloze_note
 
 
 def test_format_note_using_llm(note1):
+    from anki.notes import Note
+
     # Given
     config = AddonConfig.create_nullable()
 
@@ -51,6 +52,8 @@ def test_format_cloze_note_using_llm(cloze1):
     result = format_note_workflow(cloze1, formatter)
 
     # Then
+    from anki.notes import Note
+
     assert isinstance(result, (Note, FakeNote))
     assert result["Text"] == expected_front
     assert result["Back Extra"] == expected_back
