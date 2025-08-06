@@ -12,6 +12,9 @@ from ...domain.repositories.document_repository import (
 )
 
 if TYPE_CHECKING:
+    # These dependencies are needed for type checking. We do not import these
+    # dependencies at the top of file because they have slow side effects that
+    # significantly increase the test suite execution time.
     from qdrant_client.models import PointStruct
     from torch import Tensor
 
