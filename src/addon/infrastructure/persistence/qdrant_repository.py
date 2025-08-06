@@ -17,10 +17,10 @@ if TYPE_CHECKING:
 
 
 class FakeSentenceTransformer:
-    def __init__(self, x):
+    def __init__(self, model_name_or_path: str) -> None:
         pass
 
-    def encode(self, text):
+    def encode(self, text: str):
         return [0, 0, 0, 0, 0, 0, 0]
 
 
