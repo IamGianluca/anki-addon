@@ -1,16 +1,8 @@
+from __future__ import annotations
+
 import os
 from pathlib import Path
-
-from aqt import mw
-from aqt.editor import Editor
-from aqt.utils import askUser, tooltip
-from PyQt6.QtWidgets import (
-    QDialog,
-    QHBoxLayout,
-    QPushButton,
-    QVBoxLayout,
-    QWidget,
-)
+from typing import TYPE_CHECKING
 
 from ...application.services.completion_service import (
     CompletionService,
@@ -24,6 +16,11 @@ from ...infrastructure.external_services.openai import OpenAIClient
 from ...infrastructure.ui.editor import EditorDialog
 from ...utils import ensure_collection, ensure_note
 
+if TYPE_CHECKING:
+    from aqt import mw
+    from aqt.editor import Editor
+    from aqt.utils import askUser, tooltip
+
 
 def open_standalone_editor() -> None:
     """The open_standalone_editor() function creates the actual user interface:
@@ -33,6 +30,17 @@ def open_standalone_editor() -> None:
       canceling the editing session
     - It implements handlers for each button's functionality
     """
+    from aqt import mw
+    from aqt.editor import Editor
+    from aqt.utils import showInfo
+    from PyQt6.QtWidgets import (
+        QDialog,
+        QHBoxLayout,
+        QPushButton,
+        QVBoxLayout,
+        QWidget,
+    )
+
     # Create a new window
     dialog = QDialog(mw)
     dialog.setWindowTitle("Standalone Editor")

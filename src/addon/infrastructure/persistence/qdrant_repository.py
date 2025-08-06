@@ -26,6 +26,9 @@ class FakeSentenceTransformer:
     def encode(self, text: str):
         return [0, 0, 0, 0, 0, 0, 0]
 
+    def get_sentence_embedding_dimension(self):
+        return 7  # Match the fake encoding above
+
 
 class QdrantDocumentRepository(DocumentRepository):
     """Infrastructure implementation with Nullable pattern"""
