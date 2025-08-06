@@ -2,7 +2,7 @@ from __future__ import (
     annotations,  # avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -10,6 +10,10 @@ from ...domain.repositories.document_repository import (
     SearchQuery,
     SearchResult,
 )
+
+if TYPE_CHECKING:
+    from qdrant_client.models import PointStruct
+    from torch import Tensor
 
 
 class FakeSentenceTransformer:
