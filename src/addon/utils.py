@@ -1,9 +1,11 @@
-from typing import Optional
+from __future__ import annotations
 
-from anki.collection import Collection
-from anki.consts import MODEL_CLOZE
-from anki.decks import DeckDict
-from anki.notes import Note
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from anki.collection import Collection
+    from anki.decks import DeckDict
+    from anki.notes import Note
 
 
 def ensure_config(config: Optional[dict]) -> dict:
@@ -31,5 +33,6 @@ def ensure_note(note: Optional[Note]) -> Note:
 
 
 def is_cloze_note(note) -> bool:
-    # NOTE: type: 0 = basic, 1 = cloze
+    from anki.consts import MODEL_CLOZE
+
     return note.note_type()["type"] == MODEL_CLOZE

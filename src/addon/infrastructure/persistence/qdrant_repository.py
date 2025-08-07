@@ -1,5 +1,5 @@
 from __future__ import (
-    annotations,  # avoid slow import of torch.Tensor, which is only required for type hint
+    annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
 from typing import TYPE_CHECKING, List, Optional
@@ -70,7 +70,7 @@ class QdrantDocumentRepository(DocumentRepository):
         if isinstance(
             self._client, QdrantDocumentRepository._StubbedQdrantClient
         ):
-            self._encoder = FakeSentenceTransformer("doesnotmatter")
+            self._encoder = FakeSentenceTransformer("fake-embedding-model")
         else:
             from sentence_transformers import SentenceTransformer
 
