@@ -19,11 +19,10 @@ dev-dependencies = [
     "pytest>=8.3.4",
     "ruff>=0.9.5",
     "ipdb>=0.13.13",
-    "pyrefly>=0.16.2",
-    "ty>=0.0.1a7",
     "jupyterlab>=4.4.4",
     "pre-commit>=4.2.0",
     "pytest-cov>=6.2.1",
+    "ty>=0.0.1a17",
 ]
 
 [tool.ruff]

@@ -17,7 +17,7 @@ test_slow:
 	pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
 
 static_check:
-	pyrefly check
+	ty check ./src/
 
 clean:
 	@echo "Cleaning Python cache files..."
