@@ -1,0 +1,46 @@
+from addon.application.use_cases.note_duplicate_finder import (
+    SimilarNoteFinder,
+)
+from addon.domain.entities.note import AddonNote
+from addon.domain.repositories.document_repository import (
+    SearchResult,
+    convert_addon_note_to_document,
+)
+from addon.infrastructure.persistence.qdrant_repository import (
+    QdrantDocumentRepository,
+)
+
+
+def test_find_possible_duplicate_notes_given_a_new_note(
+    addon_collection, addon_note1, addon_note2
+):
+    # Given
+    repository = QdrantDocumentRepository.create_null(
+        search_responses=[
+            [
+                SearchResult(
+                    document=convert_addon_note_to_document(addon_note2),
+                    relevance_score=0.98,
+                ),
+                # This result should be skipped because SimilarNoteFinder only return
+                # the most similar note for now
+                SearchResult(
+                    document=convert_addon_note_to_document(addon_note1),
+                    relevance_score=0.92,
+                ),
+            ]
+        ],
+    )
+
+    finder = SimilarNoteFinder(
+        collection=addon_collection, repository=repository
+    )
+    note = AddonNote(front="two", back="two")
+
+    # When
+    result = finder.find_duplicates(note=note)
+
+    # Then
+    assert result is not None
+    assert len(result) == 1
+    assert result[0].guid == addon_note2.guid

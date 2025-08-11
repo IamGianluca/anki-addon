@@ -2,9 +2,36 @@ import sys
 
 import pytest
 
-from addon.domain.entities.note import AddonNote  # noqa
+from addon.domain.entities.note import AddonCollection, AddonNote
 
 from .fakes.aqt_fakes import FakeCard, FakeCollection, FakeMainWindow, FakeNote
+
+###########
+# Domain fixtures
+###########
+
+
+@pytest.fixture
+def addon_note1():
+    return AddonNote(front="front_one", back="back_one")
+
+
+@pytest.fixture
+def addon_note2():
+    return AddonNote(front="front_two", back="back_two")
+
+
+@pytest.fixture
+def addon_note3():
+    return AddonNote(front="front_three", back="back_three")
+
+
+@pytest.fixture
+def addon_collection(addon_note1, addon_note2, addon_note3):
+    collection = AddonCollection(name="default")
+    collection.add_batch(notes=[addon_note1, addon_note2, addon_note3])
+    return collection
+
 
 ###########
 # Anki fixtures

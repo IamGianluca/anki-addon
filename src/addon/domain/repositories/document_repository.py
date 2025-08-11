@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import List
+from uuid import uuid4
+
+from addon.domain.entities.note import AddonNote
 
 
 @dataclass
@@ -46,3 +49,28 @@ class DocumentRepository(ABC):
     def find_similar(self, query: SearchQuery) -> List[SearchResult]:
         """Find documents similar to the query"""
         pass
+
+
+def convert_addon_note_to_document(note: AddonNote) -> Document:
+    tags = ""
+    if note.tags:
+        tags = "".join([t for t in note.tags])
+    return Document(
+        id=str(uuid4()),
+        content=f"{note.front} {note.back} {tags}",
+        source="",
+        metadata=note.__dict__,
+    )
+
+
+def convert_document_to_addon_note(document: Document) -> AddonNote:
+    return AddonNote(**document.metadata)
+
+
+def convert_result_to_document(result: SearchResult) -> Document:
+    return result.document
+
+
+def convert_result_to_addon_note(result: SearchResult) -> AddonNote:
+    doc = convert_result_to_document(result)
+    return convert_document_to_addon_note(doc)
