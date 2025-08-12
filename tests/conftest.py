@@ -2,11 +2,13 @@ import sys
 
 import pytest
 
+from addon.domain.entities.note import AddonNote  # noqa
+
 from .fakes.aqt_fakes import FakeCard, FakeCollection, FakeMainWindow, FakeNote
 
-# ---------
-# Anki
-# ---------
+###########
+# Anki fixtures
+###########
 
 
 @pytest.fixture
@@ -68,9 +70,9 @@ def mw(monkeypatch, collection):
     return fake_mw
 
 
-# ---------
-# Qdrant
-# ---------
+###########
+# Qdrant fixtures
+###########
 
 
 @pytest.fixture
