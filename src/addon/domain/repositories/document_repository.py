@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import List
+from typing import Any, List
 from uuid import uuid4
 
 from addon.domain.entities.note import AddonNote
@@ -13,7 +13,7 @@ class Document:
     id: str
     content: str
     source: str
-    metadata: dict
+    metadata: dict[str, Any]
 
 
 @dataclass
@@ -64,7 +64,7 @@ def convert_addon_note_to_document(note: AddonNote) -> Document:
 
 
 def convert_document_to_addon_note(document: Document) -> AddonNote:
-    return AddonNote(**document.metadata)
+    return AddonNote(**document.metadata)  # type: ignore[missing-argument]
 
 
 def convert_result_to_document(result: SearchResult) -> Document:
