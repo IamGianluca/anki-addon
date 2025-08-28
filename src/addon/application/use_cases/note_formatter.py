@@ -68,10 +68,12 @@ def open_standalone_editor() -> None:
     # Create button layout with manual buttons
     button_layout = QHBoxLayout()
     save_button = QPushButton("Save")
+    save_keep_flag_button = QPushButton("Save & Keep Flagged")
     skip_button = QPushButton("Skip")
     cancel_button = QPushButton("Cancel")
 
     button_layout.addWidget(save_button)
+    button_layout.addWidget(save_keep_flag_button)
     button_layout.addWidget(skip_button)
     button_layout.addWidget(cancel_button)
     layout.addLayout(button_layout)
@@ -86,6 +88,24 @@ def open_standalone_editor() -> None:
         current_note = editor_state.current_note()
         current_note = editor_state.strip_orange_flag(current_note)
         current_note.flush()
+
+        # Then handle navigation to next note
+        if editor_state.has_next_note():
+            next_note = editor_state.move_to_next_note()
+            editor.setNote(next_note)
+        else:
+            # No more notes to review
+            dialog.accept()
+            mw.reset()
+
+    def save_keep_flag_handler() -> None:
+        editor.saveNow(lambda: after_save_keep_flag_complete_callback())
+
+    def after_save_keep_flag_complete_callback() -> None:
+        """Save note but keep the orange flag for future editing."""
+        # Save the current note without removing the flag
+        current_note = editor_state.current_note()
+        current_note = editor_state.save_note_keep_flag(current_note)
 
         # Then handle navigation to next note
         if editor_state.has_next_note():
@@ -119,6 +139,7 @@ def open_standalone_editor() -> None:
 
     # Connect the signals
     save_button.clicked.connect(save_handler)
+    save_keep_flag_button.clicked.connect(save_keep_flag_handler)
     skip_button.clicked.connect(skip_handler)
     cancel_button.clicked.connect(cancel_handler)
 

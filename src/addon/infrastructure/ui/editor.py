@@ -80,3 +80,9 @@ class EditorDialog:
                 card.flags = 0
                 card.flush()
         return current_note
+
+    def save_note_keep_flag(self, current_note: Note) -> Note:
+        """Save note without removing the orange flag."""
+        # Just flush the note, keeping flags intact
+        current_note.flush()
+        return current_note
