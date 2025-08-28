@@ -160,24 +160,24 @@ def test_save_note_keep_flag_preserves_orange_flag(mw, collection):
     # Given
     editor_dialog = EditorDialog(collection)
     current_note = editor_dialog.current_note()
-    
+
     # Verify note has orange flag initially
     card_ids = mw.col.find_cards(f"nid:{current_note.id}")
     for card_id in card_ids:
         card = mw.col.get_card(card_id)
         assert card.flags == 2  # Orange flag
-        
+
     # Modify note content
     current_note["Front"] = "Modified content"
-    
+
     # When: Save note keeping flag
     editor_dialog.save_note_keep_flag(current_note)
-    
+
     # Then: Flag should still be orange (2)
     for card_id in card_ids:
         card = mw.col.get_card(card_id)
         assert card.flags == 2  # Still orange
-        
+
     # And note should be saved
     assert current_note.was_flushed()
 
@@ -187,22 +187,22 @@ def test_save_note_keep_flag_vs_strip_orange_flag_behavior(mw, collection):
     # Given
     editor_dialog = EditorDialog(collection)
     current_note = editor_dialog.current_note()
-    
+
     # Get card IDs for verification
     card_ids = mw.col.find_cards(f"nid:{current_note.id}")
-    
+
     # Test strip_orange_flag behavior
     editor_dialog.strip_orange_flag(current_note)
     for card_id in card_ids:
         card = mw.col.get_card(card_id)
         assert card.flags == 0  # Flag removed
-        
+
     # Reset flag to orange for second test
     for card_id in card_ids:
         card = mw.col.get_card(card_id)
         card.flags = 2  # Reset to orange
         card.flush()
-    
+
     # Test save_note_keep_flag behavior
     editor_dialog.save_note_keep_flag(current_note)
     for card_id in card_ids:
