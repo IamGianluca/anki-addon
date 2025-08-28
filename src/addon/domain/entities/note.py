@@ -37,7 +37,7 @@ class AddonCollection:
         for note in notes:
             self.add(note)
 
-    def get(self, note_guid: str) -> AddonNote | None:
+    def get(self, note_guid: str) -> Optional[AddonNote]:
         for note in self.notes:
             if note.guid == note_guid:
                 return note
