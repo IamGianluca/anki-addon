@@ -19,10 +19,12 @@ A powerful Anki add-on that leverages Large Language Models (LLMs) to help you r
 
 ## 🚀 Installation
 
-Clone this repository into your Anki add-ons folder:
+Clone this repository into your Anki add-ons folder and build the dependencies:
 
 ```bash
 git clone https://github.com/iamgianluca/anki-addon.git [your-anki-addons-path]/addons21/anki-addon
+cd [your-anki-addons-path]/addons21/anki-addon
+./bundle_dependencies.sh  # build dependencies for your specific system
 ```
 
 ## ⚙️ Configuration

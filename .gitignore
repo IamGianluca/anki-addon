@@ -20,6 +20,9 @@ wheels/
 .envrc
 meta.json
 
+# Dependecies wheels
+vendor/
+
 # MacOS
 .DS_Store
 
