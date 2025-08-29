@@ -17,9 +17,7 @@ from ...infrastructure.ui.editor import EditorDialog
 from ...utils import ensure_collection, ensure_note
 
 if TYPE_CHECKING:
-    from aqt import mw
     from aqt.editor import Editor
-    from aqt.utils import askUser, tooltip
 
 
 def open_standalone_editor() -> None:
@@ -163,6 +161,9 @@ def add_custom_button(buttons, editor: Editor):
 
 
 def on_custom_action(editor: Editor):
+    from aqt import mw
+    from aqt.utils import askUser, tooltip
+
     note = ensure_note(editor.note)
     original_fields = {}
 
