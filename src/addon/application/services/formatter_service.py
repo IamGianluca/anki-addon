@@ -1,4 +1,5 @@
 import html
+import os
 import re
 from copy import deepcopy
 
@@ -26,7 +27,7 @@ class NoteFormatter:
 
         schema = AddonNoteChanges.model_json_schema()
         response = self._completion.generate(
-            model="meta-llama/Meta-Llama-3.1-8B-Instruct",
+            model=os.environ.get("OPENAI_MODEL"),
             prompt=prompt,
             max_tokens=200,
             temperature=0,
