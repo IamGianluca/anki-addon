@@ -32,7 +32,6 @@ class NoteFormatter:
             max_tokens=200,
             temperature=0,
             guided_json=schema,
-            guided_decoding_backend="outlines",
         )
 
         json_data = response.text

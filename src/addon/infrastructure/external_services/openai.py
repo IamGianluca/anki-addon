@@ -49,7 +49,7 @@ class OpenAIClient:
         except requests.exceptions.ConnectionError as e:
             raise ConnectionError(
                 f"Cannot reach LLM server at {self.url}. "
-                "Please check if the server is running."
+                "Check if the inference server is running."
             ) from e
         return response.json()["choices"][0]["text"]
 
