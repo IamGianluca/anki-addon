@@ -10,14 +10,14 @@ This is an open-source project and contributors are welcome!
 #### Setup
 
 1. Clone the repository
-```bash
-git clone https://github.com/IamGianluca/anki-addon.git
-cd anki-addon
-```
+    ```bash
+    git clone https://github.com/IamGianluca/anki-addon.git
+    cd anki-addon
+    ```
 2. Create and sync the Python virtual environment
-```bash
-make install
-```
+    ```bash
+    make install
+    ```
 3. Activate the virtual environment (e.g., `source .venv/bin/activate` or via your IDE).
 
 #### Testing
@@ -26,7 +26,7 @@ This project follows a testing approach similar to what's described in [Testing 
 
 To run the test suite:
 
-1. Set up the necessary environment variables:
+1. Set the needed environment variables to run the test suite by creating an `.envrc` file in the project folder with the following content. Don't forget to set the appropriate values for your local development environment.
    ```bash
    export OPENAI_HOST=your_host_url
    export OPENAI_PORT=your_host_port
