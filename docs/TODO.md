@@ -1,11 +1,14 @@
 #### New features
 
-- [ ] Change note type from editing window
+- [ ] Add option to change note type from editing window
+- [ ] Use semantic search instead of lexical search in search bar
+- [ ] Identify notes that are not atomic
+- [ ] Identify isolated notes ― these will be harder to learn 
 - [ ] ...
 
 #### Refactoring
 
-- [ ] Starting from note formatting use case, refactor main classes to make them less obscure and reduce cognitive load
+- [ ] Refactor main classes involved in note formatting workflow to reduce cognitive load
 - [ ] ...
 
 #### Performance
