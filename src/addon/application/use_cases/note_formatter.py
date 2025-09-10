@@ -4,9 +4,6 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ...application.services.completion_service import (
-    CompletionService,
-)
 from ...application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
@@ -176,8 +173,7 @@ def on_custom_action(editor: Editor):
     # function
     config = AddonConfig.create(mw)
     openai = OpenAIClient.create(config)
-    completion = CompletionService(openai)
-    formatter = NoteFormatter(completion)
+    formatter = NoteFormatter(openai)
     note = format_note_workflow(note, formatter)
 
     # Update the editor display to show the changes

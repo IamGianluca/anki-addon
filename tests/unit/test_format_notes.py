@@ -2,9 +2,6 @@ import json
 
 from tests.fakes.aqt_fakes import FakeNote
 
-from addon.application.services.completion_service import (
-    CompletionService,
-)
 from addon.application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
@@ -24,8 +21,7 @@ def test_format_note_using_llm(note1):
     response = json.dumps({"front": expected_front, "back": expected_back})
     openai = OpenAIClient.create_null(config, responses=[response])
 
-    completion = CompletionService(openai)
-    formatter = NoteFormatter(completion)
+    formatter = NoteFormatter(openai)
 
     # When
     result = format_note_workflow(note1, formatter)
@@ -44,9 +40,7 @@ def test_format_cloze_note_using_llm(cloze1):
     expected_front, expected_back = "This is a {{c1::fake note}}", ""
     response = json.dumps({"front": expected_front, "back": expected_back})
     openai = OpenAIClient.create_null(config, responses=[response])
-
-    completion = CompletionService(openai)
-    formatter = NoteFormatter(completion)
+    formatter = NoteFormatter(openai)
 
     # When
     result = format_note_workflow(cloze1, formatter)

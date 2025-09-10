@@ -6,14 +6,14 @@ from copy import deepcopy
 from anki.notes import Note
 from jinja2 import Template
 
-from ...application.services.completion_service import CompletionService
 from ...domain.entities.note import AddonNote, AddonNoteChanges, AddonNoteType
+from ...infrastructure.external_services.openai import OpenAIClient
 from ...utils import is_cloze_note
 
 
 class NoteFormatter:
-    def __init__(self, completion: CompletionService) -> None:
-        self._completion = completion
+    def __init__(self, llm_client: OpenAIClient) -> None:
+        self._completion = llm_client
 
     def format(self, note: AddonNote) -> AddonNote:
         def _format_note_content(note):
@@ -26,7 +26,7 @@ class NoteFormatter:
         prompt = _create_system_msg(note=note_content)
 
         schema = AddonNoteChanges.model_json_schema()
-        response = self._completion.generate(
+        response = self._completion.run(
             model=os.environ.get("OPENAI_MODEL"),
             prompt=prompt,
             max_tokens=200,
@@ -34,8 +34,7 @@ class NoteFormatter:
             guided_json=schema,
         )
 
-        json_data = response.text
-        suggested_changes = AddonNoteChanges.model_validate_json(json_data)
+        suggested_changes = AddonNoteChanges.model_validate_json(response)
 
         new_note = deepcopy(note)
         new_note.front = suggested_changes.front

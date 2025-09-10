@@ -1,7 +1,6 @@
 import pytest
 from tests.fakes.aqt_fakes import FakeNote
 
-from addon.application.services.completion_service import CompletionService
 from addon.application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
@@ -24,8 +23,7 @@ def test_format_basic_note_using_llm():
     config = AddonConfig.create_nullable()
     openai = OpenAIClient.create(config)
 
-    completion = CompletionService(openai)
-    formatter = NoteFormatter(completion)
+    formatter = NoteFormatter(openai)
 
     # When
     result = format_note_workflow(note, formatter)
@@ -54,8 +52,7 @@ def test_format_cloze_note_using_llm():
     config = AddonConfig.create_nullable()
     openai = OpenAIClient.create(config)
 
-    completion = CompletionService(openai)
-    formatter = NoteFormatter(completion)
+    formatter = NoteFormatter(openai)
 
     # When
     result = format_note_workflow(note, formatter)
