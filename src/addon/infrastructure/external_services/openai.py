@@ -5,7 +5,21 @@ from ...infrastructure.configuration.settings import AddonConfig
 
 
 class OpenAIClient:
-    """Adapter for OpenAI compatible inference servers (e.g., vLLM)."""
+    """HTTP client adapter for OpenAI-compatible inference servers.
+
+    This class abstracts the communication with OpenAI-compatible API endpoints,
+    such as vLLM servers, providing a unified interface for text generation.
+    The design follows the Null Object pattern to enable easy testing through
+    stubbed responses without external dependencies.
+
+    The client handles connection errors gracefully and transforms them into
+    domain-specific exceptions with helpful error messages for debugging
+    server connectivity issues.
+
+    Attributes:
+        url: The complete API endpoint URL for completions.
+        model: The model name to use for generation requests.
+    """
 
     @staticmethod
     def create(config: AddonConfig):
@@ -54,6 +68,16 @@ class OpenAIClient:
         return response.json()["choices"][0]["text"]
 
     class StubbedRequests:
+        """Test double that replaces the requests module for deterministic testing.
+
+        Records all HTTP calls made during testing and returns pre-configured
+        responses instead of making actual network requests. This enables fast,
+        reliable tests that don't depend on external services.
+
+        Attributes:
+            _calls: Record of all HTTP calls made for test verification (internal).
+        """
+
         def __init__(self, responses: list):
             self._responses = responses
             self._calls = []
@@ -63,6 +87,14 @@ class OpenAIClient:
             return OpenAIClient.StubbedResponse(self._responses)
 
     class StubbedResponse:
+        """Mock HTTP response object that mimics the requests library response.
+
+        Provides the same interface as requests.Response.json() but returns
+        pre-configured data instead of parsing actual HTTP response content.
+        Supports both sequential responses (list) and repeated responses (single value).
+
+        """
+
         def __init__(self, responses):
             # Get the next response from the configured list
             self._response = self._get_next_response(responses)

@@ -7,19 +7,48 @@ from ...application.use_cases.note_counter import is_note_marked_for_review
 
 
 class EditorDialog:
-    """The EditorDialog class manages the state of editing sessions:
+    """UI state manager for batch note editing sessions within Anki.
 
-    - It retrieves all notes from the current deck that are marked for review
-    - It keeps track of which note is currently being edited
-    - It provides methods to navigate between notes, backup original content,
-      and restore notes to their original state
+    This class orchestrates the editing workflow for notes that have been flagged
+    for review (typically with an orange flag). It provides navigation between notes,
+    tracks editing state, and enables rollback of changes to preserve data integrity
+    during the editing process.
+
+    The dialog manages the complete editing session lifecycle: discovering notes
+    that need review, maintaining current position in the editing sequence,
+    backing up original content before modifications, and providing restoration
+    capabilities if users want to undo changes.
+
+    Key responsibilities:
+    - Filtering notes in the current deck that are marked for review
+    - Managing navigation state through the collection of notes to edit
+    - Preserving original note content for backup/restore operations
+    - Handling Anki card flags to mark completion of editing tasks
+    - Providing safe note persistence that maintains editing flags
+
+    Attributes:
+        col: Reference to Anki's collection for note and card operations.
+        review_notes: List of all notes that need to be reviewed/edited.
+        _current_index: Private tracker of which note is currently being edited (internal).
+        _original_fields: Private backup of original field content for current note (internal).
+
+    Raises:
+        ValueError: When no notes are found that are marked for review
     """
 
     def __init__(self, collection: Collection) -> None:
+        """Initialize the editor dialog with an Anki collection.
+
+        Args:
+            collection: Anki's collection object for database operations.
+
+        Raises:
+            ValueError: When no notes are found that are marked for review.
+        """
         self.col = collection
         self.review_notes = self._get_all_notes_to_review()
-        self.__current_index = 0
-        self.__original_fields = {}
+        self._current_index = 0
+        self._original_fields = {}
 
         if not self.review_notes:
             raise ValueError("No notes marked for review")
@@ -41,18 +70,18 @@ class EditorDialog:
         return review_notes
 
     def current_note(self) -> Note:
-        note = self.review_notes[self.__current_index]
+        note = self.review_notes[self._current_index]
 
         # Store fields and content for possible backup needs
-        self.__original_fields = {}
+        self._original_fields = {}
         for field_name in note.keys():
-            self.__original_fields[field_name] = note[field_name]
+            self._original_fields[field_name] = note[field_name]
 
         return note
 
     def backup_current_note(self) -> Note:
-        note = self.review_notes[self.__current_index]
-        for field_name, original_content in self.__original_fields.items():
+        note = self.review_notes[self._current_index]
+        for field_name, original_content in self._original_fields.items():
             note[field_name] = original_content
         return note
 
@@ -61,11 +90,11 @@ class EditorDialog:
         reloaded_note.flush()
 
     def has_next_note(self) -> bool:
-        return self.__current_index < len(self.review_notes) - 1
+        return self._current_index < len(self.review_notes) - 1
 
     def move_to_next_note(self) -> Optional[Note]:
         if self.has_next_note():
-            self.__current_index += 1
+            self._current_index += 1
             # NOTE: It's important to execute the `current_note()` method
             # because it also updates the backup for the current note
             current_note = self.current_note()

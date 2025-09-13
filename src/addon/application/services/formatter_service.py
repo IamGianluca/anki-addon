@@ -13,6 +13,34 @@ from ...utils import is_cloze_note
 
 
 class NoteFormatter:
+    """Application service for AI-powered note formatting and optimization.
+
+    This service orchestrates the process of improving Anki note quality through
+    large language model (LLM) assistance. It takes existing notes and applies
+    consistent formatting rules, markdown standards, and content optimization
+    to make them more effective for spaced repetition learning.
+
+    The formatter handles the complete workflow of note improvement: extracting
+    content from domain entities, preparing prompts with formatting guidelines,
+    interfacing with the LLM for content generation, parsing structured responses,
+    and reconstructing optimized notes while preserving essential elements like
+    images, code blocks, and mathematical expressions.
+
+    Key responsibilities:
+    - Converting domain notes to LLM-compatible text format
+    - Generating comprehensive prompts with formatting rules and examples
+    - Managing LLM interactions with proper schema validation
+    - Parsing and validating LLM responses for note reconstruction
+    - Preserving critical content (images, code, math) during optimization
+
+    The service uses structured output (JSON schema) to ensure reliable parsing
+    of LLM responses and maintains consistency in note formatting across the
+    entire collection.
+
+    Attributes:
+        _completion: OpenAI-compatible client for language model interactions.
+    """
+
     def __init__(self, llm_client: OpenAIClient) -> None:
         self._completion = llm_client
 

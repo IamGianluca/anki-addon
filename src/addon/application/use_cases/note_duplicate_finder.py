@@ -10,9 +10,31 @@ from addon.domain.repositories.document_repository import (
 
 
 class SimilarNoteFinder:
-    """The main purpose of this class is to load data into Qdrant (AddonNone or
-    AddonCollection to List[Documents], and take care of generating the needed
-    queries and processing responses.
+    """Application service for finding duplicate notes using semantic similarity search.
+
+    This class implements the core use case of identifying potentially duplicate
+    notes within a collection by leveraging vector embeddings and similarity
+    search. It bridges the gap between domain entities (AddonNote/AddonCollection)
+    and infrastructure concerns (document repository and vector storage).
+
+    The service initializes by bulk-loading all notes from a collection into
+    the vector database, then provides similarity search functionality to find
+    potential duplicates based on semantic content rather than exact text matching.
+    This enables detection of duplicates even when wording differs slightly.
+
+    Key responsibilities:
+    - Converting domain entities to searchable document representations
+    - Bulk loading note collections into the vector database for indexing
+    - Performing semantic similarity searches to identify potential duplicates
+    - Converting search results back to domain entities for application use
+
+    The similarity search combines front, back, and tag content to create a
+    comprehensive query that captures the full semantic meaning of a note,
+    improving duplicate detection accuracy.
+
+    Attributes:
+        _collection: The collection of notes being searched for duplicates.
+        _repository: Vector database repository for storing and searching documents.
     """
 
     def __init__(

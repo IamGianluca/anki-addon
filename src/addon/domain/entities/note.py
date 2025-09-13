@@ -13,8 +13,8 @@ class AddonNoteType(str, Enum):
     this addon works with just two fundamental study formats:
 
     Attributes:
-        BASIC: Traditional front/back flashcards (regardless of template)
-        CLOZE: Fill-in-the-blank style cards (regardless of template)
+        BASIC: Traditional front/back flashcards (regardless of template).
+        CLOZE: Fill-in-the-blank style cards (regardless of template).
     """
 
     BASIC = "basic"
@@ -34,12 +34,12 @@ class AddonNote:
     field maps to Anki's "Back Extra" field for additional context.
 
     Attributes:
-        guid: Unique identifier for the note (auto-generated UUID)
-        front: Front side content of the flashcard
-        back: Back side content of the flashcard
-        tags: Optional list of tags for categorization
-        notetype: The abstract note type (BASIC or CLOZE)
-        deck_name: Optional target deck name in Anki
+        guid: Unique identifier for the note (auto-generated UUID).
+        front: Front side content of the flashcard.
+        back: Back side content of the flashcard.
+        tags: Optional list of tags for categorization.
+        notetype: The abstract note type (BASIC or CLOZE).
+        deck_name: Optional target deck name in Anki.
     """
 
     front: str
@@ -57,8 +57,8 @@ class AddonCollection:
     Acts as an in-memory repository for notes within the addon's domain.
 
     Attributes:
-        name: Name identifier for this collection
-        notes: Internal list storing the AddonNote instances
+        name: Name identifier for this collection.
+        notes: Internal list storing the AddonNote instances.
     """
 
     def __init__(self, name: str) -> None:

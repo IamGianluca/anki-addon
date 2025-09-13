@@ -14,10 +14,10 @@ class Document:
     along with its metadata for storage and retrieval operations.
 
     Attributes:
-        id: Unique identifier for the document
-        content: The main textual content of the document
-        source: Origin or source of the document content
-        metadata: Additional key-value pairs containing document metadata
+        id: Unique identifier for the document.
+        content: The main textual content of the document.
+        source: Origin or source of the document content.
+        metadata: Additional key-value pairs containing document metadata.
     """
 
     id: str
@@ -34,8 +34,8 @@ class SearchQuery:
     a similarity search across the document collection.
 
     Attributes:
-        text: The query text to search for
-        max_results: Maximum number of results to return (default: 5)
+        text: The query text to search for.
+        max_results: Maximum number of results to return (default: 5).
     """
 
     text: str
@@ -50,8 +50,8 @@ class SearchResult:
     its relevance score indicating how well it matches.
 
     Attributes:
-        document: The matching document
-        relevance_score: Numeric score indicating relevance (higher = more relevant)
+        document: The matching document.
+        relevance_score: Numeric score indicating relevance (higher = more relevant).
     """
 
     document: Document

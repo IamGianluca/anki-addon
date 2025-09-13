@@ -11,9 +11,9 @@ class AddonNoteChanges(BaseModel):
     and validating LLM responses.
 
     Attributes:
-        front: Updated front side content
-        back: Updated back side content
-        tags: Updated list of tags (optional)
+        front: Updated front side content.
+        back: Updated back side content.
+        tags: Updated list of tags (optional).
     """
 
     front: str

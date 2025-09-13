@@ -7,10 +7,10 @@ class CompletionResult:
     This value object encapsulates the outcome of calling an LLM service
     (such as OpenAI or vLLM) to generate text based on a prompt.
 
-    Args:
-        text: The generated text content from the LLM
-        source: The LLM service or model that generated the completion
-        timestamp: When the completion was generated
+    Attributes:
+        text: The generated text content from the LLM.
+        source: The LLM service or model that generated the completion.
+        timestamp: When the completion was generated.
     """
 
     def __init__(
