@@ -8,6 +8,7 @@
 
 #### Refactoring
 
+- [ ] Remove `pydantic` as a dependency for the domain model
 - [ ] Refactor main classes involved in note formatting workflow to reduce cognitive load
 - [ ] ...
 
