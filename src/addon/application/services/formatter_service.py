@@ -41,8 +41,8 @@ class NoteFormatter:
         _completion: OpenAI-compatible client for language model interactions.
     """
 
-    def __init__(self, llm_client: OpenAIClient) -> None:
-        self._completion = llm_client
+    def __init__(self, completion_client: OpenAIClient) -> None:
+        self._completion = completion_client
 
     def format(self, note: AddonNote) -> AddonNote:
         def _format_note_content(note):
