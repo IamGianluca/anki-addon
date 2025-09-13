@@ -50,7 +50,6 @@ class AddonNote:
     deck_name: Optional[str] = None
 
 
-
 class AddonCollection:
     """A collection of notes with basic management operations.
 
