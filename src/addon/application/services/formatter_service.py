@@ -6,8 +6,9 @@ from copy import deepcopy
 from anki.notes import Note
 from jinja2 import Template
 
-from ...domain.entities.note import AddonNote, AddonNoteChanges, AddonNoteType
+from ...domain.entities.note import AddonNote, AddonNoteType
 from ...infrastructure.external_services.openai import OpenAIClient
+from ...infrastructure.llm.schemas import AddonNoteChanges
 from ...utils import is_cloze_note
 
 

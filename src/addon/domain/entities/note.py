@@ -1,8 +1,7 @@
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import List, Optional
 from uuid import uuid4
-
-from pydantic import BaseModel, Field
 
 
 class AddonNoteType(str, Enum):
@@ -22,7 +21,8 @@ class AddonNoteType(str, Enum):
     CLOZE = "cloze"
 
 
-class AddonNote(BaseModel):
+@dataclass
+class AddonNote:
     """Represents a single note in the addon's domain model.
 
     A note contains the content and metadata for creating flashcards in Anki.
@@ -42,29 +42,13 @@ class AddonNote(BaseModel):
         deck_name: Optional target deck name in Anki
     """
 
-    guid: str = Field(default_factory=lambda: str(uuid4()))
     front: str
     back: str
+    guid: str = field(default_factory=lambda: str(uuid4()))
     tags: Optional[List[str]] = None
-    notetype: AddonNoteType = Field(default=AddonNoteType.BASIC)
+    notetype: AddonNoteType = AddonNoteType.BASIC
     deck_name: Optional[str] = None
 
-
-class AddonNoteChanges(BaseModel):
-    """Represents changes to be applied to an existing AddonNote.
-
-    Used for updating note content without requiring the full note object.
-    Contains only the modifiable fields: front content, back content, and tags.
-
-    Attributes:
-        front: Updated front side content
-        back: Updated back side content
-        tags: Updated list of tags (optional)
-    """
-
-    front: str
-    back: str
-    tags: Optional[List[str]] = None
 
 
 class AddonCollection:
