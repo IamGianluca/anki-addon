@@ -82,13 +82,9 @@ class AddonCollection:
         self.name = name
         self.notes = []
 
-    def add(self, note: AddonNote) -> None:
-        self.notes.append(note)
-
-    def add_batch(self, notes: List[AddonNote]) -> None:
-        # Uses individual add() calls to maintain any future validation logic
+    def add(self, notes: List[AddonNote]) -> None:
         for note in notes:
-            self.add(note)
+            self.notes.append(note)
 
     def get(self, note_guid: str) -> Optional[AddonNote]:
         # Linear search - consider indexing if collection grows large

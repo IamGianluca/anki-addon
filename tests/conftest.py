@@ -29,7 +29,7 @@ def addon_note3():
 @pytest.fixture
 def addon_collection(addon_note1, addon_note2, addon_note3):
     collection = AddonCollection(name="default")
-    collection.add_batch(notes=[addon_note1, addon_note2, addon_note3])
+    collection.add(notes=[addon_note1, addon_note2, addon_note3])
     return collection
 
 
