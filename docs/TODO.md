@@ -6,18 +6,29 @@
 - [ ] Identify isolated notes ― these will be harder to learn 
 - [ ] ...
 
+#### Bugs
+
+- [ ] Code snippets are sometimes removed
+- [ ] Back card sometimes is not changed
+- [ ] Images are sometimes removed
+
 #### Refactoring
 
-- [x] Remove `pydantic` as a dependency for the domain model
 - [ ] Refactor main classes involved in note formatting workflow to reduce cognitive load
-- [x] Improve docstrings and comments on domain model
-- [x] Improve docstrings and comments on application layer 
-- [x] Improve docstrings and comments on infrastructure layer
+- [ ] Refactor system prompt for note formatting workflow to be more readable for humans
 - [ ] ...
 
 #### Performance
 
+- [ ] Switch to more performant LLM that still fits in 24GB VRAM GPU
+- [ ] Review system prompt and few shot examples to match current format style
+- [ ] Make sure we are using prefix caching in vLLM
+- [ ] Create an agent: often, an agent can do a better job compared to a simple completion call. Notes are never introduced in isolation. It can be beneficial for an agent to review existing notes, and even suggest splitting a note into multiple notes, change note type, or more sophisticated operations
+- [ ] ...
+
+#### Testing
 - [ ] Convert tests in `tests/integration/test_qdrant_integration.py::test_overlapping_sociable_behavior_with_real_dependencies` to proper **narrow** integration tests. It currently takes over 30 seconds to run
 - [ ] Convert tests in `tests/integration/test_qdrant_integration.py::test_real_qdrant_performance_characteristics` to proper **narrow** integration tests. It currently takes over 3 seconds to run
-- [ ] Investigate better LLM to use instead of `meta-llama/Meta-Llama-3.1-8B-Instruct`
+- [ ] Ensure we are using narrow integration tests for all infrastructure code
+- [ ] Review end-to-end tests, we probably only need one for each workflow
 - [ ] ...
