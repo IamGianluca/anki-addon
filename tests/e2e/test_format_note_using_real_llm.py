@@ -5,12 +5,11 @@ from addon.application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
 )
-from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 @pytest.mark.slow
-def test_format_basic_note_using_llm():
+def test_format_basic_note_using_llm(addon_config):
     # Given
     note = FakeNote(
         note_id="1111",
@@ -20,8 +19,7 @@ def test_format_basic_note_using_llm():
         },
     )
     note.tags = ["hockey"]
-    config = AddonConfig.create_nullable()
-    openai = OpenAIClient.create(config)
+    openai = OpenAIClient.create(addon_config)
 
     formatter = NoteFormatter(openai)
 
@@ -38,7 +36,7 @@ def test_format_basic_note_using_llm():
 
 
 @pytest.mark.slow
-def test_format_cloze_note_using_llm():
+def test_format_cloze_note_using_llm(addon_config):
     # Given
     note = FakeNote(
         note_id="1111",
@@ -49,8 +47,7 @@ def test_format_cloze_note_using_llm():
         },
     )
     note.tags = ["hockey"]
-    config = AddonConfig.create_nullable()
-    openai = OpenAIClient.create(config)
+    openai = OpenAIClient.create(addon_config)
 
     formatter = NoteFormatter(openai)
 

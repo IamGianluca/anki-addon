@@ -1,12 +1,10 @@
-from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 
-def test_llm_engine_collab():
+def test_llm_engine_collab(addon_config):
     # Given
     expected = "ciao"
-    config = AddonConfig.create_nullable()
-    openai_client = OpenAIClient.create_null(config, [expected])
+    openai_client = OpenAIClient.create_null(addon_config, [expected])
     prompt = "What is the Italian word for hello?"
 
     # When

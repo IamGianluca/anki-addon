@@ -3,6 +3,7 @@ import sys
 import pytest
 
 from addon.domain.entities.note import AddonCollection, AddonNote
+from addon.infrastructure.configuration.settings import AddonConfig
 
 from .fakes.aqt_fakes import FakeCard, FakeCollection, FakeMainWindow, FakeNote
 
@@ -36,6 +37,11 @@ def addon_collection(addon_note1, addon_note2, addon_note3):
 ###########
 # Anki fixtures
 ###########
+
+
+@pytest.fixture
+def addon_config():
+    return AddonConfig.create_nullable()
 
 
 @pytest.fixture

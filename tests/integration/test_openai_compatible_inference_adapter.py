@@ -1,6 +1,5 @@
 import pytest
 
-from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 # NOTE: This test requires a live inference server. The test will fail if the
@@ -8,10 +7,9 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 @pytest.mark.slow
-def test_openai():
+def test_openai(addon_config):
     # Given
-    config = AddonConfig.create_nullable()
-    openai_client = OpenAIClient.create(config)
+    openai_client = OpenAIClient.create(addon_config)
     prompt = "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello?\nAnswer: "
 
     # When
