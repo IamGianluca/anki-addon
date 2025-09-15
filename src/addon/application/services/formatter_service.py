@@ -45,14 +45,8 @@ class NoteFormatter:
         self._completion = completion_client
 
     def format(self, note: AddonNote) -> AddonNote:
-        def _format_note_content(note):
-            return f"""Front: {remove_html_tags(note.front)}\nBack: {remove_html_tags(note.back)}\nTags: {note.tags}\n"""
-
-        def _create_system_msg(note):
-            return system_msg_tmpl.render(note=note)
-
-        note_content = _format_note_content(note)
-        prompt = _create_system_msg(note=note_content)
+        note_content = f"""Front: {remove_html_tags(note.front)}\nBack: {remove_html_tags(note.back)}\nTags: {note.tags}\n"""
+        prompt = system_msg_tmpl.render(note=note_content)
 
         schema = AddonNoteChanges.model_json_schema()
         response = self._completion.run(
