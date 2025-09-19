@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import html
 import os
 import re
@@ -10,6 +12,51 @@ from ...domain.entities.note import AddonNote, AddonNoteType
 from ...infrastructure.external_services.openai import OpenAIClient
 from ...infrastructure.llm.schemas import AddonNoteChanges
 from ...utils import is_cloze_note
+
+
+def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
+    """Complete workflow for AI-powered note formatting.
+
+    Orchestrates the conversion from Anki's Note format to our domain model,
+    applies LLM-based formatting, and converts back to Anki's format.
+    """
+    addon_note = _convert_note_to_addon_note(note)
+    addon_note = formatter.format(addon_note)
+    # TODO: Maybe I should rename this to `apply_note_changes` and
+    # pass a AddonNoteChange object to the signature
+    note = _update_note(note, addon_note)
+    return note
+
+
+def _convert_note_to_addon_note(note: Note) -> AddonNote:
+    """Convert an Anki Note to an AddonNote entity in our domain.
+
+    Differently from Anki, we do not differentiate between Basic
+    and Cloze notes. We have one AddonNote class, with a "front"
+    and "back" field.
+
+    Basic notes map:
+    - "front" -> "front"
+    - "back"  -> "back"
+
+    Cloze notes map:
+    - "Text" -> "front"
+    - "Back Extra" to "back"
+    """
+    if is_cloze_note(note):
+        front, back = note["Text"], note["Back Extra"]
+        notetype = AddonNoteType.CLOZE
+    else:
+        front, back = note["Front"], note["Back"]
+        notetype = AddonNoteType.BASIC
+    addon_note = AddonNote(
+        guid=note.guid,
+        front=front,
+        back=back,
+        tags=note.tags,
+        notetype=notetype,
+    )
+    return addon_note
 
 
 class NoteFormatter:
@@ -45,52 +92,49 @@ class NoteFormatter:
         self._completion = completion_client
 
     def format(self, note: AddonNote) -> AddonNote:
-        note_content = f"""Front: {remove_html_tags(note.front)}\nBack: {remove_html_tags(note.back)}\nTags: {note.tags}\n"""
+        """Apply AI-powered formatting to improve note quality.
+
+        Converts HTML to plain text, generates an LLM prompt with formatting
+        guidelines, processes the response, and returns an optimized note while
+        preserving images and code blocks.
+        """
+        # Create a deep copy to prevent changing the original
+        # object as a side effect.
+        new_note = deepcopy(note)
+
+        new_note = self._convert_br_tag_to_newline(new_note)
+
+        note_content = f"""Front: {new_note.front}\nBack: {new_note.back}\nTags: {note.tags}\n"""
         prompt = system_msg_tmpl.render(note=note_content)
 
-        schema = AddonNoteChanges.model_json_schema()
         response = self._completion.run(
             model=os.environ.get("OPENAI_MODEL"),
             prompt=prompt,
             max_tokens=200,
             temperature=0,
-            guided_json=schema,
+            guided_json=AddonNoteChanges.model_json_schema(),
         )
-
         suggested_changes = AddonNoteChanges.model_validate_json(response)
 
-        new_note = deepcopy(note)
         new_note.front = suggested_changes.front
         new_note.back = suggested_changes.back
+
+        # TODO: Is this removing images from the returned object??
+        new_note = self._remove_alt_tags(new_note)
         return new_note
 
+    def _convert_br_tag_to_newline(self, note: AddonNote) -> AddonNote:
+        note.front = html.unescape(note.front).replace("<br>", "\n")
+        note.back = html.unescape(note.back).replace("<br>", "\n")
+        return note
 
-def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
-    addon_note = convert_note_to_addon_note(note)
-    addon_note = _format_note(addon_note, formatter)
-    addon_note = _remove_alt_tags(addon_note)
-    note = update_note(note, addon_note)
-    return note
-
-
-def convert_note_to_addon_note(note: Note) -> AddonNote:
-    if is_cloze_note(note):
-        front, back = note["Text"], note["Back Extra"]
-        notetype = AddonNoteType.CLOZE
-    else:
-        front, back = note["Front"], note["Back"]
-        notetype = AddonNoteType.BASIC
-    addon_note = AddonNote(
-        guid=note.guid,
-        front=front,
-        back=back,
-        tags=note.tags,
-        notetype=notetype,
-    )
-    return addon_note
+    def _remove_alt_tags(self, note: AddonNote) -> AddonNote:
+        note.front = re.sub(r'<img\s+alt="+[^"]*"+', "<img ", note.front)
+        note.back = re.sub(r'<img\s+alt="+[^"]*"+', "<img ", note.back)
+        return note
 
 
-def update_note(note: Note, addon_note: AddonNote) -> Note:
+def _update_note(note: Note, addon_note: AddonNote) -> Note:
     if is_cloze_note(note):
         note["Text"] = addon_note.front
         note["Back Extra"] = addon_note.back
@@ -100,11 +144,6 @@ def update_note(note: Note, addon_note: AddonNote) -> Note:
     # NOTE: we are intentionally not updating the tags, and keeping the
     # original ones
     return note
-
-
-def _format_note(note: AddonNote, formatter: NoteFormatter) -> AddonNote:
-    new_note = formatter.format(note)
-    return new_note
 
 
 system_msg_tmpl = Template(r"""Your job is to optimize Anki notes, and particularly to make each note:
@@ -217,15 +256,5 @@ Input: {{ note }}
 Output: """)
 
 
-def _remove_alt_tags(note: AddonNote) -> AddonNote:
-    note.front = re.sub(r'<img\s+alt="+[^"]*"+', "<img ", note.front)
-    note.back = re.sub(r'<img\s+alt="+[^"]*"+', "<img ", note.back)
-    return note
-
-
 def add_html_tags(s: str) -> str:
     return html.escape(s).replace("\n", "<br>")
-
-
-def remove_html_tags(s: str) -> str:
-    return html.unescape(s).replace("<br>", "\n")
