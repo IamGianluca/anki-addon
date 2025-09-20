@@ -20,43 +20,59 @@ def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
     Orchestrates the conversion from Anki's Note format to our domain model,
     applies LLM-based formatting, and converts back to Anki's format.
     """
-    addon_note = _convert_note_to_addon_note(note)
+    addon_note = AnkiNoteAdapter.to_addon_note(note)
     addon_note = formatter.format(addon_note)
     # TODO: Maybe I should rename this to `apply_note_changes` and
     # pass a AddonNoteChange object to the signature
-    note = _update_note(note, addon_note)
+    note = AnkiNoteAdapter.merge_addon_changes(note, addon_note)
     return note
 
 
-def _convert_note_to_addon_note(note: Note) -> AddonNote:
-    """Convert an Anki Note to an AddonNote entity in our domain.
+class AnkiNoteAdapter:
+    """Adapter between Anki's Note object and AddonNote domain entity."""
 
-    Differently from Anki, we do not differentiate between Basic
-    and Cloze notes. We have one AddonNote class, with a "front"
-    and "back" field.
+    @staticmethod
+    def to_addon_note(note: Note) -> AddonNote:
+        """Convert an Anki Note to an AddonNote entity in our domain.
 
-    Basic notes map:
-    - "front" -> "front"
-    - "back"  -> "back"
+        Differently from Anki, we do not differentiate between Basic
+        and Cloze notes. We have one AddonNote class, with a "front"
+        and "back" field.
 
-    Cloze notes map:
-    - "Text" -> "front"
-    - "Back Extra" to "back"
-    """
-    if is_cloze_note(note):
-        front, back = note["Text"], note["Back Extra"]
-        notetype = AddonNoteType.CLOZE
-    else:
-        front, back = note["Front"], note["Back"]
-        notetype = AddonNoteType.BASIC
-    addon_note = AddonNote(
-        guid=note.guid,
-        front=front,
-        back=back,
-        tags=note.tags,
-        notetype=notetype,
-    )
-    return addon_note
+        Basic notes map:
+        - "front" -> "front"
+        - "back"  -> "back"
+
+        Cloze notes map:
+        - "Text" -> "front"
+        - "Back Extra" to "back"
+        """
+        if is_cloze_note(note):
+            front, back = note["Text"], note["Back Extra"]
+            notetype = AddonNoteType.CLOZE
+        else:
+            front, back = note["Front"], note["Back"]
+            notetype = AddonNoteType.BASIC
+        addon_note = AddonNote(
+            guid=note.guid,
+            front=front,
+            back=back,
+            tags=note.tags,
+            notetype=notetype,
+        )
+        return addon_note
+
+    @staticmethod
+    def merge_addon_changes(note: Note, addon_note: AddonNote) -> Note:
+        if is_cloze_note(note):
+            note["Text"] = addon_note.front
+            note["Back Extra"] = addon_note.back
+        else:
+            note["Front"] = addon_note.front
+            note["Back"] = addon_note.back
+        # NOTE: we are intentionally not updating the tags, and keeping the
+        # original ones
+        return note
 
 
 class NoteFormatter:
@@ -119,7 +135,6 @@ class NoteFormatter:
         new_note.front = suggested_changes.front
         new_note.back = suggested_changes.back
 
-        # TODO: Is this removing images from the returned object??
         new_note = self._remove_alt_tags(new_note)
         return new_note
 
@@ -132,18 +147,6 @@ class NoteFormatter:
         note.front = re.sub(r'<img\s+alt="+[^"]*"+', "<img ", note.front)
         note.back = re.sub(r'<img\s+alt="+[^"]*"+', "<img ", note.back)
         return note
-
-
-def _update_note(note: Note, addon_note: AddonNote) -> Note:
-    if is_cloze_note(note):
-        note["Text"] = addon_note.front
-        note["Back Extra"] = addon_note.back
-    else:
-        note["Front"] = addon_note.front
-        note["Back"] = addon_note.back
-    # NOTE: we are intentionally not updating the tags, and keeping the
-    # original ones
-    return note
 
 
 system_msg_tmpl = Template(r"""Your job is to optimize Anki notes, and particularly to make each note:
