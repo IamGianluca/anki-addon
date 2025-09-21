@@ -2,7 +2,7 @@ from __future__ import (
     annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Protocol
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -16,8 +16,15 @@ if TYPE_CHECKING:
     # dependencies at the top of file because they have slow side effects that
     # significantly increase the test suite execution time.
     from qdrant_client.models import PointStruct
-    from sentence_transformers import SentenceTransformer
     from torch import Tensor
+
+
+class EmbeddingModel(Protocol):
+    def encode(self, text: str):
+        pass
+
+    def get_sentence_embedding_dimension(self):
+        pass
 
 
 class FakeSentenceTransformer:
@@ -39,7 +46,7 @@ class QdrantDocumentRepository(DocumentRepository):
     """Vector database using Qdrant with Null Object pattern for testability."""
 
     @staticmethod
-    def create(encoder: SentenceTransformer):
+    def create(encoder: EmbeddingModel):
         from qdrant_client import QdrantClient
 
         client = QdrantClient(":memory:")
@@ -77,7 +84,7 @@ class QdrantDocumentRepository(DocumentRepository):
     def __init__(
         self,
         client,
-        encoder: SentenceTransformer,
+        encoder: EmbeddingModel,
         collection_name: str = "docs",
     ):
         self._client = client
