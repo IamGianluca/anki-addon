@@ -68,11 +68,13 @@ class QdrantDocumentRepository(DocumentRepository):
     """
 
     @staticmethod
-    def create():
+    def create(embedding_model="all-MiniLM-L6-v2"):
         from qdrant_client import QdrantClient
+        from sentence_transformers import SentenceTransformer
 
         client = QdrantClient(":memory:")
-        repo = QdrantDocumentRepository(client)
+        encoder = SentenceTransformer(embedding_model)
+        repo = QdrantDocumentRepository(client, encoder=encoder)
         repo._ensure_collection_exists()  # Create collection on startup
         return repo
 
@@ -92,28 +94,28 @@ class QdrantDocumentRepository(DocumentRepository):
             )
             search_responses = [[SearchResult(default_doc, 0.95)]]
 
+        # Loading the encoder model into memory is quite expensive (20+ seconds
+        # on old machines). We are using a Fake implementation, that mimic the
+        # original dependency to bypass this performance drag
+        encoder = FakeSentenceTransformer("fake-embedding-model")
+
         return QdrantDocumentRepository(
             QdrantDocumentRepository._StubbedQdrantClient(
                 search_responses, stored_documents or []
-            )
+            ),
+            encoder=encoder,
         )
 
-    def __init__(self, client):
-        """Initialize the Qdrant repository with a client.
+    def __init__(self, client, collection_name: str = "docs", encoder=None):
+        """Initialize Qdrant repository with a client and embedding model.
 
         Args:
             client: Qdrant client instance (real or stubbed for testing).
+            encoder: A SentenceTransformer encoding model.
         """
         self._client = client
-        self._collection_name = "docs"
-        if isinstance(
-            self._client, QdrantDocumentRepository._StubbedQdrantClient
-        ):
-            self._encoder = FakeSentenceTransformer("fake-embedding-model")
-        else:
-            from sentence_transformers import SentenceTransformer
-
-            self._encoder = SentenceTransformer("all-MiniLM-L6-v2")
+        self._collection_name = collection_name
+        self._encoder = encoder
 
     def _ensure_collection_exists(self):
         """Create the collection if it doesn't exist"""
