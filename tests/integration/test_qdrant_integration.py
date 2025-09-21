@@ -4,16 +4,28 @@ import pytest
 
 from addon.domain.repositories.document_repository import Document, SearchQuery
 from addon.infrastructure.persistence.qdrant_repository import (
+    FakeSentenceTransformer,
     QdrantDocumentRepository,
 )
 
+# These integration tests are designed to test exclusively our Qdrant adapter.
+# SentenceTransformer is a heavy dependency, which adds 20+ seconds when loading
+# the library. To bypass that performance drag, and keep the integration tests
+# relatively fast, we will use a fake object that mimic SentenceTransformer
+# behavior
+
+
+@pytest.fixture
+def encoder():
+    return FakeSentenceTransformer("fake")
+
 
 @pytest.mark.slow
-def test_overlapping_sociable_behavior_with_real_dependencies():
+def test_overlapping_sociable_behavior_with_real_dependencies(encoder):
     """Test overlapping sociable behavior - can skip in development"""
 
     # Given - use the production factory (this runs real QdrantClient code)
-    repo = QdrantDocumentRepository.create()
+    repo = QdrantDocumentRepository.create(encoder)
 
     # When - perform real operations (this tests the integration)
     documents = [
@@ -54,10 +66,10 @@ def test_overlapping_sociable_behavior_with_real_dependencies():
 
 
 @pytest.mark.slow
-def test_real_qdrant_store_and_retrieve_cycle():
+def test_real_qdrant_store_and_retrieve_cycle(encoder):
     """CRITICAL: Test complete store/retrieve cycle - fail if qdrant missing in CI"""
     # Given
-    repo = QdrantDocumentRepository.create()
+    repo = QdrantDocumentRepository.create(encoder)
 
     test_doc_id = str(uuid.uuid4())
     test_doc = Document(
@@ -80,10 +92,10 @@ def test_real_qdrant_store_and_retrieve_cycle():
 
 
 @pytest.mark.slow
-def test_real_qdrant_similarity_search_behavior():
+def test_real_qdrant_similarity_search_behavior(encoder):
     """Test similarity search with real algorithms"""
     # Given
-    repo = QdrantDocumentRepository.create()
+    repo = QdrantDocumentRepository.create(encoder)
     doc1_id = str(uuid.uuid4())
     doc2_id = str(uuid.uuid4())
     doc3_id = str(uuid.uuid4())
@@ -124,10 +136,10 @@ def test_real_qdrant_similarity_search_behavior():
 
 
 @pytest.mark.slow
-def test_real_qdrant_handles_empty_search_gracefully():
+def test_real_qdrant_handles_empty_search_gracefully(encoder):
     """Test edge cases - can skip in development"""
     # Given
-    repo = QdrantDocumentRepository.create()
+    repo = QdrantDocumentRepository.create(encoder)
 
     # When - search in empty collection
     empty_query = SearchQuery("nonexistent content", max_results=5)
@@ -142,10 +154,10 @@ def test_real_qdrant_handles_empty_search_gracefully():
 
 
 @pytest.mark.slow
-def test_real_qdrant_batch_operations():
+def test_real_qdrant_batch_operations(encoder):
     """Test batch operations - can skip in development"""
     # Given
-    repo = QdrantDocumentRepository.create()
+    repo = QdrantDocumentRepository.create(encoder)
 
     # Create multiple documents
     batch_docs = [
@@ -180,12 +192,12 @@ def test_real_qdrant_batch_operations():
 
 
 @pytest.mark.slow
-def test_real_qdrant_performance_characteristics():
+def test_real_qdrant_performance_characteristics(encoder):
     """Performance test - can skip in development, should run in CI"""
     import time
 
     # Given
-    repo = QdrantDocumentRepository.create()
+    repo = QdrantDocumentRepository.create(encoder)
 
     # Store a moderate number of documents
     docs = [

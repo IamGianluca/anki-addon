@@ -16,21 +16,13 @@ if TYPE_CHECKING:
     # dependencies at the top of file because they have slow side effects that
     # significantly increase the test suite execution time.
     from qdrant_client.models import PointStruct
+    from sentence_transformers import SentenceTransformer
     from torch import Tensor
 
 
 class FakeSentenceTransformer:
-    """Test double that replaces SentenceTransformer for fast, deterministic testing.
-
-    This class provides the same interface as the real SentenceTransformer but
-    returns fixed, predictable embeddings instead of computing actual semantic
-    vectors. This eliminates the need to load heavy ML models during testing,
-    significantly improving test execution speed.
-
-    The fake embeddings are consistent and deterministic, enabling reliable
-    testing of vector storage and retrieval logic without the computational
-    overhead of real embedding generation.
-
+    """Avoids 20+ second library loading overhead caused by SentenceTransformer
+    during test execution.
     """
 
     def __init__(self, model_name_or_path: str) -> None:
@@ -44,36 +36,13 @@ class FakeSentenceTransformer:
 
 
 class QdrantDocumentRepository(DocumentRepository):
-    """Vector database implementation using Qdrant for semantic document storage and retrieval.
-
-    This repository provides persistent storage for documents with semantic search
-    capabilities through vector embeddings. It implements the domain's DocumentRepository
-    interface while handling all the infrastructure concerns of vector database
-    operations, embedding generation, and collection management.
-
-    The implementation uses the Null Object pattern to support testing through
-    a stubbed client that provides predictable responses without requiring an
-    actual Qdrant server. This design enables both reliable unit testing and
-    production deployment with the same interface.
-
-    Key responsibilities:
-    - Managing Qdrant collections and ensuring they exist before operations
-    - Converting text content to vector embeddings using SentenceTransformer
-    - Mapping between domain objects (Document) and Qdrant's data structures
-    - Providing semantic similarity search through vector operations
-    - Handling batch operations for efficient bulk document storage
-
-    Attributes:
-        _collection_name: Name of the collection storing documents (internal).
-    """
+    """Vector database using Qdrant with Null Object pattern for testability."""
 
     @staticmethod
-    def create(embedding_model="all-MiniLM-L6-v2"):
+    def create(encoder: SentenceTransformer):
         from qdrant_client import QdrantClient
-        from sentence_transformers import SentenceTransformer
 
         client = QdrantClient(":memory:")
-        encoder = SentenceTransformer(embedding_model)
         repo = QdrantDocumentRepository(client, encoder=encoder)
         repo._ensure_collection_exists()  # Create collection on startup
         return repo
@@ -83,7 +52,6 @@ class QdrantDocumentRepository(DocumentRepository):
         search_responses: Optional[List[List[SearchResult]]] = None,
         stored_documents: Optional[List[Document]] = None,
     ):
-        """Nullable with configurable responses"""
         # Create default responses if none provided
         if search_responses is None:
             default_doc = Document(
@@ -106,19 +74,17 @@ class QdrantDocumentRepository(DocumentRepository):
             encoder=encoder,
         )
 
-    def __init__(self, client, collection_name: str = "docs", encoder=None):
-        """Initialize Qdrant repository with a client and embedding model.
-
-        Args:
-            client: Qdrant client instance (real or stubbed for testing).
-            encoder: A SentenceTransformer encoding model.
-        """
+    def __init__(
+        self,
+        client,
+        encoder: SentenceTransformer,
+        collection_name: str = "docs",
+    ):
         self._client = client
         self._collection_name = collection_name
         self._encoder = encoder
 
     def _ensure_collection_exists(self):
-        """Create the collection if it doesn't exist"""
         # Skip for stubbed clients (they don't need real collections)
         if hasattr(self._client, "_search_responses"):
             return
@@ -149,7 +115,7 @@ class QdrantDocumentRepository(DocumentRepository):
             )
 
     def _create_point(self, document: Document):
-        """Create a point object (real or mock depending on client type)"""
+        """Adapts between test mode (mock) and production mode (PointStruct)."""
         if hasattr(self._client, "_search_responses"):
             # Test mode - simple mock object
             return type(
@@ -221,7 +187,7 @@ class QdrantDocumentRepository(DocumentRepository):
         return self._encoder.encode(text)
 
     def _map_result(self, hit) -> SearchResult:
-        """Map Qdrant search result to domain object"""
+        """Handles both dict and object formats from different Qdrant client versions."""
         # Handle both dict and object formats from Qdrant
         if isinstance(hit, dict):
             doc_id = str(hit.get("id", ""))
@@ -241,7 +207,7 @@ class QdrantDocumentRepository(DocumentRepository):
         return SearchResult(doc, score)
 
     def _map_document(self, point) -> Document:
-        """Map Qdrant point to domain document"""
+        """Handles both dict and object formats from different Qdrant client versions."""
         # Handle both dict and object formats from Qdrant
         if isinstance(point, dict):
             doc_id = str(point.get("id", ""))
@@ -258,20 +224,7 @@ class QdrantDocumentRepository(DocumentRepository):
         )
 
     class _StubbedQdrantClient:
-        """Test double that mimics Qdrant client behavior for deterministic testing.
-
-        This embedded stub provides the same interface as the real Qdrant client
-        but operates entirely in memory with pre-configured responses. It enables
-        fast, reliable tests that don't require an actual vector database server.
-
-        The stub maintains its own internal storage for documents and supports
-        the core operations needed for testing: storing documents, retrieving by ID,
-        and returning pre-configured search results in sequence.
-
-        Attributes:
-            _search_responses: Queue of search results to return in sequence (internal).
-            _points: Internal storage mapping document IDs to point data (internal).
-        """
+        """Enables testing without running actual Qdrant server."""
 
         def __init__(
             self,
@@ -283,11 +236,9 @@ class QdrantDocumentRepository(DocumentRepository):
             self._points = {}
 
         def get_collection(self, collection_name: str):
-            """Stub - always succeeds"""
             return {"status": "green"}
 
         def create_collection(self, collection_name: str, vectors_config):
-            """Stub - always succeeds"""
             pass
 
         def upsert(self, collection_name: str, points: List[PointStruct]):
