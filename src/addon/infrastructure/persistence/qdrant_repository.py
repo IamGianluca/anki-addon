@@ -20,11 +20,13 @@ if TYPE_CHECKING:
 
 
 class EmbeddingModel(Protocol):
-    def encode(self, text: str):
-        pass
+    def encode(self, text: str) -> list[int]: ...
 
-    def get_sentence_embedding_dimension(self):
-        pass
+    def get_sentence_embedding_dimension(self) -> int:
+        """Do not remove. This method is required to create a new Qdrant
+        collection.
+        """
+        ...
 
 
 class FakeSentenceTransformer:
@@ -33,13 +35,14 @@ class FakeSentenceTransformer:
     """
 
     def __init__(self, model_name_or_path: str) -> None:
+        self._embedding = [0, 0, 0, 0, 0, 0, 0]
         pass
 
-    def encode(self, text: str):
-        return [0, 0, 0, 0, 0, 0, 0]
+    def encode(self, text: str) -> list[int]:
+        return self._embedding
 
-    def get_sentence_embedding_dimension(self):
-        return 7  # Match the fake encoding above
+    def get_sentence_embedding_dimension(self) -> int:
+        return len(self._embedding)
 
 
 class QdrantDocumentRepository(DocumentRepository):
