@@ -3,14 +3,15 @@
 - [ ] Add option to change note type from editing window
 - [ ] Use semantic search instead of lexical search in search bar
 - [ ] Identify notes that are not atomic
-- [ ] Identify isolated notes ― these will be harder to learn 
+- [ ] Identify isolated notes — these will be harder to learn 
 - [ ] ...
 
 #### Bugs
 
 - [ ] Code snippets are sometimes removed
-- [ ] Back card sometimes is not changed
+- [ ] Back card is sometimes not changed
 - [ ] Images are sometimes removed
+- [ ] ... 
 
 #### Refactoring
 
@@ -29,6 +30,6 @@
 #### Testing
 - [ ] Convert tests in `tests/integration/test_qdrant_integration.py::test_overlapping_sociable_behavior_with_real_dependencies` to proper **narrow** integration tests. It currently takes over 30 seconds to run
 - [ ] Convert tests in `tests/integration/test_qdrant_integration.py::test_real_qdrant_performance_characteristics` to proper **narrow** integration tests. It currently takes over 3 seconds to run
-- [ ] Ensure we are using narrow integration tests for all infrastructure code
-- [ ] Review end-to-end tests, we probably only need one for each workflow
+- [ ] Ensure we have narrow integration tests, and leverage nullables for e2e tests
+- [ ] Review e2e tests, and keep only one for each main scenario (main path)
 - [ ] ...
