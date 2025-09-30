@@ -2,7 +2,7 @@ from __future__ import (
     annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Optional, Protocol
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -181,7 +181,9 @@ class QdrantDocumentRepository(DocumentRepository):
             query=self._vectorize(query.text),
             limit=query.max_results,
         )
-        return [self._qdrant_hit_to_search_result(hit) for hit in results.points]
+        return [
+            self._qdrant_hit_to_search_result(hit) for hit in results.points
+        ]
 
     def find_by_id(self, doc_id: str) -> Document:
         # Ensure collection exists before retrieving
