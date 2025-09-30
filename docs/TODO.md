@@ -28,8 +28,8 @@
 - [ ] ...
 
 #### Testing
-- [ ] Convert tests in `tests/integration/test_qdrant_integration.py::test_overlapping_sociable_behavior_with_real_dependencies` to proper **narrow** integration tests. It currently takes over 30 seconds to run
-- [ ] Convert tests in `tests/integration/test_qdrant_integration.py::test_real_qdrant_performance_characteristics` to proper **narrow** integration tests. It currently takes over 3 seconds to run
-- [ ] Ensure we have narrow integration tests, and leverage nullables for e2e tests
-- [ ] Review e2e tests, and keep only one for each main scenario (main path)
+- [x] Convert tests in `tests/integration/test_qdrant_integration.py::test_overlapping_sociable_behavior_with_real_dependencies` to proper **narrow** integration tests. It currently takes over 30 seconds to run
+- [x] Convert tests in `tests/integration/test_qdrant_integration.py::test_real_qdrant_performance_characteristics` to proper **narrow** integration tests. It currently takes over 3 seconds to run
+- [x] Ensure we have narrow integration tests, and leverage nullables for e2e tests
+- [x] Review e2e tests, and keep only one for each main scenario (main path)
 - [ ] ...
