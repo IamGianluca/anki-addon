@@ -72,11 +72,16 @@ def test_store_batch_documents(repo):
 
 @pytest.mark.slow
 def test_find_by_id_nonexistent(repo):
-    # When
-    result = repo.find_by_id("nonexistent_id")
+    # Given
+    from addon.domain.repositories.document_repository import (
+        DocumentNotFoundError,
+    )
 
-    # Then
-    assert result is None
+    # When/Then
+    with pytest.raises(DocumentNotFoundError) as exc_info:
+        repo.find_by_id("nonexistent_id")
+
+    assert "nonexistent_id" in str(exc_info.value)
 
 
 @pytest.mark.slow

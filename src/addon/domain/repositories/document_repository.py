@@ -1,9 +1,14 @@
-from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any, Protocol
 from uuid import uuid4
 
 from addon.domain.entities.note import AddonNote
+
+
+class DocumentNotFoundError(Exception):
+    """Raised when a document lookup by ID fails."""
+
+    pass
 
 
 @dataclass
@@ -66,19 +71,23 @@ class DocumentRepository(Protocol):
     mechanisms (e.g., vector databases, search engines).
     """
 
-    @abstractmethod
-    def store(self, document: Document) -> None:
-        pass
+    def store(self, document: Document) -> None: ...
 
-    @abstractmethod
     def store_batch(self, documents: list[Document]) -> None:
         """Should be more efficient than individual store() calls."""
-        pass
+        ...
 
-    @abstractmethod
     def find_similar(self, query: SearchQuery) -> list[SearchResult]:
         """Returns results ordered by relevance score (descending)."""
-        pass
+        ...
+
+    def find_by_id(self, doc_id: str) -> Document:
+        """Retrieve a document by its unique identifier.
+
+        Raises:
+            DocumentNotFoundError: If no document exists with the given ID.
+        """
+        ...
 
 
 class FakeDocumentRepository:
@@ -94,6 +103,9 @@ class FakeDocumentRepository:
     def find_similar(self, query: SearchQuery) -> list[SearchResult]:
         self.captured_queries.append(query.text)
         return []
+
+    def find_by_id(self, doc_id: str) -> Document:
+        raise DocumentNotFoundError(f"Document with id '{doc_id}' not found")
 
 
 def convert_addon_note_to_document(note: AddonNote) -> Document:

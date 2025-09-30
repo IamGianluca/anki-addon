@@ -172,16 +172,20 @@ def test_find_by_id_returns_stored_document():
     assert retrieved.metadata == document.metadata
 
 
-def test_find_by_id_returns_none_for_nonexistent_document():
-    """Test that find_by_id returns None for documents that don't exist"""
+def test_find_by_id_raises_error_for_nonexistent_document():
+    """Test that find_by_id raises DocumentNotFoundError for documents that don't exist"""
     # Given
+    from addon.domain.repositories.document_repository import (
+        DocumentNotFoundError,
+    )
+
     repo = QdrantDocumentRepository.create_null()
 
-    # When
-    result = repo.find_by_id("nonexistent_id")
+    # When/Then
+    with pytest.raises(DocumentNotFoundError) as exc_info:
+        repo.find_by_id("nonexistent_id")
 
-    # Then
-    assert result is None
+    assert "nonexistent_id" in str(exc_info.value)
 
 
 def test_exhausting_configured_responses_returns_empty_list(first_response):

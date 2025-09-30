@@ -2,10 +2,11 @@ from __future__ import (
     annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from ...domain.repositories.document_repository import (
     Document,
+    DocumentNotFoundError,
     DocumentRepository,
     SearchQuery,
     SearchResult,
@@ -180,23 +181,27 @@ class QdrantDocumentRepository(DocumentRepository):
             query=self._vectorize(query.text),
             limit=query.max_results,
         )
-        return [self._map_result(hit) for hit in results.points]
+        return [self._qdrant_hit_to_search_result(hit) for hit in results.points]
 
-    def find_by_id(self, doc_id: str) -> Optional[Document]:
+    def find_by_id(self, doc_id: str) -> Document:
         # Ensure collection exists before retrieving
         self._ensure_collection_exists()
 
         result = self._client.retrieve(
             collection_name=self._collection_name, ids=[doc_id]
         )
-        return self._map_document(result[0]) if result else None
+        if not result:
+            raise DocumentNotFoundError(
+                f"Document with id '{doc_id}' not found"
+            )
+        return self._qdrant_point_to_document(result[0])
 
     def _vectorize(
         self, text: str
     ) -> Tensor:  # Not imported since it has slow side effects
         return self._encoder.encode(text)
 
-    def _map_result(self, hit) -> SearchResult:
+    def _qdrant_hit_to_search_result(self, hit) -> SearchResult:
         """Handles both dict and object formats from different Qdrant client versions."""
         # Handle both dict and object formats from Qdrant
         if isinstance(hit, dict):
@@ -216,7 +221,7 @@ class QdrantDocumentRepository(DocumentRepository):
         )
         return SearchResult(doc, score)
 
-    def _map_document(self, point) -> Document:
+    def _qdrant_point_to_document(self, point) -> Document:
         """Handles both dict and object formats from different Qdrant client versions."""
         # Handle both dict and object formats from Qdrant
         if isinstance(point, dict):
