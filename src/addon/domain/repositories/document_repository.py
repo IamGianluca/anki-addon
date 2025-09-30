@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, List, Protocol
 from uuid import uuid4
 
 from addon.domain.entities.note import AddonNote
@@ -58,7 +58,7 @@ class SearchResult:
     relevance_score: float
 
 
-class DocumentRepository(ABC):
+class DocumentRepository(Protocol):
     """Abstract repository interface for document storage and retrieval.
 
     This repository defines the domain's requirements for document persistence
@@ -79,6 +79,21 @@ class DocumentRepository(ABC):
     def find_similar(self, query: SearchQuery) -> List[SearchResult]:
         """Returns results ordered by relevance score (descending)."""
         pass
+
+
+class FakeDocumentRepository:
+    def __init__(self):
+        self.captured_queries = []
+
+    def store(self, document: Document) -> None:
+        pass
+
+    def store_batch(self, documents: List[Document]) -> None:
+        pass
+
+    def find_similar(self, query: SearchQuery) -> List[SearchResult]:
+        self.captured_queries.append(query.text)
+        return []
 
 
 def convert_addon_note_to_document(note: AddonNote) -> Document:

@@ -51,7 +51,7 @@ class SimilarNoteFinder:
 
     def find_duplicates(self, note: AddonNote) -> list[AddonNote]:
         if note.tags:
-            tags = "".join([t for t in note.tags])
+            tags = " ".join([t for t in note.tags])
         else:
             tags = ""
         query = SearchQuery(f"{note.front} {note.back} {tags}", max_results=1)

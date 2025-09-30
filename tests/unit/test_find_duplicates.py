@@ -3,6 +3,7 @@ from addon.application.use_cases.note_duplicate_finder import (
 )
 from addon.domain.entities.note import AddonNote
 from addon.domain.repositories.document_repository import (
+    FakeDocumentRepository,
     SearchResult,
     convert_addon_note_to_document,
 )
@@ -96,3 +97,23 @@ def test_find_duplicates_respects_max_results(
     # Then - only most similar note returned
     assert len(result) == 1
     assert result[0].guid == addon_note1.guid
+
+
+def test_find_duplicates_joins_tags_with_spaces(addon_collection):
+    # Given
+    repository = FakeDocumentRepository()
+    finder = SimilarNoteFinder(
+        collection=addon_collection, repository=repository
+    )
+
+    # When - search with multiple tags
+    note = AddonNote(
+        front="test", back="answer", tags=["python", "programming"]
+    )
+    finder.find_duplicates(note=note)
+
+    # Then - verify tags are space-separated in query, not concatenated
+    assert len(repository.captured_queries) == 1
+    query_text = repository.captured_queries[0]
+    assert "python programming" in query_text
+    assert "pythonprogramming" not in query_text
