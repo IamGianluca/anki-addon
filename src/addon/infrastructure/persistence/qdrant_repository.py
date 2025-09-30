@@ -2,7 +2,7 @@ from __future__ import (
     annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import TYPE_CHECKING, List, Optional, Protocol
+from typing import TYPE_CHECKING, Optional, Protocol
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -59,8 +59,8 @@ class QdrantDocumentRepository(DocumentRepository):
 
     @staticmethod
     def create_null(
-        search_responses: Optional[List[List[SearchResult]]] = None,
-        stored_documents: Optional[List[Document]] = None,
+        search_responses: Optional[list[list[SearchResult]]] = None,
+        stored_documents: Optional[list[Document]] = None,
     ):
         # Create default responses if none provided
         if search_responses is None:
@@ -162,7 +162,7 @@ class QdrantDocumentRepository(DocumentRepository):
             collection_name=self._collection_name, points=[point]
         )
 
-    def store_batch(self, documents: List[Document]) -> None:
+    def store_batch(self, documents: list[Document]) -> None:
         if not documents:
             return
         self._ensure_collection_exists()
@@ -171,7 +171,7 @@ class QdrantDocumentRepository(DocumentRepository):
             collection_name=self._collection_name, points=points
         )
 
-    def find_similar(self, query: SearchQuery) -> List[SearchResult]:
+    def find_similar(self, query: SearchQuery) -> list[SearchResult]:
         # Ensure collection exists before searching
         self._ensure_collection_exists()
 
@@ -238,8 +238,8 @@ class QdrantDocumentRepository(DocumentRepository):
 
         def __init__(
             self,
-            search_responses: List[List[SearchResult]],
-            stored_docs: List[Document],
+            search_responses: list[list[SearchResult]],
+            stored_docs: list[Document],
         ):
             self._search_responses = search_responses.copy()
             self._stored_docs = {doc.id: doc for doc in stored_docs}
@@ -251,12 +251,12 @@ class QdrantDocumentRepository(DocumentRepository):
         def create_collection(self, collection_name: str, vectors_config):
             pass
 
-        def upsert(self, collection_name: str, points: List[PointStruct]):
+        def upsert(self, collection_name: str, points: list[PointStruct]):
             for point in points:
                 self._points[point.id] = point
 
         def query_points(
-            self, collection_name: str, query: List[float], limit: int
+            self, collection_name: str, query: list[float], limit: int
         ):
             class MockScoredPoint:
                 def __init__(self, result: SearchResult):
@@ -280,7 +280,7 @@ class QdrantDocumentRepository(DocumentRepository):
             mock_points = [MockScoredPoint(r) for r in results[:limit]]
             return MockQueryResponse(mock_points)
 
-        def retrieve(self, collection_name: str, ids: List[str]):
+        def retrieve(self, collection_name: str, ids: list[str]):
             results = []
             for doc_id in ids:
                 if doc_id in self._points:

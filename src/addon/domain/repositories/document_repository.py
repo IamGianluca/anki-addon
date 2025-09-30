@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, List, Protocol
+from typing import Any, Protocol
 from uuid import uuid4
 
 from addon.domain.entities.note import AddonNote
@@ -71,12 +71,12 @@ class DocumentRepository(Protocol):
         pass
 
     @abstractmethod
-    def store_batch(self, documents: List[Document]) -> None:
+    def store_batch(self, documents: list[Document]) -> None:
         """Should be more efficient than individual store() calls."""
         pass
 
     @abstractmethod
-    def find_similar(self, query: SearchQuery) -> List[SearchResult]:
+    def find_similar(self, query: SearchQuery) -> list[SearchResult]:
         """Returns results ordered by relevance score (descending)."""
         pass
 
@@ -88,10 +88,10 @@ class FakeDocumentRepository:
     def store(self, document: Document) -> None:
         pass
 
-    def store_batch(self, documents: List[Document]) -> None:
+    def store_batch(self, documents: list[Document]) -> None:
         pass
 
-    def find_similar(self, query: SearchQuery) -> List[SearchResult]:
+    def find_similar(self, query: SearchQuery) -> list[SearchResult]:
         self.captured_queries.append(query.text)
         return []
 

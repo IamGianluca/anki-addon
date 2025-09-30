@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 from uuid import uuid4
 
 
@@ -45,7 +45,7 @@ class AddonNote:
     front: str
     back: str
     guid: str = field(default_factory=lambda: str(uuid4()))
-    tags: Optional[List[str]] = None
+    tags: Optional[list[str]] = None
     notetype: AddonNoteType = AddonNoteType.BASIC
     deck_name: Optional[str] = None
 
@@ -65,7 +65,7 @@ class AddonCollection:
         self.name = name
         self.notes = []
 
-    def add(self, notes: List[AddonNote]) -> None:
+    def add(self, notes: list[AddonNote]) -> None:
         for note in notes:
             self.notes.append(note)
 

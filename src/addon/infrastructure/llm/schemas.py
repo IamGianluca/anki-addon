@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -18,4 +18,4 @@ class AddonNoteChanges(BaseModel):
 
     front: str
     back: str
-    tags: Optional[List[str]] = None
+    tags: Optional[list[str]] = None
