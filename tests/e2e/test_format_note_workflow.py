@@ -21,11 +21,13 @@ def test_complete_format_workflow_for_basic_note(addon_config, mw, collection):
     4. Changes persist to collection
     """
     # Given: Setup formatter with canned LLM response
-    response = json.dumps({
-        "front": "Most winning NHL team",
-        "back": "Montreal Canadiens - 24 Stanley Cup championships",
-        "tags": ["hockey"]
-    })
+    response = json.dumps(
+        {
+            "front": "Most winning NHL team",
+            "back": "Montreal Canadiens - 24 Stanley Cup championships",
+            "tags": ["hockey"],
+        }
+    )
     openai = OpenAIClient.create_null(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
@@ -47,7 +49,10 @@ def test_complete_format_workflow_for_basic_note(addon_config, mw, collection):
     # Then: Verify end-to-end behavior
     # Note content was updated
     assert formatted_note["Front"] == "Most winning NHL team"
-    assert formatted_note["Back"] == "Montreal Canadiens - 24 Stanley Cup championships"
+    assert (
+        formatted_note["Back"]
+        == "Montreal Canadiens - 24 Stanley Cup championships"
+    )
     assert formatted_note["Front"] != original_front
 
     # Note was persisted
@@ -66,11 +71,13 @@ def test_complete_format_workflow_for_basic_note(addon_config, mw, collection):
 def test_complete_format_workflow_for_cloze_note(addon_config, mw, collection):
     """E2E test: complete workflow for cloze note type."""
     # Given: Setup formatter with canned LLM response for cloze
-    response = json.dumps({
-        "front": "NHL history: {{c1::Montreal Canadiens}} most successful team",
-        "back": "",
-        "tags": ["hockey"]
-    })
+    response = json.dumps(
+        {
+            "front": "NHL history: {{c1::Montreal Canadiens}} most successful team",
+            "back": "",
+            "tags": ["hockey"],
+        }
+    )
     openai = OpenAIClient.create_null(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
@@ -104,11 +111,9 @@ def test_complete_format_workflow_for_cloze_note(addon_config, mw, collection):
 def test_format_workflow_preserves_note_on_skip(addon_config, mw, collection):
     """E2E test: skipping a note and restoring preserves original content."""
     # Given
-    response = json.dumps({
-        "front": "Changed",
-        "back": "Changed",
-        "tags": ["test"]
-    })
+    response = json.dumps(
+        {"front": "Changed", "back": "Changed", "tags": ["test"]}
+    )
     openai = OpenAIClient.create_null(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
