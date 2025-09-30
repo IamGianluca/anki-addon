@@ -87,3 +87,20 @@ def test_addonnote_generates_guid_automatically():
     assert note1.guid != note2.guid
     assert len(note1.guid) > 0
     assert len(note2.guid) > 0
+
+
+def test_convert_addon_note_to_document_joins_tags_with_spaces():
+    # Given
+    note = AddonNote(
+        front="test front", back="test back", tags=["python", "programming"]
+    )
+
+    # When
+    doc = convert_addon_note_to_document(note)
+
+    # Then - tags should be space-separated in content, not concatenated
+    assert "python programming" in doc.content
+    assert "pythonprogramming" not in doc.content
+    # Verify front and back are also included
+    assert "test front" in doc.content
+    assert "test back" in doc.content

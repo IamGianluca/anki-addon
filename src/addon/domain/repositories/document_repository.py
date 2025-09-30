@@ -100,7 +100,7 @@ def convert_addon_note_to_document(note: AddonNote) -> Document:
     """Combines front/back/tags into searchable content; preserves original in metadata."""
     tags = ""
     if note.tags:
-        tags = "".join([t for t in note.tags])
+        tags = " ".join([t for t in note.tags])
     return Document(
         id=str(uuid4()),
         content=f"{note.front} {note.back} {tags}",
