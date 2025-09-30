@@ -49,7 +49,7 @@ class SimilarNoteFinder:
             documents.append(convert_addon_note_to_document(note))
         self._repository.store_batch(documents)
 
-    def find_duplicates(self, note: AddonNote) -> list[AddonNote] | None:
+    def find_duplicates(self, note: AddonNote) -> list[AddonNote]:
         if note.tags:
             tags = "".join([t for t in note.tags])
         else:
@@ -61,4 +61,4 @@ class SimilarNoteFinder:
                 convert_document_to_addon_note(d.document) for d in results
             ]
         else:
-            return None
+            return []

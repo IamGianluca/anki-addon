@@ -44,3 +44,48 @@ def test_format_cloze_note_using_llm(addon_config, cloze1):
     assert result["Text"] == expected_front
     assert result["Back Extra"] == expected_back
     assert is_cloze_note(result)
+
+
+def test_format_note_preserves_tags(addon_config, note1):
+    # Given
+    note1.tags = ["original", "tags"]
+    response = json.dumps({"front": "Q", "back": "A", "tags": ["new", "tags"]})
+    openai = OpenAIClient.create_null(addon_config, responses=[response])
+    formatter = NoteFormatter(openai)
+
+    # When
+    result = format_note_workflow(note1, formatter)
+
+    # Then - tags should NOT be updated (per comment in formatter_service.py:73)
+    assert result.tags == ["original", "tags"]
+
+
+def test_format_note_handles_html_br_tags(addon_config, note1):
+    # Given
+    note1["Front"] = "Line 1<br>Line 2"
+    note1["Back"] = "Answer"
+    response = json.dumps({"front": "Formatted<br>Text", "back": "A"})
+    openai = OpenAIClient.create_null(addon_config, responses=[response])
+    formatter = NoteFormatter(openai)
+
+    # When
+    result = format_note_workflow(note1, formatter)
+
+    # Then
+    assert "Formatted<br>Text" in result["Front"]
+
+
+def test_format_note_removes_alt_tags_from_images(addon_config, note1):
+    # Given
+    response = json.dumps(
+        {"front": '<img alt="test" src="foo.jpg">', "back": "A"}
+    )
+    openai = OpenAIClient.create_null(addon_config, responses=[response])
+    formatter = NoteFormatter(openai)
+
+    # When
+    result = format_note_workflow(note1, formatter)
+
+    # Then
+    assert "alt=" not in result["Front"]
+    assert "<img " in result["Front"]

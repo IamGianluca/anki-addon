@@ -44,3 +44,55 @@ def test_find_possible_duplicate_notes_given_a_new_note(
     assert result is not None
     assert len(result) == 1
     assert result[0].guid == addon_note2.guid
+
+
+def test_find_duplicates_returns_empty_when_no_similar_notes(addon_collection):
+    # Given
+    # Test the case where the collection exists but contains no documents.
+    # This simulates a valid but empty vector database - we expect the finder
+    # to gracefully return an empty list rather than raise an error.
+    repository = QdrantDocumentRepository.create_null(
+        search_responses=[[]],  # No search results returned
+        stored_documents=[],  # Empty collection
+    )
+    finder = SimilarNoteFinder(
+        collection=addon_collection, repository=repository
+    )
+    note = AddonNote(front="unique", back="content")
+
+    # When
+    result = finder.find_duplicates(note=note)
+
+    # Then
+    assert result == []
+
+
+def test_find_duplicates_respects_max_results(
+    addon_collection, addon_note1, addon_note2, addon_note3
+):
+    # Given - return 3 results but finder should only return the most similar
+    repository = QdrantDocumentRepository.create_null(
+        search_responses=[
+            [
+                SearchResult(
+                    convert_addon_note_to_document(addon_note1), 0.99
+                ),
+                SearchResult(
+                    convert_addon_note_to_document(addon_note2), 0.95
+                ),
+                SearchResult(
+                    convert_addon_note_to_document(addon_note3), 0.90
+                ),
+            ]
+        ]
+    )
+    finder = SimilarNoteFinder(
+        collection=addon_collection, repository=repository
+    )
+
+    # When
+    result = finder.find_duplicates(note=AddonNote(front="test", back="test"))
+
+    # Then - only most similar note returned
+    assert len(result) == 1
+    assert result[0].guid == addon_note1.guid
