@@ -10,6 +10,7 @@ from ...application.services.formatter_service import (
 )
 from ...infrastructure.configuration.settings import AddonConfig
 from ...infrastructure.external_services.openai import OpenAIClient
+from ...infrastructure.persistence.training_dataset import create_training_dataset
 from ...infrastructure.ui.editor import EditorDialog
 from ...utils import ensure_collection, ensure_note
 
@@ -54,6 +55,9 @@ def open_standalone_editor() -> None:
         showInfo(str(e))
         return
 
+    # Initialize training dataset for storing examples
+    training_dataset = create_training_dataset()
+
     # Load an Editor widget
     editor_widget = QWidget(dialog)
     editor = Editor(mw, editor_widget, dialog)
@@ -81,6 +85,15 @@ def open_standalone_editor() -> None:
         """Update the note in collection and close dialog."""
         # First save the current note
         current_note = editor_state.current_note()
+
+        # Store training example: capture updated fields before flushing
+        updated_fields = editor_state.get_note_fields_with_tags(current_note)
+        training_dataset.save_example(
+            note_id=current_note.id,
+            original_fields=editor_state._original_fields,
+            updated_fields=updated_fields,
+        )
+
         current_note = editor_state.strip_orange_flag(current_note)
         current_note.flush()
 

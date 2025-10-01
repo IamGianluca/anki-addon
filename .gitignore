@@ -12,6 +12,9 @@ wheels/
 # Dev files
 .coverage
 
+# Training data
+data/
+
 # Virtual environments
 .venv
 

@@ -210,6 +210,26 @@ def test_save_note_keep_flag_vs_strip_orange_flag_behavior(mw, collection):
         assert card.flags == 2  # Flag preserved
 
 
+def test_restore_note_preserves_tags(mw, collection):
+    """Test that restoring a note also restores its original tags"""
+    # Given
+    editor_dialog = EditorDialog(collection)
+    current_note = editor_dialog.current_note()
+
+    # Store original tags
+    original_tags = current_note.tags.copy()
+    assert original_tags == []  # Initial state
+
+    # When: Modify tags
+    current_note.tags = ["new_tag", "another_tag"]
+
+    # Then restore
+    editor_dialog.restore_current_note()
+
+    # Then: Tags should be restored to original
+    assert current_note.tags == original_tags
+
+
 def test_skip_multiple_notes_preserves_original_content(mw, collection):
     """Test that skipping multiple notes and then making changes doesn't
     overwrite previous notes with wrong content.

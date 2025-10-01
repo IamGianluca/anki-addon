@@ -69,20 +69,30 @@ class EditorDialog:
 
         return review_notes
 
+    def get_note_fields_with_tags(self, note: Note) -> dict[str, str]:
+        """Extract all fields and tags from note.
+
+        Tags stored as __tags__ to avoid conflicts with user-defined field names
+        (Anki note types can have arbitrary field names including "Tags").
+        """
+        fields = {field_name: note[field_name] for field_name in note.keys()}
+        fields["__tags__"] = " ".join(note.tags)
+        return fields
+
     def current_note(self) -> Note:
         note = self.review_notes[self._current_index]
-
         # Store fields and content for possible backup needs
-        self._original_fields = {}
-        for field_name in note.keys():
-            self._original_fields[field_name] = note[field_name]
-
+        self._original_fields = self.get_note_fields_with_tags(note)
         return note
 
     def backup_current_note(self) -> Note:
         note = self.review_notes[self._current_index]
         for field_name, original_content in self._original_fields.items():
-            note[field_name] = original_content
+            if field_name == "__tags__":
+                # Tags are not a field, restore them separately
+                note.tags = original_content.split() if original_content else []
+            else:
+                note[field_name] = original_content
         return note
 
     def restore_current_note(self) -> None:
