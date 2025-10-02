@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import requests
 import requests.exceptions
 
@@ -22,11 +24,13 @@ class OpenAIClient:
     """
 
     @staticmethod
-    def create(config: AddonConfig):
+    def create(config: AddonConfig) -> OpenAIClient:  # forward reference
         return OpenAIClient(config, requests)
 
     @staticmethod
-    def create_null(config: AddonConfig, responses: list[str]):
+    def create_null(
+        config: AddonConfig, responses: list[str]
+    ) -> OpenAIClient:  # forward reference
         def _format_response_as_openai_api(response: str) -> dict:
             return {
                 "choices": [
@@ -82,7 +86,9 @@ class OpenAIClient:
             self._responses = responses
             self._calls = []
 
-        def post(self, url, json=None):
+        def post(
+            self, url, json=None
+        ) -> OpenAIClient.StubbedResponse:  # forward reference
             self._calls.append({"url": url, "json": json})
             return OpenAIClient.StubbedResponse(self._responses)
 
@@ -99,11 +105,11 @@ class OpenAIClient:
             # Get the next response from the configured list
             self._response = self._get_next_response(responses)
 
-        def json(self):
+        def json(self) -> dict:
             return self._response
 
         @staticmethod
-        def _get_next_response(responses):
+        def _get_next_response(responses) -> dict:
             if isinstance(responses, list):
                 # If it's a list, pop the next response
                 if not responses:
@@ -115,7 +121,7 @@ class OpenAIClient:
                 # If it's a single value, always return that
                 return responses
 
-    def track_calls(self):
+    def track_calls(self) -> list:
         """Output Tracking - track what calls were made to the HTTP client"""
         if hasattr(self._http_client, "_calls"):
             return self._http_client._calls

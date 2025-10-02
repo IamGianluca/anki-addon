@@ -10,7 +10,7 @@ from .application.use_cases.note_formatter import (
 )
 
 
-def setup_addon():
+def setup_addon() -> None:
     # Add option in "Tools" to count notes that require formatting changes
     action = QAction("Count notes marked for review", mw)
     action.setShortcut(QKeySequence("c"))

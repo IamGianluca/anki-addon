@@ -157,7 +157,7 @@ def open_standalone_editor() -> None:
     dialog.exec()
 
 
-def add_custom_button(buttons, editor: Editor):
+def add_custom_button(buttons, editor: Editor) -> None:
     """Add button to retrieve AI suggestions to Editor."""
     addon_dir = Path(__file__).parents[2]
     icon_path = os.path.join(addon_dir, "imgs", "ai-icon.png")
@@ -169,10 +169,9 @@ def add_custom_button(buttons, editor: Editor):
         keys="Ctrl+Alt+M",  # Optional keyboard shortcut
     )
     buttons.insert(5, button)  # Media buttons usually start around index 4-5
-    return buttons
 
 
-def on_custom_action(editor: Editor):
+def on_custom_action(editor: Editor) -> None:
     from aqt import mw
     from aqt.utils import askUser, tooltip
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 
 from aqt.main import AnkiQt
@@ -23,7 +25,7 @@ class AddonConfig:
     """
 
     @staticmethod
-    def create(mw: AnkiQt):
+    def create(mw: AnkiQt) -> AddonConfig:  # forward reference
         c: dict = ensure_config(mw.addonManager.getConfig("anki-addon"))
         config = dict()
         config["host"] = c.get("openai_host")
@@ -32,7 +34,7 @@ class AddonConfig:
         return AddonConfig(config)
 
     @staticmethod
-    def create_nullable():
+    def create_nullable() -> AddonConfig:  # forward reference
         config = dict()
         config["host"] = os.environ.get("OPENAI_HOST")
         config["port"] = os.environ.get("OPENAI_PORT")

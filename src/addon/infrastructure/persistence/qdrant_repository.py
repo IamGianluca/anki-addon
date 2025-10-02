@@ -50,7 +50,9 @@ class QdrantDocumentRepository(DocumentRepository):
     """Vector database using Qdrant with Null Object pattern for testability."""
 
     @staticmethod
-    def create(encoder: EmbeddingModel):
+    def create(
+        encoder: EmbeddingModel,
+    ) -> QdrantDocumentRepository:  # forward reference
         from qdrant_client import QdrantClient
 
         client = QdrantClient(":memory:")
@@ -62,7 +64,7 @@ class QdrantDocumentRepository(DocumentRepository):
     def create_null(
         search_responses: Optional[list[list[SearchResult]]] = None,
         stored_documents: Optional[list[Document]] = None,
-    ):
+    ) -> QdrantDocumentRepository:  # forward reference
         # Create default responses if none provided
         if search_responses is None:
             default_doc = Document(
@@ -95,7 +97,7 @@ class QdrantDocumentRepository(DocumentRepository):
         self._collection_name = collection_name
         self._encoder = encoder
 
-    def _ensure_collection_exists(self):
+    def _ensure_collection_exists(self) -> None:
         # Skip for stubbed clients (they don't need real collections)
         if hasattr(self._client, "_search_responses"):
             return
@@ -125,7 +127,9 @@ class QdrantDocumentRepository(DocumentRepository):
                 f"Failed to create Qdrant collection '{self._collection_name}': {e}"
             )
 
-    def _create_point(self, document: Document):
+    def _create_point(
+        self, document: Document
+    ) -> PointStruct:  # TYPE_CHECKING import
         """Adapts between test mode (mock) and production mode (PointStruct)."""
         if hasattr(self._client, "_search_responses"):
             # Test mode - simple mock object
@@ -252,13 +256,17 @@ class QdrantDocumentRepository(DocumentRepository):
             self._stored_docs = {doc.id: doc for doc in stored_docs}
             self._points = {}
 
-        def get_collection(self, collection_name: str):
+        def get_collection(self, collection_name: str) -> dict:
             return {"status": "green"}
 
-        def create_collection(self, collection_name: str, vectors_config):
+        def create_collection(
+            self, collection_name: str, vectors_config
+        ) -> None:
             pass
 
-        def upsert(self, collection_name: str, points: list[PointStruct]):
+        def upsert(
+            self, collection_name: str, points: list[PointStruct]
+        ) -> None:
             for point in points:
                 self._points[point.id] = point
 
@@ -287,7 +295,7 @@ class QdrantDocumentRepository(DocumentRepository):
             mock_points = [MockScoredPoint(r) for r in results[:limit]]
             return MockQueryResponse(mock_points)
 
-        def retrieve(self, collection_name: str, ids: list[str]):
+        def retrieve(self, collection_name: str, ids: list[str]) -> list:
             results = []
             for doc_id in ids:
                 if doc_id in self._points:

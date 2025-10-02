@@ -32,7 +32,10 @@ def ensure_note(note: Optional[Note]) -> Note:
     return note
 
 
-def is_cloze_note(note) -> bool:
+def is_cloze_note(note: Note) -> bool:
     from anki.consts import MODEL_CLOZE
 
-    return note.note_type()["type"] == MODEL_CLOZE
+    note_type = note.note_type()
+    if note_type is None:
+        return False
+    return note_type["type"] == MODEL_CLOZE
