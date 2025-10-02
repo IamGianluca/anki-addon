@@ -1,9 +1,10 @@
 import pytest
 
+from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 
-def test_llm_engine_collab(addon_config):
+def test_llm_engine_collab(addon_config: AddonConfig) -> None:
     # Given
     expected = "ciao"
     openai_client = OpenAIClient.create_null(addon_config, [expected])
@@ -17,8 +18,8 @@ def test_llm_engine_collab(addon_config):
 
 
 def test_openai_null_client_returns_multiple_responses_in_sequence(
-    addon_config,
-):
+    addon_config: AddonConfig,
+) -> None:
     # Given
     openai = OpenAIClient.create_null(addon_config, ["response1", "response2"])
 
@@ -31,7 +32,9 @@ def test_openai_null_client_returns_multiple_responses_in_sequence(
     assert result2 == "response2"
 
 
-def test_openai_null_client_exhausts_responses(addon_config):
+def test_openai_null_client_exhausts_responses(
+    addon_config: AddonConfig,
+) -> None:
     # Given
     openai = OpenAIClient.create_null(addon_config, ["response1"])
 

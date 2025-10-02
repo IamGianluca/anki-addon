@@ -1,17 +1,21 @@
 import json
 
 import pytest
+from tests.fakes.aqt_fakes import FakeCollection, FakeMainWindow
 
 from addon.application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
 )
+from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 from addon.infrastructure.ui.editor import EditorDialog
 
 
 @pytest.mark.slow
-def test_complete_format_workflow_for_basic_note(addon_config, mw, collection):
+def test_complete_format_workflow_for_basic_note(
+    addon_config: AddonConfig, mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """E2E test: complete workflow from EditorDialog through formatting to persistence.
 
     Tests the full user journey:
@@ -68,7 +72,9 @@ def test_complete_format_workflow_for_basic_note(addon_config, mw, collection):
 
 
 @pytest.mark.slow
-def test_complete_format_workflow_for_cloze_note(addon_config, mw, collection):
+def test_complete_format_workflow_for_cloze_note(
+    addon_config: AddonConfig, mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """E2E test: complete workflow for cloze note type."""
     # Given: Setup formatter with canned LLM response for cloze
     response = json.dumps(
@@ -108,7 +114,9 @@ def test_complete_format_workflow_for_cloze_note(addon_config, mw, collection):
 
 
 @pytest.mark.slow
-def test_format_workflow_preserves_note_on_skip(addon_config, mw, collection):
+def test_format_workflow_preserves_note_on_skip(
+    addon_config: AddonConfig, mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """E2E test: skipping a note and restoring preserves original content."""
     # Given
     response = json.dumps(

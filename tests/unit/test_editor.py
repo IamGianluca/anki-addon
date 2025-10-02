@@ -1,12 +1,15 @@
 import sys
 
 import pytest
+from pytest import MonkeyPatch
 from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 from addon.infrastructure.ui.editor import EditorDialog
 
 
-def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
+def test_init_editor_dialog_with_cards_marked_for_review(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """EditorDialog is correctly initialized with three notes, two of them
     marked for review.
     """
@@ -19,7 +22,9 @@ def test_init_editor_dialog_with_cards_marked_for_review(mw, collection):
     assert editor_dialog.review_notes[1].id == 3
 
 
-def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
+def test_init_editor_dialog_without_cards_marked_for_review(
+    monkeypatch: MonkeyPatch,
+) -> None:
     """EditorDialog raises an error if initialized without any card marked
     for review.
     """
@@ -47,7 +52,7 @@ def test_init_editor_dialog_without_cards_marked_for_review(monkeypatch):
     assert "No notes marked for review" in str(exc_info.value)
 
 
-def test_current_note(mw, collection):
+def test_current_note(mw: FakeMainWindow, collection: FakeCollection) -> None:
     """Test current_note() retrieves correct note and creates backup of
     original fields.
     """
@@ -63,7 +68,9 @@ def test_current_note(mw, collection):
     assert note["Back"] == "Answer 1"
 
 
-def test_restore_note_to_original(mw, collection):
+def test_restore_note_to_original(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """Test restoring note fields to original values"""
     # Given
     editor_dialog = EditorDialog(collection)
@@ -83,7 +90,7 @@ def test_restore_note_to_original(mw, collection):
     assert restored_note["Back"] == "Answer 1"
 
 
-def test_has_next_note(mw, collection):
+def test_has_next_note(mw: FakeMainWindow, collection: FakeCollection) -> None:
     """Test has_next_note() returns correct value"""
     # Given
     editor_dialog = EditorDialog(collection)
@@ -104,7 +111,7 @@ def test_has_next_note(mw, collection):
     assert not editor_dialog.has_next_note()
 
 
-def test_next_note(mw, collection):
+def test_next_note(mw: FakeMainWindow, collection: FakeCollection) -> None:
     """Test next_note() advances to the next note correctly"""
     # Given
     editor_dialog = EditorDialog(collection)
@@ -126,7 +133,9 @@ def test_next_note(mw, collection):
     assert next_note.id == 4
 
 
-def test_orange_flag_is_removed_after_saving_changes(mw, collection):
+def test_orange_flag_is_removed_after_saving_changes(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """After making changes to a note and pressing `Save` in the editor, the
     orange flag should be remove in each card of that note.
     """
@@ -149,13 +158,17 @@ def test_orange_flag_is_removed_after_saving_changes(mw, collection):
         assert card.flags != 2 and card.was_flushed()
 
 
-def test_editor_review_counts(mw, collection):
+def test_editor_review_counts(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     # Given
     editor_dialog = EditorDialog(collection)
     assert len(editor_dialog) == 3
 
 
-def test_save_note_keep_flag_preserves_orange_flag(mw, collection):
+def test_save_note_keep_flag_preserves_orange_flag(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """Test that save_note_keep_flag preserves the orange flag on cards."""
     # Given
     editor_dialog = EditorDialog(collection)
@@ -182,7 +195,9 @@ def test_save_note_keep_flag_preserves_orange_flag(mw, collection):
     assert current_note.was_flushed()
 
 
-def test_save_note_keep_flag_vs_strip_orange_flag_behavior(mw, collection):
+def test_save_note_keep_flag_vs_strip_orange_flag_behavior(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """Test that save_note_keep_flag behaves differently from strip_orange_flag."""
     # Given
     editor_dialog = EditorDialog(collection)
@@ -210,7 +225,9 @@ def test_save_note_keep_flag_vs_strip_orange_flag_behavior(mw, collection):
         assert card.flags == 2  # Flag preserved
 
 
-def test_restore_note_preserves_tags(mw, collection):
+def test_restore_note_preserves_tags(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """Test that restoring a note also restores its original tags"""
     # Given
     editor_dialog = EditorDialog(collection)
@@ -230,7 +247,9 @@ def test_restore_note_preserves_tags(mw, collection):
     assert current_note.tags == original_tags
 
 
-def test_skip_multiple_notes_preserves_original_content(mw, collection):
+def test_skip_multiple_notes_preserves_original_content(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
     """Test that skipping multiple notes and then making changes doesn't
     overwrite previous notes with wrong content.
     """

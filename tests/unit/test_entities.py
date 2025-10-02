@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pytest
 
 from addon.domain.entities.note import AddonNote, AddonNoteType
@@ -15,7 +17,9 @@ from addon.domain.repositories.document_repository import (
         (AddonNoteType.CLOZE, AddonNoteType.CLOZE),
     ],
 )
-def test_create_addonnote(notetype, expected):
+def test_create_addonnote(
+    notetype: Optional[AddonNoteType], expected: AddonNoteType
+) -> None:
     # Given
     kwargs = {
         "guid": "first",
@@ -34,7 +38,9 @@ def test_create_addonnote(notetype, expected):
     assert result.notetype == expected
 
 
-def test_convert_addon_note_to_document_and_back(addon_note1):
+def test_convert_addon_note_to_document_and_back(
+    addon_note1: AddonNote,
+) -> None:
     # When
     doc = convert_addon_note_to_document(addon_note1)
 
@@ -49,7 +55,7 @@ def test_convert_addon_note_to_document_and_back(addon_note1):
         assert getattr(note, attr) == val
 
 
-def test_addonnote_requires_front_and_back():
+def test_addonnote_requires_front_and_back() -> None:
     # When/Then - missing back should raise TypeError
     with pytest.raises(TypeError):
         AddonNote(front="only front")
@@ -59,7 +65,9 @@ def test_addonnote_requires_front_and_back():
         AddonNote(back="only back")
 
 
-def test_convert_preserves_all_fields_including_tags_and_notetype(addon_note1):
+def test_convert_preserves_all_fields_including_tags_and_notetype(
+    addon_note1: AddonNote,
+) -> None:
     # Given
     addon_note1.tags = ["tag1", "tag2"]
     addon_note1.notetype = AddonNoteType.CLOZE
@@ -78,7 +86,7 @@ def test_convert_preserves_all_fields_including_tags_and_notetype(addon_note1):
     assert restored.guid == addon_note1.guid
 
 
-def test_addonnote_generates_guid_automatically():
+def test_addonnote_generates_guid_automatically() -> None:
     # When
     note1 = AddonNote(front="front", back="back")
     note2 = AddonNote(front="front", back="back")
@@ -89,7 +97,7 @@ def test_addonnote_generates_guid_automatically():
     assert len(note2.guid) > 0
 
 
-def test_convert_addon_note_to_document_joins_tags_with_spaces():
+def test_convert_addon_note_to_document_joins_tags_with_spaces() -> None:
     # Given
     note = AddonNote(
         front="test front", back="test back", tags=["python", "programming"]

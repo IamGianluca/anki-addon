@@ -90,7 +90,9 @@ class EditorDialog:
         for field_name, original_content in self._original_fields.items():
             if field_name == "__tags__":
                 # Tags are not a field, restore them separately
-                note.tags = original_content.split() if original_content else []
+                note.tags = (
+                    original_content.split() if original_content else []
+                )
             else:
                 note[field_name] = original_content
         return note

@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 # NOTE: This test requires a live inference server. The test will fail if the
@@ -9,7 +10,7 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 @pytest.mark.slow
-def test_openai(addon_config):
+def test_openai(addon_config: AddonConfig) -> None:
     # Given
     openai_client = OpenAIClient.create(addon_config)
     prompt = "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello?\nAnswer: "
@@ -24,7 +25,7 @@ def test_openai(addon_config):
 
 
 @pytest.mark.slow
-def test_openai_with_json_schema_validation(addon_config):
+def test_openai_with_json_schema_validation(addon_config: AddonConfig) -> None:
     """Test that OpenAI client can accept and use JSON schema to restrict output."""
     # Given
     openai_client = OpenAIClient.create(addon_config)

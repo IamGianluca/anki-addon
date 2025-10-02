@@ -1,7 +1,7 @@
 from addon.application.use_cases.note_duplicate_finder import (
     SimilarNoteFinder,
 )
-from addon.domain.entities.note import AddonNote
+from addon.domain.entities.note import AddonCollection, AddonNote
 from addon.domain.repositories.document_repository import (
     FakeDocumentRepository,
     SearchResult,
@@ -13,8 +13,10 @@ from addon.infrastructure.persistence.qdrant_repository import (
 
 
 def test_find_possible_duplicate_notes_given_a_new_note(
-    addon_collection, addon_note1, addon_note2
-):
+    addon_collection: AddonCollection,
+    addon_note1: AddonNote,
+    addon_note2: AddonNote,
+) -> None:
     # Given
     repository = QdrantDocumentRepository.create_null(
         search_responses=[
@@ -47,7 +49,9 @@ def test_find_possible_duplicate_notes_given_a_new_note(
     assert result[0].guid == addon_note2.guid
 
 
-def test_find_duplicates_returns_empty_when_no_similar_notes(addon_collection):
+def test_find_duplicates_returns_empty_when_no_similar_notes(
+    addon_collection: AddonCollection,
+) -> None:
     # Given
     # Test the case where the collection exists but contains no documents.
     # This simulates a valid but empty vector database - we expect the finder
@@ -69,8 +73,11 @@ def test_find_duplicates_returns_empty_when_no_similar_notes(addon_collection):
 
 
 def test_find_duplicates_respects_max_results(
-    addon_collection, addon_note1, addon_note2, addon_note3
-):
+    addon_collection: AddonCollection,
+    addon_note1: AddonNote,
+    addon_note2: AddonNote,
+    addon_note3: AddonNote,
+) -> None:
     # Given - return 3 results but finder should only return the most similar
     repository = QdrantDocumentRepository.create_null(
         search_responses=[
@@ -99,7 +106,9 @@ def test_find_duplicates_respects_max_results(
     assert result[0].guid == addon_note1.guid
 
 
-def test_find_duplicates_joins_tags_with_spaces(addon_collection):
+def test_find_duplicates_joins_tags_with_spaces(
+    addon_collection: AddonCollection,
+) -> None:
     # Given
     repository = FakeDocumentRepository()
     finder = SimilarNoteFinder(

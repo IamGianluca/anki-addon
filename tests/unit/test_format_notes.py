@@ -7,11 +7,14 @@ from addon.application.services.formatter_service import (
     NoteFormatter,
     format_note_workflow,
 )
+from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 from addon.utils import is_cloze_note
 
 
-def test_format_note_using_llm(addon_config, note1):
+def test_format_note_using_llm(
+    addon_config: AddonConfig, note1: FakeNote
+) -> None:
     # Given
     expected_front, expected_back = "Q1", "A1"
     response = json.dumps({"front": expected_front, "back": expected_back})
@@ -29,7 +32,9 @@ def test_format_note_using_llm(addon_config, note1):
     assert not is_cloze_note(result)
 
 
-def test_format_cloze_note_using_llm(addon_config, cloze1):
+def test_format_cloze_note_using_llm(
+    addon_config: AddonConfig, cloze1: FakeNote
+) -> None:
     # Given
     expected_front, expected_back = "This is a {{c1::fake note}}", ""
     response = json.dumps({"front": expected_front, "back": expected_back})
@@ -46,7 +51,9 @@ def test_format_cloze_note_using_llm(addon_config, cloze1):
     assert is_cloze_note(result)
 
 
-def test_format_note_preserves_tags(addon_config, note1):
+def test_format_note_preserves_tags(
+    addon_config: AddonConfig, note1: FakeNote
+) -> None:
     # Given
     note1.tags = ["original", "tags"]
     response = json.dumps({"front": "Q", "back": "A", "tags": ["new", "tags"]})
@@ -60,7 +67,9 @@ def test_format_note_preserves_tags(addon_config, note1):
     assert result.tags == ["original", "tags"]
 
 
-def test_format_note_handles_html_br_tags(addon_config, note1):
+def test_format_note_handles_html_br_tags(
+    addon_config: AddonConfig, note1: FakeNote
+) -> None:
     # Given
     note1["Front"] = "Line 1<br>Line 2"
     note1["Back"] = "Answer"
@@ -75,7 +84,9 @@ def test_format_note_handles_html_br_tags(addon_config, note1):
     assert "Formatted<br>Text" in result["Front"]
 
 
-def test_format_note_removes_alt_tags_from_images(addon_config, note1):
+def test_format_note_removes_alt_tags_from_images(
+    addon_config: AddonConfig, note1: FakeNote
+) -> None:
     # Given
     response = json.dumps(
         {"front": '<img alt="test" src="foo.jpg">', "back": "A"}

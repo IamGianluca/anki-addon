@@ -3,6 +3,9 @@ import uuid
 import pytest
 
 from addon.domain.repositories.document_repository import Document, SearchQuery
+from addon.infrastructure.persistence.qdrant_repository import (
+    QdrantDocumentRepository,
+)
 
 """
 Narrow integration tests for QdrantDocumentRepository.
@@ -18,13 +21,13 @@ Complex workflows, edge cases, and performance tests should go in e2e tests.
 
 
 @pytest.mark.slow
-def test_repository_creation(repo):
+def test_repository_creation(repo: QdrantDocumentRepository) -> None:
     # Then
     assert repo is not None
 
 
 @pytest.mark.slow
-def test_store_single_document(repo):
+def test_store_single_document(repo: QdrantDocumentRepository) -> None:
     # Given
     doc_id = str(uuid.uuid4())
 
@@ -48,7 +51,7 @@ def test_store_single_document(repo):
 
 
 @pytest.mark.slow
-def test_store_batch_documents(repo):
+def test_store_batch_documents(repo: QdrantDocumentRepository) -> None:
     # Given
     documents = [
         Document(
@@ -71,7 +74,7 @@ def test_store_batch_documents(repo):
 
 
 @pytest.mark.slow
-def test_find_by_id_nonexistent(repo):
+def test_find_by_id_nonexistent(repo: QdrantDocumentRepository) -> None:
     # Given
     from addon.domain.repositories.document_repository import (
         DocumentNotFoundError,
@@ -85,7 +88,7 @@ def test_find_by_id_nonexistent(repo):
 
 
 @pytest.mark.slow
-def test_basic_similarity_search(repo):
+def test_basic_similarity_search(repo: QdrantDocumentRepository) -> None:
     # Given
     document = Document(
         id=str(uuid.uuid4()),

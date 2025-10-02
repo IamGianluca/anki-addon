@@ -12,7 +12,7 @@ from addon.infrastructure.persistence.qdrant_repository import (
 
 # Fixtures for test data
 @pytest.fixture
-def sample_document():
+def sample_document() -> Document:
     return Document(
         id="doc_1",
         content="Sample document content",
@@ -22,7 +22,7 @@ def sample_document():
 
 
 @pytest.fixture
-def first_response():
+def first_response() -> SearchResult:
     doc = Document(
         id="doc_1",
         content="First document content",
@@ -33,7 +33,7 @@ def first_response():
 
 
 @pytest.fixture
-def second_response():
+def second_response() -> SearchResult:
     doc = Document(
         id="doc_2",
         content="Second document content",
@@ -44,7 +44,7 @@ def second_response():
 
 
 @pytest.fixture
-def third_response():
+def third_response() -> SearchResult:
     doc = Document(
         id="doc_3",
         content="Third document content",
@@ -54,7 +54,9 @@ def third_response():
     return SearchResult(document=doc, relevance_score=0.75)
 
 
-def test_search_returns_configured_results(first_response, second_response):
+def test_search_returns_configured_results(
+    first_response: SearchResult, second_response: SearchResult
+) -> None:
     """Test search returns the configured responses"""
     # Given
     expected_results = [first_response, second_response]
@@ -71,8 +73,10 @@ def test_search_returns_configured_results(first_response, second_response):
 
 
 def test_search_respects_limit_parameter(
-    first_response, second_response, third_response
-):
+    first_response: SearchResult,
+    second_response: SearchResult,
+    third_response: SearchResult,
+) -> None:
     """Test that search limit parameter controls number of results returned"""
     # Given
     all_responses = [first_response, second_response, third_response]
@@ -91,8 +95,8 @@ def test_search_respects_limit_parameter(
 
 
 def test_multiple_searches_use_sequential_responses(
-    first_response, second_response
-):
+    first_response: SearchResult, second_response: SearchResult
+) -> None:
     """Test that multiple searches consume configured responses in order"""
     # Given
     repo = QdrantDocumentRepository.create_null(
@@ -111,7 +115,7 @@ def test_multiple_searches_use_sequential_responses(
     assert second_result == [second_response]
 
 
-def test_store_document_succeeds():
+def test_store_document_succeeds() -> None:
     """Test that storing a document works without errors"""
     # Given
     repo = QdrantDocumentRepository.create_null()
@@ -126,7 +130,7 @@ def test_store_document_succeeds():
     repo.store(document)
 
 
-def test_store_batch_documents_succeeds():
+def test_store_batch_documents_succeeds() -> None:
     """Test that batch storing documents works"""
     # Given
     repo = QdrantDocumentRepository.create_null()
@@ -140,7 +144,7 @@ def test_store_batch_documents_succeeds():
     repo.store_batch(documents)
 
 
-def test_store_batch_with_empty_list():
+def test_store_batch_with_empty_list() -> None:
     """Test that storing empty list of documents handles gracefully"""
     # Given
     repo = QdrantDocumentRepository.create_null()
@@ -149,7 +153,7 @@ def test_store_batch_with_empty_list():
     repo.store_batch([])
 
 
-def test_find_by_id_returns_stored_document():
+def test_find_by_id_returns_stored_document() -> None:
     """Test that find_by_id can retrieve a stored document"""
     # Given
     repo = QdrantDocumentRepository.create_null()
@@ -172,7 +176,7 @@ def test_find_by_id_returns_stored_document():
     assert retrieved.metadata == document.metadata
 
 
-def test_find_by_id_raises_error_for_nonexistent_document():
+def test_find_by_id_raises_error_for_nonexistent_document() -> None:
     """Test that find_by_id raises DocumentNotFoundError for documents that don't exist"""
     # Given
     from addon.domain.repositories.document_repository import (
@@ -188,7 +192,9 @@ def test_find_by_id_raises_error_for_nonexistent_document():
     assert "nonexistent_id" in str(exc_info.value)
 
 
-def test_exhausting_configured_responses_returns_empty_list(first_response):
+def test_exhausting_configured_responses_returns_empty_list(
+    first_response: SearchResult,
+) -> None:
     """Test that using more searches than configured responses returns empty list"""
     # Given - configure only one response
     repo = QdrantDocumentRepository.create_null(
@@ -208,7 +214,7 @@ def test_exhausting_configured_responses_returns_empty_list(first_response):
     assert second_result == []
 
 
-def test_default_search_responses_when_none_configured():
+def test_default_search_responses_when_none_configured() -> None:
     """Test that QdrantDocumentRepository provides sensible defaults when no search responses are configured"""
     # Given - create null instance without specifying responses
     repo = QdrantDocumentRepository.create_null()
@@ -225,7 +231,7 @@ def test_default_search_responses_when_none_configured():
     assert result[0].document.source == "null_source"
 
 
-def test_search_with_empty_response_list():
+def test_search_with_empty_response_list() -> None:
     """Test behavior when an empty response list is configured"""
     # Given
     repo = QdrantDocumentRepository.create_null(search_responses=[[]])
@@ -238,7 +244,7 @@ def test_search_with_empty_response_list():
     assert result == []
 
 
-def test_domain_exceptions_are_raised_for_errors():
+def test_domain_exceptions_are_raised_for_errors() -> None:
     """Test that domain exceptions are raised when infrastructure fails"""
     # This test would require mocking the client to raise exceptions
     # For now, we test that the methods exist and can be called
@@ -253,7 +259,7 @@ def test_domain_exceptions_are_raised_for_errors():
     assert isinstance(results, list)
 
 
-def test_complete_workflow():
+def test_complete_workflow() -> None:
     """Integration test showing a complete workflow"""
     # Given
     doc1 = Document("id1", "First document", "source1", {"type": "test"})
@@ -285,7 +291,7 @@ def test_complete_workflow():
     assert retrieved.id == "id1"
 
 
-def test_search_query_validation():
+def test_search_query_validation() -> None:
     """Test SearchQuery domain object validation"""
     # Test valid query
     query = SearchQuery("test query", max_results=5)
@@ -297,7 +303,7 @@ def test_search_query_validation():
     assert query2.max_results == 5
 
 
-def test_document_domain_object():
+def test_document_domain_object() -> None:
     """Test Document domain object"""
     doc = Document(
         id="test_id",
@@ -312,7 +318,7 @@ def test_document_domain_object():
     assert doc.metadata == {"key": "value"}
 
 
-def test_search_result_domain_object():
+def test_search_result_domain_object() -> None:
     """Test SearchResult domain object"""
     doc = Document("id", "content", "source", {})
     result = SearchResult(document=doc, relevance_score=0.85)

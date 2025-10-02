@@ -3,7 +3,9 @@ from pathlib import Path
 
 import pytest
 
-from addon.infrastructure.persistence.training_dataset import JSONLTrainingDataset
+from addon.infrastructure.persistence.training_dataset import (
+    JSONLTrainingDataset,
+)
 
 
 @pytest.fixture
@@ -23,7 +25,9 @@ def test_creates_file_on_first_save(dataset: JSONLTrainingDataset) -> None:
     updated = {"Front": "What is 2+2?", "Back": "Four"}
 
     # When
-    dataset.save_example(note_id=123, original_fields=original, updated_fields=updated)
+    dataset.save_example(
+        note_id=123, original_fields=original, updated_fields=updated
+    )
 
     # Then
     assert dataset.file_path.exists()
@@ -34,8 +38,16 @@ def test_saves_example_with_all_fields(
 ) -> None:
     """Test that saved example contains all expected fields"""
     # Given
-    original = {"Front": "Original question", "Back": "Original answer", "__tags__": "tag1 tag2"}
-    updated = {"Front": "Updated question", "Back": "Updated answer", "__tags__": "tag1 tag2 tag3"}
+    original = {
+        "Front": "Original question",
+        "Back": "Original answer",
+        "__tags__": "tag1 tag2",
+    }
+    updated = {
+        "Front": "Updated question",
+        "Back": "Updated answer",
+        "__tags__": "tag1 tag2 tag3",
+    }
     note_id = 456
 
     # When
@@ -69,10 +81,14 @@ def test_appends_multiple_examples(
 
     # When
     dataset.save_example(
-        note_id=1, original_fields=example1_original, updated_fields=example1_updated
+        note_id=1,
+        original_fields=example1_original,
+        updated_fields=example1_updated,
     )
     dataset.save_example(
-        note_id=2, original_fields=example2_original, updated_fields=example2_updated
+        note_id=2,
+        original_fields=example2_original,
+        updated_fields=example2_updated,
     )
 
     # Then
@@ -99,7 +115,9 @@ def test_handles_unicode_content(
     updated = {"Front": "日本語 (にほんご)", "Back": "Japanese language"}
 
     # When
-    dataset.save_example(note_id=789, original_fields=original, updated_fields=updated)
+    dataset.save_example(
+        note_id=789, original_fields=original, updated_fields=updated
+    )
 
     # Then
     with temp_dataset_path.open("r", encoding="utf-8") as f:
@@ -116,10 +134,16 @@ def test_captures_tag_changes(
     """Test that changes to tags are captured in the dataset"""
     # Given - user adds a tag during review
     original = {"Front": "Question", "Back": "Answer", "__tags__": ""}
-    updated = {"Front": "Question", "Back": "Answer", "__tags__": "reviewed important"}
+    updated = {
+        "Front": "Question",
+        "Back": "Answer",
+        "__tags__": "reviewed important",
+    }
 
     # When
-    dataset.save_example(note_id=999, original_fields=original, updated_fields=updated)
+    dataset.save_example(
+        note_id=999, original_fields=original, updated_fields=updated
+    )
 
     # Then
     with temp_dataset_path.open("r", encoding="utf-8") as f:

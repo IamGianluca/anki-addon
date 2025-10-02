@@ -10,7 +10,9 @@ from ...application.services.formatter_service import (
 )
 from ...infrastructure.configuration.settings import AddonConfig
 from ...infrastructure.external_services.openai import OpenAIClient
-from ...infrastructure.persistence.training_dataset import create_training_dataset
+from ...infrastructure.persistence.training_dataset import (
+    create_training_dataset,
+)
 from ...infrastructure.ui.editor import EditorDialog
 from ...utils import ensure_collection, ensure_note
 
