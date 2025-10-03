@@ -69,6 +69,18 @@ class OpenAIClient:
                 f"Cannot reach LLM server at {self.url}. "
                 "Check if the inference server is running."
             ) from e
+
+        # Check for HTTP errors
+        if response.status_code != 200:
+            try:
+                error_body = response.json()
+            except Exception:
+                error_body = response.text
+            raise RuntimeError(
+                f"LLM server returned error {response.status_code} for {self.url}. "
+                f"Response: {error_body}"
+            )
+
         return response.json()["choices"][0]["text"]
 
     class StubbedRequests:
@@ -104,6 +116,7 @@ class OpenAIClient:
         def __init__(self, responses):
             # Get the next response from the configured list
             self._response = self._get_next_response(responses)
+            self.status_code = 200
 
         def json(self) -> dict:
             return self._response
