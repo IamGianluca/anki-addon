@@ -35,6 +35,46 @@ from ...domain.models.completion_result import CompletionResult
 from ...infrastructure.openai import OpenAIClient
 ```
 
+
+#### Type-Only Imports
+
+Importing the `anki` library adds several seconds to test suite startup due to its heavy dependencies. To optimize this, we use `TYPE_CHECKING` guards to defer imports that are only needed for type annotations. These imports execute during type checking but are skipped at runtime.
+
+```python
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from anki.collection import Collection
+    from anki.notes import Note
+
+def is_note_marked_for_review(col: Collection, note_id: int) -> bool:
+    # At runtime, 'Collection' is a string due to __future__ annotations
+    # The actual import only happens during type checking (mypy, pyright, etc.)
+    ...
+```
+
+The `from __future__ import annotations` is essential: it delays evaluation of type hints, allowing forward references without runtime imports.
+
+
+
+#### Lazy Imports
+
+For expensive runtime imports (especially GUI modules like `aqt` and PyQt6), we use lazy imports inside functions. This defers the import cost until the code path is actually executed.
+
+```python
+def open_review_editor() -> None:
+    # Only import GUI dependencies when this function is called
+    from aqt import mw
+    from aqt.utils import showInfo
+    from PyQt6.QtWidgets import QDialog, QPushButton
+
+    dialog = QDialog(mw)
+    ...
+```
+
+
 #### Bundling Dependencies
 
 Anki loads addons, but does not install them as Python packages. For this reason, we need to bundle any external dependencies not included with Anki. These dependencies must be compiled with Python 3.9, as that is the Python interpreter version used by Anki. To bundle the required dependencies, use the provided script:

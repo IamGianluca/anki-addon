@@ -4,14 +4,17 @@ import html
 import re
 from copy import deepcopy
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from anki.notes import Note
 from jinja2 import Template
 
 from ...domain.entities.note import AddonNote, AddonNoteType
 from ...infrastructure.external_services.openai import OpenAIClient
 from ...infrastructure.llm.schemas import AddonNoteChanges
 from ...utils import is_cloze_note
+
+if TYPE_CHECKING:
+    from anki.notes import Note
 
 
 def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:

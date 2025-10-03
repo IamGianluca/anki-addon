@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from aqt.editor import Editor
 
 
-def open_standalone_editor() -> None:
+def open_review_editor() -> None:
     """The open_standalone_editor() function creates the actual user interface:
 
     - It creates a dialog window with an Anki editor widget

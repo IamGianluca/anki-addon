@@ -6,7 +6,7 @@ from .application.use_cases.note_counter import (
 )
 from .application.use_cases.note_formatter import (
     add_custom_button,
-    open_standalone_editor,
+    open_review_editor,
 )
 
 
@@ -20,7 +20,7 @@ def setup_addon() -> None:
     # Add option in "Tools" to format notes using AI
     action = QAction("Improve note using AI", mw)
     action.setShortcut(QKeySequence("r"))
-    qconnect(action.triggered, open_standalone_editor)
+    qconnect(action.triggered, open_review_editor)
     mw.form.menuTools.addAction(action)
 
     # Add button in Browser view to format notes using AI

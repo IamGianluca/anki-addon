@@ -1,9 +1,12 @@
-from typing import Optional
+from __future__ import annotations
 
-from anki.collection import Collection
-from anki.notes import Note
+from typing import TYPE_CHECKING, Optional
 
 from ...application.use_cases.note_counter import is_note_marked_for_review
+
+if TYPE_CHECKING:
+    from anki.collection import Collection
+    from anki.notes import Note
 
 
 class EditorDialog:
@@ -64,7 +67,7 @@ class EditorDialog:
 
         review_notes = []
         for note_id in note_ids:
-            if is_note_marked_for_review(note_id):
+            if is_note_marked_for_review(self.col, note_id):
                 review_notes.append(self.col.get_note(note_id))
 
         return review_notes
