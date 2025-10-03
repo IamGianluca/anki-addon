@@ -51,15 +51,29 @@ class OpenAIClient:
         self._http_client = http_client
         self.url = config.url
         self.model = config.model_name
+        self.temperature = config.temperature
+        self.max_tokens = config.max_tokens
+
+        # Store optional LLM parameters, excluding None values
+        self.optional_params = {}
+        if config.top_p is not None:
+            self.optional_params["top_p"] = config.top_p
+        if config.top_k is not None:
+            self.optional_params["top_k"] = config.top_k
+        if config.min_p is not None:
+            self.optional_params["min_p"] = config.min_p
 
     def run(self, prompt: str, **kwargs) -> str:
         payload = {
             "model": self.model,
             "prompt": prompt,
-            "max_tokens": 500,
-            "temperature": 0,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            **self.optional_params,
         }
+
         if kwargs:
+            # Pass extra parameters like `guided_json`
             payload.update(kwargs)
 
         try:

@@ -185,7 +185,7 @@ def on_custom_action(editor: Editor) -> None:
     # back of the note to lowercase
     # TODO: instantiate OpenAI and completer only once, and outside of this
     # function
-    config = AddonConfig.create(mw)
+    config = AddonConfig.create(mw.addonManager)
     openai = OpenAIClient.create(config)
     formatter = NoteFormatter(openai)
     note = format_note_workflow(note, formatter)

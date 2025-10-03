@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import html
-import os
 import re
 from copy import deepcopy
 from pathlib import Path
@@ -126,10 +125,7 @@ class NoteFormatter:
         prompt = system_msg_tmpl.render(note=note_content)
 
         response = self._completion.run(
-            model=os.environ.get("OPENAI_MODEL"),
             prompt=prompt,
-            max_tokens=200,
-            temperature=0,
             guided_json=AddonNoteChanges.model_json_schema(),
         )
         suggested_changes = AddonNoteChanges.model_validate_json(response)

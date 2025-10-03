@@ -3,6 +3,14 @@ class FakeMainWindow:
         self.col = collection
 
 
+class FakeAddonManager:
+    def __init__(self, config: dict):
+        self._config = config
+
+    def getConfig(self, addon_name: str) -> dict:
+        return self._config
+
+
 class FakeCollection:
     def __init__(self):
         self.notes = {}  # note_id -> note
