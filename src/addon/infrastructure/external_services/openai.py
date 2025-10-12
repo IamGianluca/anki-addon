@@ -147,9 +147,3 @@ class OpenAIClient:
             else:
                 # If it's a single value, always return that
                 return responses
-
-    def track_calls(self) -> list:
-        """Output Tracking - track what calls were made to the HTTP client"""
-        if hasattr(self._http_client, "_calls"):
-            return self._http_client._calls
-        return []
