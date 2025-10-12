@@ -124,8 +124,8 @@ class NoteFormatter:
         new_note = self._convert_br_tag_to_newline(new_note)
 
         note_content = f"""Front: {new_note.front}\nBack: {new_note.back}\nTags: {note.tags}\n"""
-        system_msg_tmpl = get_prompt_template()
-        prompt = system_msg_tmpl.render(note=note_content)
+        prompt_template = get_prompt_template()
+        prompt = prompt_template.render(note=note_content)
 
         response = self._completion.run(
             prompt=prompt,
