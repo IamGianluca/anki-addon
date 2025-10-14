@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ...application.services.formatter_service import (
+    AnkiNoteAdapter,
     NoteFormatter,
-    format_note_workflow,
 )
 from ...infrastructure.configuration.settings import AddonConfig
 from ...infrastructure.external_services.openai import OpenAIClient
@@ -176,21 +176,21 @@ def on_custom_action(editor: Editor) -> None:
     from aqt.utils import askUser, tooltip
 
     note = ensure_note(editor.note)
-    original_fields = {}
 
-    for field_name in note.keys():
-        original_fields[field_name] = note[field_name]
+    # Convert to domain model
+    original_addon_note = AnkiNoteAdapter.to_addon_note(note)
 
-    # NOTE: At the moment, we are only using the LLM to convert the front and
-    # back of the note to lowercase
-    # TODO: instantiate OpenAI and completer only once, and outside of this
+    # TODO: instantiate OpenAI and formatter only once, and outside of this
     # function
     config = AddonConfig.create(mw.addonManager)
     openai = OpenAIClient.create(config)
     formatter = NoteFormatter(openai)
-    note = format_note_workflow(note, formatter)
 
-    # Update the editor display to show the changes
+    # Format using pure domain logic
+    formatted_addon_note = formatter.format(original_addon_note)
+
+    # Temporarily merge changes into note for preview
+    note = AnkiNoteAdapter.merge_addon_changes(note, formatted_addon_note)
     editor.loadNote()
 
     # Ask the user if they want to keep the changes
@@ -199,7 +199,6 @@ def on_custom_action(editor: Editor) -> None:
         col.update_note(note)
         tooltip("Changes applied")
     else:
-        # User rejected changes, restore original content
-        for field_name, original_content in original_fields.items():
-            note[field_name] = original_content
+        # User rejected changes, restore by merging original AddonNote back
+        note = AnkiNoteAdapter.merge_addon_changes(note, original_addon_note)
         editor.loadNote()

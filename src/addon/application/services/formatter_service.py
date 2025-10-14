@@ -17,20 +17,6 @@ if TYPE_CHECKING:
     from anki.notes import Note
 
 
-def format_note_workflow(note: Note, formatter: NoteFormatter) -> Note:
-    """Complete workflow for AI-powered note formatting.
-
-    Orchestrates the conversion from Anki's Note format to our domain model,
-    applies LLM-based formatting, and converts back to Anki's format.
-    """
-    addon_note = AnkiNoteAdapter.to_addon_note(note)
-    addon_note = formatter.format(addon_note)
-    # TODO: Maybe I should rename this to `apply_note_changes` and
-    # pass a AddonNoteChange object to the signature
-    note = AnkiNoteAdapter.merge_addon_changes(note, addon_note)
-    return note
-
-
 class AnkiNoteAdapter:
     """Adapter between Anki's Note object and AddonNote domain entity."""
 

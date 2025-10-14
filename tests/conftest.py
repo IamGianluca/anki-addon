@@ -28,6 +28,17 @@ def addon_note3() -> AddonNote:
 
 
 @pytest.fixture
+def addon_cloze_note1() -> AddonNote:
+    from addon.domain.entities.note import AddonNoteType
+
+    return AddonNote(
+        front="This is a {{c1::fake note}}",
+        back="",
+        notetype=AddonNoteType.CLOZE,
+    )
+
+
+@pytest.fixture
 def addon_collection(addon_note1, addon_note2, addon_note3) -> AddonCollection:
     collection = AddonCollection(name="default")
     collection.add(notes=[addon_note1, addon_note2, addon_note3])

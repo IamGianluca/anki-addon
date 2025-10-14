@@ -4,8 +4,8 @@ import pytest
 from tests.fakes.aqt_fakes import FakeCollection, FakeMainWindow
 
 from addon.application.services.formatter_service import (
+    AnkiNoteAdapter,
     NoteFormatter,
-    format_note_workflow,
 )
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
@@ -44,7 +44,11 @@ def test_complete_format_workflow_for_basic_note(
     # Get current note and format it
     current_note = editor_dialog.current_note()
     original_front = current_note["Front"]
-    formatted_note = format_note_workflow(current_note, formatter)
+    addon_note = AnkiNoteAdapter.to_addon_note(current_note)
+    formatted_addon_note = formatter.format(addon_note)
+    formatted_note = AnkiNoteAdapter.merge_addon_changes(
+        current_note, formatted_addon_note
+    )
 
     # Save and remove flag
     editor_dialog.strip_orange_flag(formatted_note)
@@ -97,7 +101,11 @@ def test_complete_format_workflow_for_cloze_note(
 
     assert current_note.id == 4  # Verify we found the cloze note
 
-    formatted_note = format_note_workflow(current_note, formatter)
+    addon_note = AnkiNoteAdapter.to_addon_note(current_note)
+    formatted_addon_note = formatter.format(addon_note)
+    formatted_note = AnkiNoteAdapter.merge_addon_changes(
+        current_note, formatted_addon_note
+    )
     editor_dialog.strip_orange_flag(formatted_note)
     formatted_note.flush()
 
@@ -133,7 +141,11 @@ def test_format_workflow_preserves_note_on_skip(
     original_back = current_note["Back"]
 
     # When: Format note but then restore (user changed their mind)
-    formatted_note = format_note_workflow(current_note, formatter)
+    addon_note = AnkiNoteAdapter.to_addon_note(current_note)
+    formatted_addon_note = formatter.format(addon_note)
+    formatted_note = AnkiNoteAdapter.merge_addon_changes(
+        current_note, formatted_addon_note
+    )
     assert formatted_note["Front"] == "Changed"  # Verify it was changed
 
     # Restore to original

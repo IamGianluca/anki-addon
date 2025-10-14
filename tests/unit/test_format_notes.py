@@ -1,19 +1,13 @@
 import json
 
-from anki.notes import Note
-from tests.fakes.aqt_fakes import FakeNote
-
-from addon.application.services.formatter_service import (
-    NoteFormatter,
-    format_note_workflow,
-)
+from addon.application.services.formatter_service import NoteFormatter
+from addon.domain.entities.note import AddonNote, AddonNoteType
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
-from addon.utils import is_cloze_note
 
 
 def test_format_note_using_llm(
-    addon_config: AddonConfig, note1: FakeNote
+    addon_config: AddonConfig, addon_note1: AddonNote
 ) -> None:
     # Given
     expected_front, expected_back = "Q1", "A1"
@@ -23,17 +17,17 @@ def test_format_note_using_llm(
     formatter = NoteFormatter(openai)
 
     # When
-    result = format_note_workflow(note1, formatter)
+    result = formatter.format(addon_note1)
 
     # Then
-    assert isinstance(result, (Note, FakeNote))
-    assert result["Front"] == expected_front
-    assert result["Back"] == expected_back
-    assert not is_cloze_note(result)
+    assert isinstance(result, AddonNote)
+    assert result.front == expected_front
+    assert result.back == expected_back
+    assert result.notetype == AddonNoteType.BASIC
 
 
 def test_format_cloze_note_using_llm(
-    addon_config: AddonConfig, cloze1: FakeNote
+    addon_config: AddonConfig, addon_cloze_note1: AddonNote
 ) -> None:
     # Given
     expected_front, expected_back = "This is a {{c1::fake note}}", ""
@@ -42,50 +36,50 @@ def test_format_cloze_note_using_llm(
     formatter = NoteFormatter(openai)
 
     # When
-    result = format_note_workflow(cloze1, formatter)
+    result = formatter.format(addon_cloze_note1)
 
     # Then
-    assert isinstance(result, (Note, FakeNote))
-    assert result["Text"] == expected_front
-    assert result["Back Extra"] == expected_back
-    assert is_cloze_note(result)
+    assert isinstance(result, AddonNote)
+    assert result.front == expected_front
+    assert result.back == expected_back
+    assert result.notetype == AddonNoteType.CLOZE
 
 
 def test_format_note_preserves_tags(
-    addon_config: AddonConfig, note1: FakeNote
+    addon_config: AddonConfig, addon_note1: AddonNote
 ) -> None:
     # Given
-    note1.tags = ["original", "tags"]
+    addon_note1.tags = ["original", "tags"]
     response = json.dumps({"front": "Q", "back": "A", "tags": ["new", "tags"]})
     openai = OpenAIClient.create_null(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
     # When
-    result = format_note_workflow(note1, formatter)
+    result = formatter.format(addon_note1)
 
-    # Then - tags should NOT be updated (per comment in formatter_service.py:73)
+    # Then - tags should NOT be updated
     assert result.tags == ["original", "tags"]
 
 
 def test_format_note_handles_html_br_tags(
-    addon_config: AddonConfig, note1: FakeNote
+    addon_config: AddonConfig, addon_note1: AddonNote
 ) -> None:
     # Given
-    note1["Front"] = "Line 1<br>Line 2"
-    note1["Back"] = "Answer"
+    addon_note1.front = "Line 1<br>Line 2"
+    addon_note1.back = "Answer"
     response = json.dumps({"front": "Formatted<br>Text", "back": "A"})
     openai = OpenAIClient.create_null(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
     # When
-    result = format_note_workflow(note1, formatter)
+    result = formatter.format(addon_note1)
 
     # Then
-    assert "Formatted<br>Text" in result["Front"]
+    assert "Formatted<br>Text" in result.front
 
 
 def test_format_note_removes_alt_tags_from_images(
-    addon_config: AddonConfig, note1: FakeNote
+    addon_config: AddonConfig, addon_note1: AddonNote
 ) -> None:
     # Given
     response = json.dumps(
@@ -95,8 +89,8 @@ def test_format_note_removes_alt_tags_from_images(
     formatter = NoteFormatter(openai)
 
     # When
-    result = format_note_workflow(note1, formatter)
+    result = formatter.format(addon_note1)
 
     # Then
-    assert "alt=" not in result["Front"]
-    assert "<img " in result["Front"]
+    assert "alt=" not in result.front
+    assert "<img " in result.front
