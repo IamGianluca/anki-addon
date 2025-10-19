@@ -53,7 +53,11 @@ class OpenAIClient:
             else:
                 return {
                     "choices": [
-                        {"text": response, "index": 0, "finish_reason": "length"}
+                        {
+                            "text": response,
+                            "index": 0,
+                            "finish_reason": "length",
+                        }
                     ],
                     "model": "null-model",
                     "usage": {
