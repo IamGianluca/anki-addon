@@ -16,7 +16,7 @@ def test_reads_required_parameters_from_env():
     config = AddonConfig.create_nullable()
 
     # Then
-    assert config.url == "http://localhost:8000/v1/completions"
+    assert config.url == "http://localhost:8000/v1/chat/completions"
     assert config.model_name == "test-model"
     assert config.temperature == 0.7
 
@@ -138,7 +138,7 @@ def test_reads_all_parameters_together():
     config = AddonConfig.create_nullable()
 
     # Then
-    assert config.url == "http://localhost:8000/v1/completions"
+    assert config.url == "http://localhost:8000/v1/chat/completions"
     assert config.model_name == "test-model"
     assert config.temperature == 0.7
     assert config.max_tokens == 300
@@ -162,7 +162,7 @@ def test_reads_required_parameters_from_anki_config():
     config = AddonConfig.create(addon_manager)
 
     # Then
-    assert config.url == "http://localhost:8000/v1/completions"
+    assert config.url == "http://localhost:8000/v1/chat/completions"
     assert config.model_name == "test-model"
     assert config.temperature == 0.7
 
@@ -311,7 +311,7 @@ def test_reads_all_parameters_from_anki_config():
     config = AddonConfig.create(addon_manager)
 
     # Then
-    assert config.url == "http://localhost:8000/v1/completions"
+    assert config.url == "http://localhost:8000/v1/chat/completions"
     assert config.model_name == "test-model"
     assert config.temperature == 0.7
     assert config.max_tokens == 300

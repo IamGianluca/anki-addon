@@ -16,12 +16,11 @@ def test_openai(addon_config: AddonConfig) -> None:
     prompt = "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello?\nAnswer: "
 
     # When
-    # NOTE: The word `ciao` requires two tokens using the
-    # meta-llama/Meta-Llama-3-8B tokenizer
-    result = openai_client.run(prompt, max_tokens=2)
+    # NOTE: Increased max_tokens to allow for thinking tokens + actual answer
+    result = openai_client.run(prompt, max_tokens=50)
 
     # Then
-    assert result.strip().lower() == "ciao"
+    assert "ciao" in result.lower()
 
 
 @pytest.mark.slow

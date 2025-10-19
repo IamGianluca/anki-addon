@@ -31,18 +31,37 @@ class OpenAIClient:
     def create_null(
         config: AddonConfig, responses: list[str]
     ) -> OpenAIClient:  # forward reference
+        is_chat = "chat/completions" in config.url
+
         def _format_response_as_openai_api(response: str) -> dict:
-            return {
-                "choices": [
-                    {"text": response, "index": 0, "finish_reason": "length"}
-                ],
-                "model": "null-model",
-                "usage": {
-                    "prompt_tokens": 0,
-                    "completion_tokens": 1,
-                    "total_tokens": 1,
-                },
-            }
+            if is_chat:
+                return {
+                    "choices": [
+                        {
+                            "message": {"content": response},
+                            "index": 0,
+                            "finish_reason": "length",
+                        }
+                    ],
+                    "model": "null-model",
+                    "usage": {
+                        "prompt_tokens": 0,
+                        "completion_tokens": 1,
+                        "total_tokens": 1,
+                    },
+                }
+            else:
+                return {
+                    "choices": [
+                        {"text": response, "index": 0, "finish_reason": "length"}
+                    ],
+                    "model": "null-model",
+                    "usage": {
+                        "prompt_tokens": 0,
+                        "completion_tokens": 1,
+                        "total_tokens": 1,
+                    },
+                }
 
         r = [_format_response_as_openai_api(res) for res in responses]
         return OpenAIClient(config, OpenAIClient.StubbedRequests(r))
@@ -53,6 +72,7 @@ class OpenAIClient:
         self.model = config.model_name
         self.temperature = config.temperature
         self.max_tokens = config.max_tokens
+        self._is_chat_completion = "chat/completions" in config.url
 
         # Store optional LLM parameters, excluding None values
         self.optional_params = {}
@@ -64,13 +84,22 @@ class OpenAIClient:
             self.optional_params["min_p"] = config.min_p
 
     def run(self, prompt: str, **kwargs) -> str:
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            **self.optional_params,
-        }
+        if self._is_chat_completion:
+            payload = {
+                "model": self.model,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
+                **self.optional_params,
+            }
+        else:
+            payload = {
+                "model": self.model,
+                "prompt": prompt,
+                "max_tokens": self.max_tokens,
+                "temperature": self.temperature,
+                **self.optional_params,
+            }
 
         if kwargs:
             # Pass extra parameters like `guided_json`
@@ -95,7 +124,11 @@ class OpenAIClient:
                 f"Response: {error_body}"
             )
 
-        return response.json()["choices"][0]["text"]
+        response_data = response.json()
+        if self._is_chat_completion:
+            return response_data["choices"][0]["message"]["content"]
+        else:
+            return response_data["choices"][0]["text"]
 
     class StubbedRequests:
         """Test double that replaces the requests module for deterministic testing.

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from typing import Optional
 
 from ...utils import ensure_config
 
@@ -35,6 +36,7 @@ class AddonConfig:
         config = dict()
         config["host"] = c.get("openai_host")
         config["port"] = c.get("openai_port")
+        config["mode"] = c.get("openai_mode", "v1/chat/completions")
         config["model_name"] = c.get("openai_model")
         config["temperature"] = c.get("openai_temperature", 0.0)
         config["max_tokens"] = c.get("openai_max_tokens", 200)
@@ -48,10 +50,13 @@ class AddonConfig:
         return AddonConfig(config)
 
     @staticmethod
-    def create_nullable() -> AddonConfig:  # forward reference
+    def create_nullable(
+        kwargs: Optional[dict] = None,
+    ) -> AddonConfig:  # forward reference
         config = dict()
         config["host"] = os.environ.get("OPENAI_HOST")
         config["port"] = os.environ.get("OPENAI_PORT")
+        config["mode"] = os.environ.get("OPENAI_MODE", "v1/chat/completions")
         config["model_name"] = os.environ.get("OPENAI_MODEL")
         config["temperature"] = float(
             os.environ.get("OPENAI_TEMPERATURE", "0.0")
@@ -66,10 +71,13 @@ class AddonConfig:
         if os.environ.get("OPENAI_MIN_P"):
             config["min_p"] = float(os.environ.get("OPENAI_MIN_P"))
 
+        if kwargs:
+            config.update(kwargs)
+
         return AddonConfig(config)
 
     def __init__(self, config) -> None:
-        self.url = f"http://{config['host']}:{config['port']}/v1/completions"
+        self.url = f"http://{config['host']}:{config['port']}/{config['mode']}"
         self.model_name = config["model_name"]
         self.temperature = float(config["temperature"])
         self.max_tokens = int(config.get("max_tokens", 500))
