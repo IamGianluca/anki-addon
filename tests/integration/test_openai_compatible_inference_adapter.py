@@ -13,7 +13,7 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 def test_openai(addon_config: AddonConfig) -> None:
     # Given
     openai_client = OpenAIClient.create(addon_config)
-    prompt = "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello?\nAnswer: "
+    prompt = "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello? /no_think\nAnswer: "
 
     # When
     # NOTE: Increased max_tokens to allow for thinking tokens + actual answer
@@ -41,7 +41,7 @@ def test_openai_with_json_schema_validation(addon_config: AddonConfig) -> None:
     }
 
     prompt = """Create a JSON object for a fictional person. Include name, age, and city.
-Example: A 25-year-old software engineer named Alice who lives in San Francisco."""
+Example: A 25-year-old software engineer named Alice who lives in San Francisco. /no_think"""
 
     # When
     result = openai_client.run(
