@@ -204,7 +204,7 @@ class QdrantDocumentRepository(DocumentRepository):
 
     def _vectorize(
         self, text: str
-    ) -> Tensor:  # Not imported since it has slow side effects
+    ) -> Tensor | list[int]:  # Not imported since it has slow side effects
         return self._encoder.encode(text)
 
     def _qdrant_hit_to_search_result(self, hit) -> SearchResult:
