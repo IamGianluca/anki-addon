@@ -114,8 +114,14 @@ class NoteFormatter:
         prompt = prompt_template.render(note=note_content)
 
         response = self._completion.run(
-            prompt=prompt,
-            guided_json=AddonNoteChanges.model_json_schema(),
+            input=[{"role": "system", "content": prompt}],
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "addon_note_changes",
+                    "schema": AddonNoteChanges.model_json_schema(),
+                },
+            },
         )
         suggested_changes = AddonNoteChanges.model_validate_json(response)
 

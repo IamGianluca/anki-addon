@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Union
+
 import requests
 import requests.exceptions
 
@@ -87,26 +89,40 @@ class OpenAIClient:
         if config.min_p is not None:
             self.optional_params["min_p"] = config.min_p
 
-    def run(self, prompt: str, **kwargs) -> str:
+    def run(self, input: Union[str, list[dict]], **kwargs) -> str:
+        """Generate text using the configured LLM endpoint.
+
+        The input format depends on the API endpoint configured in AddonConfig:
+        - Chat Completions (/v1/chat/completions): Pass list of message dicts
+        - Completions (/v1/completions): Pass string prompt
+
+        kwargs are forwarded directly to the inference server (e.g., guided_json
+        for structured output). Note that combining thinking tokens with
+        guided_json may cause the server to return None in the content field
+        if the total token generated exceed `max_tokens`, resulting in a
+        ValidationError downstream.
+
+        Returns the generated text from the content field.
+        """
         if self._is_chat_completion:
             payload = {
                 "model": self.model,
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": self.max_tokens,
+                "messages": input,
+                "max_tokens": self.max_tokens,  # can be overwritten by kwargs
                 "temperature": self.temperature,
                 **self.optional_params,
             }
         else:
             payload = {
                 "model": self.model,
-                "prompt": prompt,
-                "max_tokens": self.max_tokens,
+                "prompt": input,
+                "max_tokens": self.max_tokens,  # can be overwritten by kwargs
                 "temperature": self.temperature,
                 **self.optional_params,
             }
 
         if kwargs:
-            # Pass extra parameters like `guided_json`
+            # Incorporate extra parameters like `guided_json` schema
             payload.update(kwargs)
 
         try:
