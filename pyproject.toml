@@ -14,8 +14,8 @@ dependencies = [
     "sentence-transformers[onnx]>=5.0.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=8.3.4",
     "ruff>=0.9.5",
     "ipdb>=0.13.13",
