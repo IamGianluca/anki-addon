@@ -3,6 +3,7 @@ from __future__ import annotations
 import html
 import re
 from copy import deepcopy
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -114,7 +115,7 @@ class NoteFormatter:
         prompt = prompt_template.render(note=note_content)
 
         response = self._completion.run(
-            input=[{"role": "system", "content": prompt}],
+            prompt=[{"role": "system", "content": prompt}],
             response_format={
                 "type": "json_schema",
                 "json_schema": {
@@ -142,6 +143,7 @@ class NoteFormatter:
         return note
 
 
+@lru_cache(maxsize=1)
 def get_prompt_template() -> Template:
     path = Path(__file__).parent
     fpath = path / "prompt_format_note.md"

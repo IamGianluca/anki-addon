@@ -89,7 +89,7 @@ class OpenAIClient:
         if config.min_p is not None:
             self.optional_params["min_p"] = config.min_p
 
-    def run(self, input: Union[str, list[dict]], **kwargs) -> str:
+    def run(self, prompt: Union[str, list[dict]], **kwargs) -> str:
         """Generate text using the configured LLM endpoint.
 
         The input format depends on the API endpoint configured in AddonConfig:
@@ -107,7 +107,7 @@ class OpenAIClient:
         if self._is_chat_completion:
             payload = {
                 "model": self.model,
-                "messages": input,
+                "messages": prompt,
                 "max_tokens": self.max_tokens,  # can be overwritten by kwargs
                 "temperature": self.temperature,
                 **self.optional_params,
@@ -115,7 +115,7 @@ class OpenAIClient:
         else:
             payload = {
                 "model": self.model,
-                "prompt": input,
+                "prompt": prompt,
                 "max_tokens": self.max_tokens,  # can be overwritten by kwargs
                 "temperature": self.temperature,
                 **self.optional_params,
