@@ -17,7 +17,8 @@ test_slow:
 	uv run pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
 
 static_check:
-	uv run ty check ./src/
+	# uvx (instead of uv run) ensures we always use the latest ty, keeping in sync with CI
+	uvx ty check ./src/
 
 clean:
 	@echo "Cleaning Python cache files..."

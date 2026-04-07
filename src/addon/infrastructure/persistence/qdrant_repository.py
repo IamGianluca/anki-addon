@@ -2,7 +2,7 @@ from __future__ import (
     annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import TYPE_CHECKING, Optional, Protocol
+from typing import TYPE_CHECKING, Any, Optional, Protocol, cast
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -129,7 +129,7 @@ class QdrantDocumentRepository(DocumentRepository):
 
     def _create_point(
         self, document: Document
-    ) -> PointStruct:  # TYPE_CHECKING import
+    ) -> Any:  # returns PointStruct in production, mock object in tests
         """Adapts between test mode (mock) and production mode (PointStruct)."""
         if hasattr(self._client, "_search_responses"):
             # Test mode - simple mock object
@@ -152,7 +152,7 @@ class QdrantDocumentRepository(DocumentRepository):
 
             return PointStruct(
                 id=document.id,
-                vector=self._vectorize(document.content),
+                vector=cast(list[float], self._vectorize(document.content)),
                 payload={
                     "content": document.content,
                     "source": document.source,

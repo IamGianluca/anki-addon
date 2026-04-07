@@ -41,12 +41,12 @@ class AddonConfig:
         config["temperature"] = c.get("openai_temperature", 0.0)
         config["max_tokens"] = c.get("openai_max_tokens", 200)
         # These parameters are optional, and needed only for certain LLMs
-        if c.get("openai_top_p"):
-            config["top_p"] = float(c.get("openai_top_p"))
-        if c.get("openai_top_k"):
-            config["top_k"] = int(c.get("openai_top_k"))
-        if c.get("openai_min_p"):
-            config["min_p"] = float(c.get("openai_min_p"))
+        if top_p := c.get("openai_top_p"):
+            config["top_p"] = float(top_p)
+        if top_k := c.get("openai_top_k"):
+            config["top_k"] = int(top_k)
+        if min_p := c.get("openai_min_p"):
+            config["min_p"] = float(min_p)
         return AddonConfig(config)
 
     @staticmethod
@@ -64,12 +64,12 @@ class AddonConfig:
         config["max_tokens"] = int(os.environ.get("OPENAI_MAX_TOKENS", "500"))
 
         # Optional LLM parameters if set in .envrc or env variable
-        if os.environ.get("OPENAI_TOP_P"):
-            config["top_p"] = float(os.environ.get("OPENAI_TOP_P"))
-        if os.environ.get("OPENAI_TOP_K"):
-            config["top_k"] = int(os.environ.get("OPENAI_TOP_K"))
-        if os.environ.get("OPENAI_MIN_P"):
-            config["min_p"] = float(os.environ.get("OPENAI_MIN_P"))
+        if top_p := os.environ.get("OPENAI_TOP_P"):
+            config["top_p"] = float(top_p)
+        if top_k := os.environ.get("OPENAI_TOP_K"):
+            config["top_k"] = int(top_k)
+        if min_p := os.environ.get("OPENAI_MIN_P"):
+            config["min_p"] = float(min_p)
 
         if kwargs:
             config.update(kwargs)
