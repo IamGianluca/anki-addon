@@ -25,7 +25,7 @@ Clone this repository into your Anki add-ons folder and build the dependencies:
 ```bash
 git clone https://github.com/iamgianluca/anki-addon.git [your-anki-addons-path]/addons21/anki-addon
 cd [your-anki-addons-path]/addons21/anki-addon
-./bundle_dependencies.sh  # installs Python 3.9 via uv and vendors dependencies
+./bundle_dependencies.sh  # installs Python 3.9 via uv and vendors pydantic, qdrant-client, and their dependencies
 ```
 
 ## ⚙️ Configuration
@@ -65,12 +65,16 @@ cd [your-anki-addons-path]/addons21/anki-addon
 ### Bulk review flagged notes
 
 1. Flag notes with the orange flag for review
-2. Go to `Tools > Improve note using AI`
+2. Go to `Tools > Improve note using AI` (or press `r`)
 3. Step through each note, saving or skipping changes
+
+### Count notes flagged for review
+
+Go to `Tools > Count notes marked for review` (or press `c`) to see how many notes in the current deck are flagged for review.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please check the CONTRIBUTING.md file and feel free to submit a Pull Request.
+Contributions are welcome! Please check the [CONTRIBUTING.md](CONTRIBUTING.md) file and feel free to submit a Pull Request.
 
 ## 📝 License
 
