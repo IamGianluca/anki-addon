@@ -18,7 +18,7 @@ test_slow:
 
 static_check:
 	# uvx (instead of uv run) ensures we always use the latest ty, keeping in sync with CI
-	uvx ty check ./src/
+	uvx ty@latest check ./src/
 
 clean:
 	@echo "Cleaning Python cache files..."
