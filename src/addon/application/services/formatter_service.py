@@ -7,8 +7,6 @@ from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from jinja2 import Template
-
 from ...domain.entities.note import AddonNote, AddonNoteType
 from ...infrastructure.external_services.openai import OpenAIClient
 from ...infrastructure.llm.schemas import AddonNoteChanges
@@ -16,6 +14,7 @@ from ...utils import is_cloze_note
 
 if TYPE_CHECKING:
     from anki.notes import Note
+    from jinja2 import Template
 
 
 class AnkiNoteAdapter:
@@ -145,6 +144,8 @@ class NoteFormatter:
 
 @lru_cache(maxsize=1)
 def get_prompt_template() -> Template:
+    from jinja2 import Template
+
     path = Path(__file__).parent
     fpath = path / "prompt_format_note.md"
     try:
