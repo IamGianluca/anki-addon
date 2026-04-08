@@ -21,6 +21,7 @@ jobs:
           - "3.9"  # Python version embedded with Anki
           - "3.12"
           - "3.13"
+          # - "3.14"  # Not supported by PyTorch yet
     steps:
       - uses: actions/checkout@v4
       - name: Install system dependencies for PyQt
