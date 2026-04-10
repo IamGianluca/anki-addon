@@ -114,7 +114,7 @@ class NoteFormatter:
         prompt = prompt_template.render(note=note_content)
 
         response = self._completion.run(
-            prompt=[{"role": "system", "content": prompt}],
+            prompt=[{"role": "user", "content": prompt}],
             response_format={
                 "type": "json_schema",
                 "json_schema": {

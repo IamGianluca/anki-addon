@@ -5,6 +5,13 @@ import pytest
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
+
+# Disable thinking tokens so tests run faster and don't exhaust max_tokens.
+# Requires the server to be started with --reasoning-budget 0.
+_NO_THINKING = {
+    "extra_body": {"chat_template_kwargs": {"enable_thinking": False}}
+}
+
 # NOTE: This test requires a live inference server. The test will fail if the
 # inference server is not live.
 
@@ -16,13 +23,12 @@ def test_openai(addon_config: AddonConfig) -> None:
     prompt = [
         {
             "role": "user",
-            "content": "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello? /no_think\nAnswer: ",
+            "content": "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello?",
         }
     ]
 
     # When
-    # NOTE: Increased max_tokens to allow for thinking tokens + actual answer
-    result = openai_client.run(prompt, max_tokens=50)
+    result = openai_client.run(prompt, max_tokens=5, **_NO_THINKING)
 
     # Then
     assert "ciao" in result.lower()
@@ -48,13 +54,17 @@ def test_openai_with_json_schema_validation(addon_config: AddonConfig) -> None:
     prompt = [
         {
             "role": "user",
-            "content": "Create a JSON object for a fictional person. Include name, age, and city.\nExample: A 25-year-old software engineer named Alice who lives in San Francisco. /no_think",
+            "content": "Create a JSON object for a fictional person. Include name, age, and city.\nExample: A 25-year-old software engineer named Alice who lives in San Francisco.",
         }
     ]
 
     # When
     result = openai_client.run(
-        prompt, max_tokens=100, temperature=0, guided_json=person_schema
+        prompt,
+        max_tokens=50,
+        temperature=0,
+        guided_json=person_schema,
+        **_NO_THINKING,
     )
 
     # Then

@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import re
 from typing import Union
 
 import requests
 import requests.exceptions
+
+_REMOVE_MARKDOWN_FENCE_RE = re.compile(r"^```(?:\w+)?\n?(.*?)\n?```$", re.DOTALL)
 
 from ...infrastructure.configuration.settings import AddonConfig
 
@@ -146,9 +149,13 @@ class OpenAIClient:
 
         response_data = response.json()
         if self._is_chat_completion:
-            return response_data["choices"][0]["message"]["content"]
+            message = response_data["choices"][0]["message"]
+            text = message["content"]
+            self.last_reasoning_content = message.get("reasoning_content")
         else:
-            return response_data["choices"][0]["text"]
+            text = response_data["choices"][0]["text"]
+            self.last_reasoning_content = None
+        return _REMOVE_MARKDOWN_FENCE_RE.sub(r"\1", text.strip())
 
     class StubbedRequests:
         """Test double that replaces the requests module for deterministic testing.

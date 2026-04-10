@@ -17,6 +17,8 @@
 
 - [ ] Refactor main classes involved in note formatting workflow to reduce cognitive load
 - [ ] Refactor system prompt for note formatting workflow to be more readable for humans
+- [ ] Introduce a `CompletionClient` protocol so the app is decoupled from the provider. Add `ClaudeClient` and `GeminiClient` alongside the existing `OpenAIClient`. For OpenAI-compatible servers (llama.cpp, vLLM), hide per-model quirks (thinking params, markdown fence stripping) inside `OpenAIClient` driven by `AddonConfig`.
+- [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — data is already in `response_data["usage"]`
 - [ ] ...
 
 #### Performance
