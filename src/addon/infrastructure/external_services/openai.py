@@ -94,6 +94,8 @@ class OpenAIClient:
         if config.min_p is not None:
             self.optional_params["min_p"] = config.min_p
 
+        self.last_reasoning_content: str | None = None
+
     def run(self, prompt: Union[str, list[dict]], **kwargs) -> str:
         """Generate text using the configured LLM endpoint.
 
