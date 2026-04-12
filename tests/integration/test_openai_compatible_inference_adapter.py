@@ -5,7 +5,6 @@ import pytest
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
-
 # Disable thinking tokens so tests run faster and don't exhaust max_tokens.
 # Requires the server to be started with --reasoning-budget 0.
 _NO_THINKING = {

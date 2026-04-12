@@ -11,6 +11,7 @@ make install                        # Install dependencies with uv
 make test                           # Run unit tests only (fast)
 make test_with_coverage             # Run unit tests with coverage report
 make test_slow                      # Run all tests (unit + integration + e2e)
+make format                         # Run ruff linting (with auto-fix) + formatting
 make static_check                   # Run type checker (ty)
 pre-commit run --all-files          # Run linting (ruff)
 

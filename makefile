@@ -1,4 +1,4 @@
-.PHONY: install jupyter test test_slow static_check clean 
+.PHONY: install jupyter test test_slow static_check format clean
 
 install:
 	uv sync --all-extras && \
@@ -15,6 +15,9 @@ test_with_coverage:
 
 test_slow:
 	uv run pytest . --durations=5 --cov=src/addon/ --cov-report term-missing -vv
+
+format:
+	uv run ruff check --fix && uv run ruff format
 
 static_check:
 	# uvx (instead of uv run) ensures we always use the latest ty, keeping in sync with CI

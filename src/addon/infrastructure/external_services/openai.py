@@ -6,9 +6,11 @@ from typing import Union
 import requests
 import requests.exceptions
 
-_REMOVE_MARKDOWN_FENCE_RE = re.compile(r"^```(?:\w+)?\n?(.*?)\n?```$", re.DOTALL)
-
 from ...infrastructure.configuration.settings import AddonConfig
+
+_REMOVE_MARKDOWN_FENCE_RE = re.compile(
+    r"^```(?:\w+)?\n?(.*?)\n?```$", re.DOTALL
+)
 
 
 class OpenAIClient:
