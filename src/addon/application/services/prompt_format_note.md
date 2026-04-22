@@ -37,18 +37,6 @@ Wrap back of a note within double quotes.
 
 No explanations.
 
-Return results using this JSON schema:
-{
-    "title": "Note",
-    "type": "object",
-    "properties": {
-        "front": {"type": "string"},
-        "back": {"type": "string"},
-        "tags": {"type": "string"},
-    },
-    "required": ["front", "back", "tags"]
-}
-
 ### Examples
 
 Example 1: Code block

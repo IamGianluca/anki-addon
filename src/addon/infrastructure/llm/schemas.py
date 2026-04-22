@@ -1,5 +1,3 @@
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -13,9 +11,7 @@ class AddonNoteChanges(BaseModel):
     Attributes:
         front: Updated front side content.
         back: Updated back side content.
-        tags: Updated list of tags (optional).
     """
 
     front: str
     back: str
-    tags: Optional[list[str]] = None
