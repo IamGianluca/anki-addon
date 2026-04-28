@@ -4,15 +4,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ...application.services.formatter_service import (
-    AnkiNoteAdapter,
-    NoteFormatter,
-)
-from ...infrastructure.configuration.settings import AddonConfig
-from ...infrastructure.external_services.openai import OpenAIClient
+from ...application.services.formatter_service import AnkiNoteAdapter
 from ...infrastructure.persistence.training_dataset import (
     create_training_dataset,
 )
+from ...infrastructure.services.formatter_factory import get_formatter
 from ...infrastructure.ui.editor import EditorDialog
 from ...utils import ensure_collection, ensure_note
 
@@ -172,7 +168,6 @@ def add_custom_button(buttons, editor: Editor) -> None:
 
 
 def on_custom_action(editor: Editor) -> None:
-    from aqt import mw
     from aqt.utils import askUser, tooltip
 
     note = ensure_note(editor.note)
@@ -180,13 +175,8 @@ def on_custom_action(editor: Editor) -> None:
     # Convert to domain model
     original_addon_note = AnkiNoteAdapter.to_addon_note(note)
 
-    # TODO: instantiate OpenAI and formatter only once, and outside of this
-    # function
-    config = AddonConfig.create(mw.addonManager)
-    openai = OpenAIClient.create(config)
-    formatter = NoteFormatter(openai)
-
-    # Format using pure domain logic
+    # Format using pure domain logic (formatter is a session-level singleton)
+    formatter = get_formatter()
     formatted_addon_note = formatter.format(original_addon_note)
 
     # Temporarily merge changes into note for preview
