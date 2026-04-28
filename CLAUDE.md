@@ -4,6 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project is an Anki add-on that uses LLMs to refactor and improve flashcard notes. It follows principles from "A Philosophy of Software Design" by John Ousterhout.
 
+## Version Control
+
+This repository uses **jj (Jujutsu)**, not git. Use `jj` commands instead of `git`:
+
+- `jj log` instead of `git log`
+- `jj diff` instead of `git diff`
+- `jj commit` instead of `git commit`
+- `jj status` instead of `git status`
+
+Do not use `git` commands — they will not work correctly.
+
 ## Development Commands
 
 ```bash
@@ -20,6 +31,10 @@ uv run pytest tests/unit/test_format_notes.py
 uv run pytest tests/unit/test_format_notes.py::test_function_name
 uv run pytest -k "test_name_pattern"
 ```
+
+## Test Time Baselines
+
+**Never update test time baselines** after making code changes. If a timing test fails because the baseline is off, note the failure but do not adjust the baseline values. The baselines are intentional constraints, not targets to chase.
 
 ## Architecture
 
