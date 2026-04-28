@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from aqt import mw
-from aqt.utils import showInfo
-
 from ...utils import ensure_collection
 
 if TYPE_CHECKING:
@@ -12,6 +9,9 @@ if TYPE_CHECKING:
 
 
 def display_notes_marked_for_review_count() -> None:
+    from aqt import mw
+    from aqt.utils import showInfo
+
     col = ensure_collection(mw.col)
     deck_id = col.decks.current()["id"]
     query = f"did:{deck_id}"
