@@ -6,10 +6,7 @@ from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 # Disable thinking tokens so tests run faster and don't exhaust max_tokens.
-# Requires the server to be started with --reasoning-budget 0.
-_NO_THINKING = {
-    "extra_body": {"chat_template_kwargs": {"enable_thinking": False}}
-}
+_NO_THINKING = {"chat_template_kwargs": {"enable_thinking": False}}
 
 # NOTE: This test requires a live inference server. The test will fail if the
 # inference server is not live.
