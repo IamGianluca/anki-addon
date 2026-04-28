@@ -5,9 +5,6 @@ import pytest
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
-# Disable thinking tokens so tests run faster and don't exhaust max_tokens.
-_NO_THINKING = {"chat_template_kwargs": {"enable_thinking": False}}
-
 # NOTE: This test requires a live inference server. The test will fail if the
 # inference server is not live.
 
@@ -24,7 +21,7 @@ def test_openai(addon_config: AddonConfig) -> None:
     ]
 
     # When
-    result = openai_client.run(prompt, max_tokens=5, **_NO_THINKING)
+    result = openai_client.run(prompt, max_tokens=5, reasoning=False)
 
     # Then
     assert "ciao" in result.lower()
@@ -60,7 +57,7 @@ def test_openai_with_json_schema_validation(addon_config: AddonConfig) -> None:
         max_tokens=50,
         temperature=0,
         guided_json=person_schema,
-        **_NO_THINKING,
+        reasoning=False,
     )
 
     # Then

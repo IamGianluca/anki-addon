@@ -96,18 +96,30 @@ class OpenAIClient:
 
         self.last_reasoning_content: str | None = None
 
-    def run(self, prompt: Union[str, list[dict]], **kwargs) -> str:
+    def run(
+        self,
+        prompt: Union[str, list[dict]],
+        *,
+        reasoning: bool = True,
+        **kwargs,
+    ) -> str:
         """Generate text using the configured LLM endpoint.
 
         The input format depends on the API endpoint configured in AddonConfig:
         - Chat Completions (/v1/chat/completions): Pass list of message dicts
         - Completions (/v1/completions): Pass string prompt
 
-        kwargs are forwarded directly to the inference server (e.g., guided_json
-        for structured output). Note that combining thinking tokens with
-        guided_json may cause the server to return None in the content field
-        if the total token generated exceed `max_tokens`, resulting in a
-        ValidationError downstream.
+        Args:
+            prompt: The input prompt (string or chat messages).
+            reasoning: Whether to enable the model's reasoning (thinking) mode.
+                Set to False to skip reasoning tokens, which saves tokens and
+                latency. Defaults to True.
+            **kwargs: Extra parameters forwarded to the inference server
+                (e.g., guided_json for structured output).
+
+        Note: combining reasoning with guided_json may cause the server to
+        return None in the content field if total tokens generated exceed
+        `max_tokens`, resulting in a ValidationError downstream.
 
         Returns the generated text from the content field.
         """
@@ -127,6 +139,12 @@ class OpenAIClient:
                 "temperature": self.temperature,
                 **self.optional_params,
             }
+
+        if not reasoning:
+            payload["chat_template_kwargs"] = {"enable_thinking": False}
+        elif reasoning and self.model == "./Qwen3.6-27B-UD-Q4_K_XL.gguf":
+            # See: https://unsloth.ai/docs/models/qwen3.6#thinking-enable-disable--preserve-thinking
+            payload["chat_template_kwargs"] = {"preserve_thinking": True}
 
         if kwargs:
             # Incorporate extra parameters like `guided_json` schema
