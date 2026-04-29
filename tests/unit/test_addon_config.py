@@ -1,5 +1,6 @@
 import os
 
+import pytest
 from tests.fakes.aqt_fakes import FakeAddonManager
 
 from addon.infrastructure.configuration.settings import AddonConfig
@@ -318,3 +319,27 @@ def test_reads_all_parameters_from_anki_config():
     assert config.top_p == 0.9
     assert config.top_k == 40
     assert config.min_p == 0.1
+
+
+@pytest.mark.parametrize(
+    "config,expected_missing",
+    [
+        ({"openai_port": "8000", "openai_model": "test-model"}, ["host"]),
+        ({"openai_host": "localhost", "openai_model": "test-model"}, ["port"]),
+        ({"openai_host": "localhost", "openai_port": "8000"}, ["model_name"]),
+        ({}, ["host", "port", "model_name"]),
+    ],
+)
+def test_raises_value_error_when_required_params_missing(
+    config: dict, expected_missing: list[str]
+):
+    # Given
+    addon_manager = FakeAddonManager(config)
+
+    # When / Then
+    with pytest.raises(ValueError) as exc_info:
+        AddonConfig.create(addon_manager)
+
+    error_msg = str(exc_info.value)
+    for key in expected_missing:
+        assert key in error_msg

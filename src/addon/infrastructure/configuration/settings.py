@@ -77,6 +77,14 @@ class AddonConfig:
         return AddonConfig(config)
 
     def __init__(self, config) -> None:
+        missing = [
+            key
+            for key in ("host", "port", "model_name")
+            if not config.get(key)
+        ]
+        if missing:
+            raise ValueError(f"Missing required config: {', '.join(missing)}")
+
         self.url = f"http://{config['host']}:{config['port']}/{config['mode']}"
         self.model_name = config["model_name"]
         self.temperature = float(config["temperature"])
