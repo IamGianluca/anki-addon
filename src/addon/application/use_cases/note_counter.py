@@ -22,8 +22,7 @@ def display_notes_marked_for_review_count() -> None:
         if is_note_marked_for_review(col, note_id):
             flagged_notes += 1
 
-    notes_count = len(col.find_notes(f"did:{deck_id}"))
-    showInfo(f"Notes marked for review: {flagged_notes}/{notes_count}")
+    showInfo(f"Notes marked for review: {flagged_notes}/{len(note_ids)}")
 
 
 def is_note_marked_for_review(col: Collection, note_id: int) -> bool:
