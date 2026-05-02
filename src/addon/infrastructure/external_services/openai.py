@@ -180,14 +180,16 @@ class OpenAIClient:
         return _REMOVE_MARKDOWN_FENCE_RE.sub(r"\1", text.strip())
 
     class StubbedRequests:
-        """Test double that replaces the requests module for deterministic testing.
+        """Test double that replaces the requests module for deterministic
+        testing.
 
         Records all HTTP calls made during testing and returns pre-configured
         responses instead of making actual network requests. This enables fast,
         reliable tests that don't depend on external services.
 
         Attributes:
-            _calls: Record of all HTTP calls made for test verification (internal).
+            _calls: Record of all HTTP calls made for test verification
+            (internal).
         """
 
         def __init__(self, responses: list):
@@ -205,8 +207,8 @@ class OpenAIClient:
 
         Provides the same interface as requests.Response.json() but returns
         pre-configured data instead of parsing actual HTTP response content.
-        Supports both sequential responses (list) and repeated responses (single value).
-
+        Supports both sequential responses (list) and repeated responses (single
+        value).
         """
 
         def __init__(self, responses):

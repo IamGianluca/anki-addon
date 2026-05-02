@@ -7,14 +7,16 @@ from ...utils import ensure_config
 
 
 class AddonConfig:
-    """Configuration adapter that bridges Anki's addon settings with application logic.
+    """Configuration adapter that bridges Anki's addon settings with
+    application logic.
 
-    This class abstracts the complexity of Anki's configuration system, providing
-    a clean interface for accessing addon settings set by the user. These settings
-    are currently limited to inference provider and LLM settings.
+    This class abstracts the complexity of Anki's configuration system,
+    providing a clean interface for accessing addon settings set by the user.
+    These settings are currently limited to inference provider and LLM settings.
 
-    The class supports two configuration sources: Anki's internal addon configuration
-    for production use, and environment variables for testing/development scenarios.
+    The class supports two configuration sources: Anki's internal addon
+    configuration for production use, and environment variables for
+    testing/development scenarios.
 
     The class handles the transformation of raw configuration data into a
     structured format with validation and defaults, ensuring the addon
@@ -40,6 +42,7 @@ class AddonConfig:
         config["model_name"] = c.get("openai_model")
         config["temperature"] = c.get("openai_temperature", 0.0)
         config["max_tokens"] = c.get("openai_max_tokens", 200)
+
         # These parameters are optional, and needed only for certain LLMs
         if top_p := c.get("openai_top_p"):
             config["top_p"] = float(top_p)
