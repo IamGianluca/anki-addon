@@ -30,6 +30,10 @@ class AddonConfig:
         top_p: Nucleus sampling parameter (optional, LLM-specific).
         top_k: Top-k sampling parameter (optional, LLM-specific).
         min_p: Minimum probability threshold (optional, LLM-specific).
+        reasoning: Whether to enable the model's reasoning (thinking) mode.
+            Set to False to skip reasoning tokens, saving tokens and latency.
+        preserve_thinking: Whether to preserve reasoning tokens in the output
+            (optional, for models like Qwen3.6 with thinking mode).
     """
 
     @staticmethod
@@ -50,6 +54,10 @@ class AddonConfig:
             config["top_k"] = int(top_k)
         if min_p := c.get("openai_min_p"):
             config["min_p"] = float(min_p)
+        config["reasoning"] = bool(c.get("openai_reasoning", False))
+        config["preserve_thinking"] = bool(
+            c.get("openai_preserve_thinking", False)
+        )
         return AddonConfig(config)
 
     @staticmethod
@@ -73,6 +81,13 @@ class AddonConfig:
             config["top_k"] = int(top_k)
         if min_p := os.environ.get("OPENAI_MIN_P"):
             config["min_p"] = float(min_p)
+        config["reasoning"] = (
+            os.environ.get("OPENAI_REASONING", "False").lower() != "false"
+        )
+        config["preserve_thinking"] = (
+            os.environ.get("OPENAI_PRESERVE_THINKING", "False").lower()
+            == "true"
+        )
 
         if kwargs:
             config.update(kwargs)
@@ -97,3 +112,5 @@ class AddonConfig:
         self.top_p = config.get("top_p")
         self.top_k = config.get("top_k")
         self.min_p = config.get("min_p")
+        self.reasoning = bool(config.get("reasoning", False))
+        self.preserve_thinking = bool(config.get("preserve_thinking", False))

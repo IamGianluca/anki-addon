@@ -9,10 +9,16 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 # inference server is not live.
 
 
+@pytest.fixture
+def fast_addon_config() -> AddonConfig:
+    """Config for integration tests: reasoning disabled to save tokens/time."""
+    return AddonConfig.create_nullable(kwargs={"reasoning": False})
+
+
 @pytest.mark.slow
-def test_openai(addon_config: AddonConfig) -> None:
+def test_openai(fast_addon_config: AddonConfig) -> None:
     # Given
-    openai_client = OpenAIClient.create(addon_config)
+    openai_client = OpenAIClient.create(fast_addon_config)
     prompt = [
         {
             "role": "user",
@@ -21,17 +27,19 @@ def test_openai(addon_config: AddonConfig) -> None:
     ]
 
     # When
-    result = openai_client.run(prompt, max_tokens=5, reasoning=False)
+    result = openai_client.run(prompt, max_tokens=5)
 
     # Then
     assert "ciao" in result.lower()
 
 
 @pytest.mark.slow
-def test_openai_with_json_schema_validation(addon_config: AddonConfig) -> None:
+def test_openai_with_json_schema_validation(
+    fast_addon_config: AddonConfig,
+) -> None:
     """Test that OpenAI client can accept and use JSON schema to restrict output."""
     # Given
-    openai_client = OpenAIClient.create(addon_config)
+    openai_client = OpenAIClient.create(fast_addon_config)
 
     person_schema = {
         "type": "object",
@@ -57,7 +65,6 @@ def test_openai_with_json_schema_validation(addon_config: AddonConfig) -> None:
         max_tokens=50,
         temperature=0,
         guided_json=person_schema,
-        reasoning=False,
     )
 
     # Then

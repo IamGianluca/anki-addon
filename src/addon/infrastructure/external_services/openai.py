@@ -24,10 +24,6 @@ class OpenAIClient:
     The client handles connection errors gracefully and transforms them into
     domain-specific exceptions with helpful error messages for debugging
     server connectivity issues.
-
-    Attributes:
-        url: The complete API endpoint URL for completions.
-        model: The model name to use for generation requests.
     """
 
     @staticmethod
@@ -78,29 +74,14 @@ class OpenAIClient:
         return OpenAIClient(config, OpenAIClient.StubbedRequests(r))
 
     def __init__(self, config: AddonConfig, http_client) -> None:
+        self._config = config
         self._http_client = http_client
-        self.url = config.url
-        self.model = config.model_name
-        self.temperature = config.temperature
-        self.max_tokens = config.max_tokens
         self._is_chat_completion = "chat/completions" in config.url
-
-        # Store optional LLM parameters, excluding None values
-        self.optional_params = {}
-        if config.top_p is not None:
-            self.optional_params["top_p"] = config.top_p
-        if config.top_k is not None:
-            self.optional_params["top_k"] = config.top_k
-        if config.min_p is not None:
-            self.optional_params["min_p"] = config.min_p
-
         self.last_reasoning_content: str | None = None
 
     def run(
         self,
         prompt: Union[str, list[dict]],
-        *,
-        reasoning: bool = True,
         **kwargs,
     ) -> str:
         """Generate text using the configured LLM endpoint.
@@ -111,38 +92,39 @@ class OpenAIClient:
 
         Args:
             prompt: The input prompt (string or chat messages).
-            reasoning: Whether to enable the model's reasoning (thinking) mode.
-                Set to False to skip reasoning tokens, which saves tokens and
-                latency. Defaults to True.
             **kwargs: Extra parameters forwarded to the inference server
                 (e.g., guided_json for structured output).
 
-        Note: combining reasoning with guided_json may cause the server to
-        return None in the content field if total tokens generated exceed
-        `max_tokens`, resulting in a ValidationError downstream.
-
         Returns the generated text from the content field.
         """
+        optional_params = {}
+        if self._config.top_p is not None:
+            optional_params["top_p"] = self._config.top_p
+        if self._config.top_k is not None:
+            optional_params["top_k"] = self._config.top_k
+        if self._config.min_p is not None:
+            optional_params["min_p"] = self._config.min_p
+
         if self._is_chat_completion:
             payload = {
-                "model": self.model,
+                "model": self._config.model_name,
                 "messages": prompt,
-                "max_tokens": self.max_tokens,  # can be overwritten by kwargs
-                "temperature": self.temperature,
-                **self.optional_params,
+                "max_tokens": self._config.max_tokens,
+                "temperature": self._config.temperature,
+                **optional_params,
             }
         else:
             payload = {
-                "model": self.model,
+                "model": self._config.model_name,
                 "prompt": prompt,
-                "max_tokens": self.max_tokens,  # can be overwritten by kwargs
-                "temperature": self.temperature,
-                **self.optional_params,
+                "max_tokens": self._config.max_tokens,
+                "temperature": self._config.temperature,
+                **optional_params,
             }
 
-        if not reasoning:
+        if not self._config.reasoning:
             payload["chat_template_kwargs"] = {"enable_thinking": False}
-        elif reasoning and self.model == "./Qwen3.6-27B-UD-Q4_K_XL.gguf":
+        elif self._config.preserve_thinking:
             # See: https://unsloth.ai/docs/models/qwen3.6#thinking-enable-disable--preserve-thinking
             payload["chat_template_kwargs"] = {"preserve_thinking": True}
 
@@ -151,10 +133,10 @@ class OpenAIClient:
             payload.update(kwargs)
 
         try:
-            response = self._http_client.post(self.url, json=payload)
+            response = self._http_client.post(self._config.url, json=payload)
         except requests.exceptions.ConnectionError as e:
             raise ConnectionError(
-                f"Cannot reach LLM server at {self.url}. "
+                f"Cannot reach LLM server at {self._config.url}. "
                 "Check if the inference server is running."
             ) from e
 
@@ -165,7 +147,7 @@ class OpenAIClient:
             except Exception:
                 error_body = response.text
             raise RuntimeError(
-                f"LLM server returned error {response.status_code} for {self.url}. "
+                f"LLM server returned error {response.status_code} for {self._config.url}. "
                 f"Response: {error_body}"
             )
 
