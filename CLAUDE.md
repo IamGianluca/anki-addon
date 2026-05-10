@@ -66,7 +66,7 @@ The codebase uses three import strategies to keep the test suite fast:
 
 ### Null Object Pattern for Testing
 
-Infrastructure classes expose a `create_null()` factory for unit tests that avoids real external dependencies (Qdrant server, sentence-transformer model loading which takes 20+ seconds). See `QdrantDocumentRepository.create_null()` as the reference implementation.
+Infrastructure classes expose a `create_nullable()` factory for unit tests that avoids real external dependencies (Qdrant server, sentence-transformer model loading which takes 20+ seconds). See `QdrantDocumentRepository.create_nullable()` as the reference implementation.
 
 ### LLM Integration
 

@@ -18,7 +18,7 @@ def test_find_possible_duplicate_notes_given_a_new_note(
     addon_note2: AddonNote,
 ) -> None:
     # Given
-    repository = QdrantDocumentRepository.create_null(
+    repository = QdrantDocumentRepository.create_nullable(
         search_responses=[
             [
                 SearchResult(
@@ -56,7 +56,7 @@ def test_find_duplicates_returns_empty_when_no_similar_notes(
     # Test the case where the collection exists but contains no documents.
     # This simulates a valid but empty vector database - we expect the finder
     # to gracefully return an empty list rather than raise an error.
-    repository = QdrantDocumentRepository.create_null(
+    repository = QdrantDocumentRepository.create_nullable(
         search_responses=[[]],  # No search results returned
         stored_documents=[],  # Empty collection
     )
@@ -79,7 +79,7 @@ def test_find_duplicates_respects_max_results(
     addon_note3: AddonNote,
 ) -> None:
     # Given - return 3 results but finder should only return the most similar
-    repository = QdrantDocumentRepository.create_null(
+    repository = QdrantDocumentRepository.create_nullable(
         search_responses=[
             [
                 SearchResult(

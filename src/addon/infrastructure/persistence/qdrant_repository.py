@@ -61,7 +61,7 @@ class QdrantDocumentRepository(DocumentRepository):
         return repo
 
     @staticmethod
-    def create_null(
+    def create_nullable(
         search_responses: Optional[list[list[SearchResult]]] = None,
         stored_documents: Optional[list[Document]] = None,
     ) -> QdrantDocumentRepository:  # forward reference

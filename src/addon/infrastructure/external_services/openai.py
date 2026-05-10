@@ -31,7 +31,7 @@ class OpenAIClient:
         return OpenAIClient(config, requests)
 
     @staticmethod
-    def create_null(
+    def create_nullable(
         config: AddonConfig, responses: list[str]
     ) -> OpenAIClient:  # forward reference
         is_chat = "chat/completions" in config.url

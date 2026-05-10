@@ -32,7 +32,7 @@ def test_complete_format_workflow_for_basic_note(
             "tags": ["hockey"],
         }
     )
-    openai = OpenAIClient.create_null(addon_config, responses=[response])
+    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
     # When: Run complete workflow as user would
@@ -88,7 +88,7 @@ def test_complete_format_workflow_for_cloze_note(
             "tags": ["hockey"],
         }
     )
-    openai = OpenAIClient.create_null(addon_config, responses=[response])
+    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
     # When: Run complete workflow
@@ -130,7 +130,7 @@ def test_format_workflow_preserves_note_on_skip(
     response = json.dumps(
         {"front": "Changed", "back": "Changed", "tags": ["test"]}
     )
-    openai = OpenAIClient.create_null(addon_config, responses=[response])
+    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
     formatter = NoteFormatter(openai)
 
     editor_dialog = EditorDialog(collection)
