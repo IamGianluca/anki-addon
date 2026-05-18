@@ -5,7 +5,13 @@ import pytest
 from addon.domain.entities.note import AddonCollection, AddonNote
 from addon.infrastructure.configuration.settings import AddonConfig
 
-from .fakes.aqt_fakes import FakeCard, FakeCollection, FakeMainWindow, FakeNote
+from .fakes.aqt_fakes import (
+    FakeAddonManager,
+    FakeCard,
+    FakeCollection,
+    FakeMainWindow,
+    FakeNote,
+)
 
 ###########
 # Domain fixtures
@@ -52,7 +58,15 @@ def addon_collection(addon_note1, addon_note2, addon_note3) -> AddonCollection:
 
 @pytest.fixture
 def addon_config() -> AddonConfig:
-    return AddonConfig.create_nullable()
+    return AddonConfig.create(
+        FakeAddonManager(
+            {
+                "openai_host": "localhost",
+                "openai_port": "8000",
+                "openai_model": "test-model",
+            }
+        )
+    )
 
 
 @pytest.fixture

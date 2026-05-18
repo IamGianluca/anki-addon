@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import os
-from typing import Optional
-
 from ...utils import ensure_config
 
 
@@ -14,13 +11,9 @@ class AddonConfig:
     providing a clean interface for accessing addon settings set by the user.
     These settings are currently limited to inference provider and LLM settings.
 
-    The class supports two configuration sources: Anki's internal addon
-    configuration for production use, and environment variables for
-    testing/development scenarios.
-
-    The class handles the transformation of raw configuration data into a
-    structured format with validation and defaults, ensuring the addon
-    has consistent access to required settings regardless of the source.
+    The class handles the transformation of raw configuration data from
+    Anki's addon manager into a structured format with validation and
+    defaults.
 
     Attributes:
         url: Complete HTTP URL for the OpenAI-compatible API endpoint.
@@ -58,40 +51,6 @@ class AddonConfig:
         config["preserve_thinking"] = bool(
             c.get("openai_preserve_thinking", False)
         )
-        return AddonConfig(config)
-
-    @staticmethod
-    def create_nullable(
-        kwargs: Optional[dict] = None,
-    ) -> AddonConfig:  # forward reference
-        config = dict()
-        config["host"] = os.environ.get("OPENAI_HOST")
-        config["port"] = os.environ.get("OPENAI_PORT")
-        config["mode"] = os.environ.get("OPENAI_MODE", "v1/chat/completions")
-        config["model_name"] = os.environ.get("OPENAI_MODEL")
-        config["temperature"] = float(
-            os.environ.get("OPENAI_TEMPERATURE", "0.0")
-        )
-        config["max_tokens"] = int(os.environ.get("OPENAI_MAX_TOKENS", "500"))
-
-        # Optional LLM parameters if set in .envrc or env variable
-        if top_p := os.environ.get("OPENAI_TOP_P"):
-            config["top_p"] = float(top_p)
-        if top_k := os.environ.get("OPENAI_TOP_K"):
-            config["top_k"] = int(top_k)
-        if min_p := os.environ.get("OPENAI_MIN_P"):
-            config["min_p"] = float(min_p)
-        config["reasoning"] = (
-            os.environ.get("OPENAI_REASONING", "False").lower() != "false"
-        )
-        config["preserve_thinking"] = (
-            os.environ.get("OPENAI_PRESERVE_THINKING", "False").lower()
-            == "true"
-        )
-
-        if kwargs:
-            config.update(kwargs)
-
         return AddonConfig(config)
 
     def __init__(self, config) -> None:

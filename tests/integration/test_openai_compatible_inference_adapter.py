@@ -1,18 +1,29 @@
 import json
+import os
 
 import pytest
+from tests.fakes.aqt_fakes import FakeAddonManager
 
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
-# NOTE: This test requires a live inference server. The test will fail if the
-# inference server is not live.
+# NOTE: These tests require a live inference server. Configure it via env vars
+# in .envrc: OPENAI_HOST, OPENAI_PORT, OPENAI_MODEL.
 
 
 @pytest.fixture
 def fast_addon_config() -> AddonConfig:
-    """Config for integration tests: reasoning disabled to save tokens/time."""
-    return AddonConfig.create_nullable(kwargs={"reasoning": False})
+    """Config for integration tests: reads server address from env vars,
+    reasoning disabled to save tokens/time."""
+    return AddonConfig.create(
+        FakeAddonManager(
+            {
+                "openai_host": os.environ["OPENAI_HOST"],
+                "openai_port": os.environ["OPENAI_PORT"],
+                "openai_model": os.environ["OPENAI_MODEL"],
+            }
+        )
+    )
 
 
 @pytest.mark.slow
