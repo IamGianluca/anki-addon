@@ -1,4 +1,4 @@
-# Understanding the AnkiConnect Python Client (`aqt`)
+# Anki `aqt` Library Reference
 
 The `aqt` package is Anki's Python client library, which allows you to interact with and extend Anki programmatically. Here's a concise guide to its main components:
 

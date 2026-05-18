@@ -1,4 +1,6 @@
-#### New features
+# TODO
+
+## New features
 
 - [ ] Add option to change note type from editing window
 - [ ] Use semantic search instead of lexical search in search bar
