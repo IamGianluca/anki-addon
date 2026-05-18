@@ -1,8 +1,8 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents when working with this repository.
 
-This project is an Anki add-on that uses LLMs to refactor and improve flashcard notes. It follows principles from "A Philosophy of Software Design" by John Ousterhout.
+This project is an Anki add-on that uses LLMs to refactor and improve flashcard notes.
 
 ## Version Control
 
@@ -84,6 +84,8 @@ The bundled dependencies target Python 3.9 (Anki's embedded interpreter), even i
 
 ## Core Principles
 
+This project follows principles from "A Philosophy of Software Design" by John Ousterhout.
+
 ### Deep Modules
 - Simple interfaces hiding complex implementations
 - Significant functionality through narrow interfaces
@@ -95,3 +97,8 @@ The bundled dependencies target Python 3.9 (Anki's embedded interpreter), even i
 ### Naming
 - Precise, descriptive names that capture essence
 - Avoid vague names like `manager`, `handler` when specific terms exist
+
+### Testing
+- No mocks — use nullable infrastructure instead (see `create_nullable()` pattern above)
+- Tests should be sociable — exercise real code paths through collaborating objects
+- Use Given / When / Then structure in every test
