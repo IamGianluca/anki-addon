@@ -61,3 +61,7 @@ project_excludes = [
     "**/.[!/.]*",
     "**/*venv/**/*",
 ]
+
+[tool.mypy]
+ignore_missing_imports = true
+explicit_package_bases = true  # allows __init__.py in dir with hyphenated name

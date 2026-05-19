@@ -254,7 +254,7 @@ class QdrantDocumentRepository(DocumentRepository):
         ):
             self._search_responses = search_responses.copy()
             self._stored_docs = {doc.id: doc for doc in stored_docs}
-            self._points = {}
+            self._points: dict[str, PointStruct] = {}
 
         def get_collection(self, collection_name: str) -> dict:
             return {"status": "green"}
@@ -268,7 +268,7 @@ class QdrantDocumentRepository(DocumentRepository):
             self, collection_name: str, points: list[PointStruct]
         ) -> None:
             for point in points:
-                self._points[point.id] = point
+                self._points[str(point.id)] = point
 
         def query_points(
             self, collection_name: str, query: list[float], limit: int

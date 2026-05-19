@@ -160,7 +160,7 @@ def add_custom_button(buttons, editor: Editor) -> None:
     button = editor.addButton(
         icon=icon_path,
         cmd="myCustomAction",
-        func=lambda editor=editor: on_custom_action(editor),
+        func=lambda editor=editor: on_custom_action(editor),  # type: ignore[misc]
         tip="Format with AI",
         keys="Ctrl+Alt+M",  # Optional keyboard shortcut
     )

@@ -51,7 +51,7 @@ class EditorDialog:
         self.col = collection
         self.review_notes = self._get_all_notes_to_review()
         self._current_index = 0
-        self._original_fields = {}
+        self._original_fields: dict[str, str] = {}
 
         if not self.review_notes:
             raise ValueError("No notes marked for review")

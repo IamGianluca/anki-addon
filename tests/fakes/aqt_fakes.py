@@ -1,13 +1,16 @@
+from addon.infrastructure.protocols import AddonManagerAPI
+
+
 class FakeMainWindow:
     def __init__(self, collection):
         self.col = collection
 
 
-class FakeAddonManager:
+class FakeAddonManager(AddonManagerAPI):
     def __init__(self, config: dict):
         self._config = config
 
-    def getConfig(self, addon_name: str) -> dict:
+    def getConfig(self, module: str) -> dict:
         return self._config
 
 

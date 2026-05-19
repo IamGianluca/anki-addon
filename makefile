@@ -53,6 +53,11 @@ static_check:
 	# uvx (instead of uv run) ensures we always use the latest ty, keeping in sync with CI
 	uvx ty@latest check ./src/
 
+type_check:
+	# mypy checks that AddonManager and FakeAddonManager satisfy our Protocol.
+	# Catches upstream API drift (renamed params, dropped methods, etc.)
+	uv run mypy --explicit-package-bases tests/type_checks.py
+
 clean:
 	@echo "Cleaning Python cache files..."
 	find . -type d -name "__pycache__" -exec rm -rf {} +

@@ -174,9 +174,9 @@ class OpenAIClient:
             (internal).
         """
 
-        def __init__(self, responses: list):
+        def __init__(self, responses: list) -> None:
             self._responses = responses
-            self._calls = []
+            self._calls: list[dict] = []
 
         def post(
             self, url, json=None

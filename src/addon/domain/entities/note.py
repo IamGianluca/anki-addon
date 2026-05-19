@@ -63,7 +63,7 @@ class AddonCollection:
 
     def __init__(self, name: str) -> None:
         self.name = name
-        self.notes = []
+        self.notes: list[AddonNote] = []
 
     def add(self, notes: list[AddonNote]) -> None:
         for note in notes:
@@ -74,6 +74,7 @@ class AddonCollection:
         for note in self.notes:
             if note.guid == note_guid:
                 return note
+        return None
 
     def __iter__(self):
         return iter(self.notes)

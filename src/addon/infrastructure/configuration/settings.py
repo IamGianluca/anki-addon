@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from ...utils import ensure_config
+from ..protocols import AddonManagerAPI
 
 
 class AddonConfig:
@@ -30,7 +31,7 @@ class AddonConfig:
     """
 
     @staticmethod
-    def create(addon_manager) -> AddonConfig:  # forward reference
+    def create(addon_manager: AddonManagerAPI) -> AddonConfig:
         c: dict = ensure_config(addon_manager.getConfig("anki-addon"))
         config = dict()
         config["host"] = c.get("openai_host")
