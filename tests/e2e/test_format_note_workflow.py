@@ -2,13 +2,13 @@ import json
 
 import pytest
 from tests.fakes.aqt_fakes import FakeCollection, FakeMainWindow
+from tests.fakes.openai_fakes import FakeOpenAIClient
 
 from addon.application.services.formatter_service import (
     AnkiNoteAdapter,
     NoteFormatter,
 )
 from addon.infrastructure.configuration.settings import AddonConfig
-from addon.infrastructure.external_services.openai import OpenAIClient
 from addon.infrastructure.ui.editor import EditorDialog
 
 
@@ -32,7 +32,7 @@ def test_complete_format_workflow_for_basic_note(
             "tags": ["hockey"],
         }
     )
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     # When: Run complete workflow as user would
@@ -88,7 +88,7 @@ def test_complete_format_workflow_for_cloze_note(
             "tags": ["hockey"],
         }
     )
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     # When: Run complete workflow
@@ -130,7 +130,7 @@ def test_format_workflow_preserves_note_on_skip(
     response = json.dumps(
         {"front": "Changed", "back": "Changed", "tags": ["test"]}
     )
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     editor_dialog = EditorDialog(collection)

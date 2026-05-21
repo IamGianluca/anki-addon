@@ -1,13 +1,13 @@
 import pytest
+from tests.fakes.openai_fakes import FakeOpenAIClient
 
 from addon.infrastructure.configuration.settings import AddonConfig
-from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 def test_llm_engine_collab(addon_config: AddonConfig) -> None:
     # Given
     expected = "ciao"
-    openai_client = OpenAIClient.create_nullable(addon_config, [expected])
+    openai_client = FakeOpenAIClient.create(addon_config, [expected])
     prompt = "What is the Italian word for hello?"
 
     # When
@@ -17,13 +17,11 @@ def test_llm_engine_collab(addon_config: AddonConfig) -> None:
     assert result == expected
 
 
-def test_openai_null_client_returns_multiple_responses_in_sequence(
+def test_openai_fake_client_returns_multiple_responses_in_sequence(
     addon_config: AddonConfig,
 ) -> None:
     # Given
-    openai = OpenAIClient.create_nullable(
-        addon_config, ["response1", "response2"]
-    )
+    openai = FakeOpenAIClient.create(addon_config, ["response1", "response2"])
 
     # When
     result1 = openai.run("prompt1")
@@ -34,11 +32,11 @@ def test_openai_null_client_returns_multiple_responses_in_sequence(
     assert result2 == "response2"
 
 
-def test_openai_null_client_exhausts_responses(
+def test_openai_fake_client_exhausts_responses(
     addon_config: AddonConfig,
 ) -> None:
     # Given
-    openai = OpenAIClient.create_nullable(addon_config, ["response1"])
+    openai = FakeOpenAIClient.create(addon_config, ["response1"])
 
     # When
     result1 = openai.run("prompt")

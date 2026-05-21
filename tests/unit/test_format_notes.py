@@ -1,9 +1,10 @@
 import json
 
+from tests.fakes.openai_fakes import FakeOpenAIClient
+
 from addon.application.services.formatter_service import NoteFormatter
 from addon.domain.entities.note import AddonNote, AddonNoteType
 from addon.infrastructure.configuration.settings import AddonConfig
-from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 def test_format_note_using_llm(
@@ -12,7 +13,7 @@ def test_format_note_using_llm(
     # Given
     expected_front, expected_back = "Q1", "A1"
     response = json.dumps({"front": expected_front, "back": expected_back})
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
 
     formatter = NoteFormatter(openai)
 
@@ -32,7 +33,7 @@ def test_format_cloze_note_using_llm(
     # Given
     expected_front, expected_back = "This is a {{c1::fake note}}", ""
     response = json.dumps({"front": expected_front, "back": expected_back})
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     # When
@@ -51,7 +52,7 @@ def test_format_note_preserves_tags(
     # Given
     addon_note1.tags = ["original", "tags"]
     response = json.dumps({"front": "Q", "back": "A", "tags": ["new", "tags"]})
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     # When
@@ -68,7 +69,7 @@ def test_format_note_handles_html_br_tags(
     addon_note1.front = "Line 1<br>Line 2"
     addon_note1.back = "Answer"
     response = json.dumps({"front": "Formatted<br>Text", "back": "A"})
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     # When
@@ -85,7 +86,7 @@ def test_format_note_removes_alt_tags_from_images(
     response = json.dumps(
         {"front": '<img alt="test" src="foo.jpg">', "back": "A"}
     )
-    openai = OpenAIClient.create_nullable(addon_config, responses=[response])
+    openai = FakeOpenAIClient.create(addon_config, [response])
     formatter = NoteFormatter(openai)
 
     # When

@@ -18,8 +18,6 @@ class OpenAIClient:
 
     This class abstracts the communication with OpenAI-compatible API endpoints,
     such as vLLM servers, providing a unified interface for text generation.
-    The design follows the Null Object pattern to enable easy testing through
-    stubbed responses without external dependencies.
 
     The client handles connection errors gracefully and transforms them into
     domain-specific exceptions with helpful error messages for debugging
@@ -27,51 +25,8 @@ class OpenAIClient:
     """
 
     @staticmethod
-    def create(config: AddonConfig) -> OpenAIClient:  # forward reference
+    def create(config: AddonConfig) -> OpenAIClient:
         return OpenAIClient(config, requests)
-
-    @staticmethod
-    def create_nullable(
-        config: AddonConfig, responses: list[str]
-    ) -> OpenAIClient:  # forward reference
-        is_chat = "chat/completions" in config.url
-
-        def _format_response_as_openai_api(response: str) -> dict:
-            if is_chat:
-                return {
-                    "choices": [
-                        {
-                            "message": {"content": response},
-                            "index": 0,
-                            "finish_reason": "length",
-                        }
-                    ],
-                    "model": "null-model",
-                    "usage": {
-                        "prompt_tokens": 0,
-                        "completion_tokens": 1,
-                        "total_tokens": 1,
-                    },
-                }
-            else:
-                return {
-                    "choices": [
-                        {
-                            "text": response,
-                            "index": 0,
-                            "finish_reason": "length",
-                        }
-                    ],
-                    "model": "null-model",
-                    "usage": {
-                        "prompt_tokens": 0,
-                        "completion_tokens": 1,
-                        "total_tokens": 1,
-                    },
-                }
-
-        r = [_format_response_as_openai_api(res) for res in responses]
-        return OpenAIClient(config, OpenAIClient.StubbedRequests(r))
 
     def __init__(self, config: AddonConfig, http_client) -> None:
         self._config = config
@@ -160,56 +115,3 @@ class OpenAIClient:
             text = response_data["choices"][0]["text"]
             self.last_reasoning_content = None
         return _REMOVE_MARKDOWN_FENCE_RE.sub(r"\1", text.strip())
-
-    class StubbedRequests:
-        """Test double that replaces the requests module for deterministic
-        testing.
-
-        Records all HTTP calls made during testing and returns pre-configured
-        responses instead of making actual network requests. This enables fast,
-        reliable tests that don't depend on external services.
-
-        Attributes:
-            _calls: Record of all HTTP calls made for test verification
-            (internal).
-        """
-
-        def __init__(self, responses: list) -> None:
-            self._responses = responses
-            self._calls: list[dict] = []
-
-        def post(
-            self, url, json=None
-        ) -> OpenAIClient.StubbedResponse:  # forward reference
-            self._calls.append({"url": url, "json": json})
-            return OpenAIClient.StubbedResponse(self._responses)
-
-    class StubbedResponse:
-        """Mock HTTP response object that mimics the requests library response.
-
-        Provides the same interface as requests.Response.json() but returns
-        pre-configured data instead of parsing actual HTTP response content.
-        Supports both sequential responses (list) and repeated responses (single
-        value).
-        """
-
-        def __init__(self, responses):
-            # Get the next response from the configured list
-            self._response = self._get_next_response(responses)
-            self.status_code = 200
-
-        def json(self) -> dict:
-            return self._response
-
-        @staticmethod
-        def _get_next_response(responses) -> dict:
-            if isinstance(responses, list):
-                # If it's a list, pop the next response
-                if not responses:
-                    raise Exception(
-                        "No more responses configured in nulled OpenAIClient"
-                    )
-                return responses.pop(0)
-            else:
-                # If it's a single value, always return that
-                return responses
