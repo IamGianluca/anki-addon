@@ -1,98 +1,80 @@
-"""Test doubles for OpenAI-compatible HTTP interactions."""
+"""Test doubles for LLM interactions.
 
-from addon.infrastructure.configuration.settings import AddonConfig
-from addon.infrastructure.external_services.openai import OpenAIClient
+Two fakes at different levels:
+
+- FakeLLMClient: fakes the entire LLM port. Used in service-layer tests to
+  return canned responses without any HTTP wiring.
+- FakeHttpClient: fakes only the HTTP layer. Used in adapter tests to exercise
+  OpenAIClient's real logic (payload building, response parsing, etc.) while
+  avoiding real network calls.
+"""
+
+from __future__ import annotations
+
+from addon.application.protocols import LLMClient
+from addon.infrastructure.external_services.openai import HttpResponse
 
 
-class FakeOpenAIClient:
-    """Factory that builds an OpenAIClient with stubbed HTTP responses.
+class FakeLLMClient(LLMClient):
+    """Fake LLM client for service-layer tests.
 
-    Accepts plain string responses and formats them into the OpenAI API
-    response shape that OpenAIClient expects.
+    Returns pre-configured responses and records prompts for verification.
     """
 
-    @staticmethod
-    def create(config: AddonConfig, responses: list[str]) -> OpenAIClient:
-        is_chat = "chat/completions" in config.url
+    def __init__(self, responses: list[str] | None = None) -> None:
+        self.responses = list(responses or [])
+        self.prompts_received: list[list[dict] | str] = []
+        self.kwargs_received: list[dict] = []
 
-        def _format_response_as_openai_api(response: str) -> dict:
-            if is_chat:
-                return {
-                    "choices": [
-                        {
-                            "message": {"content": response},
-                            "index": 0,
-                            "finish_reason": "length",
-                        }
-                    ],
-                    "model": "null-model",
-                    "usage": {
-                        "prompt_tokens": 0,
-                        "completion_tokens": 1,
-                        "total_tokens": 1,
-                    },
-                }
-            else:
-                return {
-                    "choices": [
-                        {
-                            "text": response,
-                            "index": 0,
-                            "finish_reason": "length",
-                        }
-                    ],
-                    "model": "null-model",
-                    "usage": {
-                        "prompt_tokens": 0,
-                        "completion_tokens": 1,
-                        "total_tokens": 1,
-                    },
-                }
-
-        formatted = [_format_response_as_openai_api(r) for r in responses]
-        return OpenAIClient(config, StubbedRequests(formatted))
+    def run(self, prompt: str | list[dict], **kwargs) -> str:
+        self.prompts_received.append(prompt)
+        self.kwargs_received.append(kwargs)
+        if not self.responses:
+            raise RuntimeError("No more responses configured on FakeLLMClient")
+        return self.responses.pop(0)
 
 
-class StubbedRequests:
-    """Test double that replaces the requests module for deterministic
-    testing.
+class FakeHttpClient:
+    """Fake HTTP client for adapter-level tests.
 
-    Records all HTTP calls made during testing and returns pre-configured
-    responses instead of making actual network requests.
+    Implements the minimal interface that OpenAIClient needs from `requests`:
+    post(url, json) -> response with status_code and json().
     """
 
-    def __init__(self, responses: list) -> None:
-        self._responses = responses
-        self._calls: list[dict] = []
+    def __init__(
+        self,
+        status_code: int = 200,
+        json_body: dict | None = None,
+    ) -> None:
+        self.last_url: str | None = None
+        self.last_payload: dict | None = None
+        self._status_code = status_code
+        self._json_body = json_body or {
+            "choices": [{"message": {"content": "ok"}}],
+        }
 
-    def post(self, url, json=None) -> "StubbedResponse":
-        self._calls.append({"url": url, "json": json})
-        return StubbedResponse(self._responses)
+    def post(self, url: str, json: dict | None = None) -> "FakeResponse":
+        self.last_url = url
+        self.last_payload = json
+        return FakeResponse(self._status_code, self._json_body)
 
 
-class StubbedResponse:
-    """Mock HTTP response object that mimics the requests library response.
+class FakeResponse(HttpResponse):
+    """Minimal requests.Response stand-in for adapter tests."""
 
-    Provides the same interface as requests.Response.json() but returns
-    pre-configured data instead of parsing actual HTTP response content.
-    Supports both sequential responses (list) and repeated responses (single
-    value).
-    """
+    def __init__(self, status_code: int, body: dict) -> None:
+        self._status_code = status_code
+        self._body = body
 
-    def __init__(self, responses):
-        self._response = self._get_next_response(responses)
-        self.status_code = 200
+    @property
+    def status_code(self) -> int:
+        return self._status_code
 
     def json(self) -> dict:
-        return self._response
+        return self._body
 
-    @staticmethod
-    def _get_next_response(responses) -> dict:
-        if isinstance(responses, list):
-            if not responses:
-                raise Exception(
-                    "No more responses configured in fake OpenAIClient"
-                )
-            return responses.pop(0)
-        else:
-            return responses
+    @property
+    def text(self) -> str:
+        import json
+
+        return json.dumps(self._body)

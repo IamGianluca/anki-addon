@@ -8,9 +8,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ...domain.entities.note import AddonNote, AddonNoteType
-from ...infrastructure.external_services.openai import OpenAIClient
 from ...infrastructure.llm.schemas import AddonNoteChanges
 from ...utils import is_cloze_note
+from ..protocols import LLMClient
 
 if TYPE_CHECKING:
     from anki.notes import Note
@@ -90,11 +90,11 @@ class NoteFormatter:
     entire collection.
 
     Attributes:
-        _completion: OpenAI-compatible client for language model interactions.
+        _client: LLM client for generating formatted note content.
     """
 
-    def __init__(self, completion_client: OpenAIClient) -> None:
-        self._completion = completion_client
+    def __init__(self, client: LLMClient) -> None:
+        self._client = client
 
     def format(self, note: AddonNote) -> AddonNote:
         """Apply AI-powered formatting to improve note quality.
@@ -113,7 +113,7 @@ class NoteFormatter:
         prompt_template = get_prompt_template()
         prompt = prompt_template.render(note=note_content)
 
-        response = self._completion.run(
+        response = self._client.run(
             prompt=[{"role": "user", "content": prompt}],
             response_format={
                 "type": "json_schema",

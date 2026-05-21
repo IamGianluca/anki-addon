@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Union
+from typing import Protocol, Union
 
 import requests
 import requests.exceptions
@@ -13,6 +13,18 @@ _REMOVE_MARKDOWN_FENCE_RE = re.compile(
 )
 
 
+class HttpResponse(Protocol):
+    """Minimal response contract that OpenAIClient needs from an HTTP client."""
+
+    @property
+    def status_code(self) -> int: ...
+
+    def json(self) -> dict: ...
+
+    @property
+    def text(self) -> str: ...
+
+
 class OpenAIClient:
     """HTTP client adapter for OpenAI-compatible inference servers.
 
@@ -22,6 +34,8 @@ class OpenAIClient:
     The client handles connection errors gracefully and transforms them into
     domain-specific exceptions with helpful error messages for debugging
     server connectivity issues.
+
+    Implements LLMClient protocol.
     """
 
     @staticmethod

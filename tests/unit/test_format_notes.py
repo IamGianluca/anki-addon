@@ -1,21 +1,17 @@
 import json
 
-from tests.fakes.openai_fakes import FakeOpenAIClient
+from tests.fakes.openai_fakes import FakeLLMClient
 
 from addon.application.services.formatter_service import NoteFormatter
 from addon.domain.entities.note import AddonNote, AddonNoteType
-from addon.infrastructure.configuration.settings import AddonConfig
 
 
-def test_format_note_using_llm(
-    addon_config: AddonConfig, addon_note1: AddonNote
-) -> None:
+def test_format_note_using_llm(addon_note1: AddonNote) -> None:
     # Given
     expected_front, expected_back = "Q1", "A1"
     response = json.dumps({"front": expected_front, "back": expected_back})
-    openai = FakeOpenAIClient.create(addon_config, [response])
-
-    formatter = NoteFormatter(openai)
+    fake_llm = FakeLLMClient([response])
+    formatter = NoteFormatter(fake_llm)
 
     # When
     result = formatter.format(addon_note1)
@@ -27,14 +23,12 @@ def test_format_note_using_llm(
     assert result.notetype == AddonNoteType.BASIC
 
 
-def test_format_cloze_note_using_llm(
-    addon_config: AddonConfig, addon_cloze_note1: AddonNote
-) -> None:
+def test_format_cloze_note_using_llm(addon_cloze_note1: AddonNote) -> None:
     # Given
     expected_front, expected_back = "This is a {{c1::fake note}}", ""
     response = json.dumps({"front": expected_front, "back": expected_back})
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    fake_llm = FakeLLMClient([response])
+    formatter = NoteFormatter(fake_llm)
 
     # When
     result = formatter.format(addon_cloze_note1)
@@ -46,14 +40,12 @@ def test_format_cloze_note_using_llm(
     assert result.notetype == AddonNoteType.CLOZE
 
 
-def test_format_note_preserves_tags(
-    addon_config: AddonConfig, addon_note1: AddonNote
-) -> None:
+def test_format_note_preserves_tags(addon_note1: AddonNote) -> None:
     # Given
     addon_note1.tags = ["original", "tags"]
     response = json.dumps({"front": "Q", "back": "A", "tags": ["new", "tags"]})
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    fake_llm = FakeLLMClient([response])
+    formatter = NoteFormatter(fake_llm)
 
     # When
     result = formatter.format(addon_note1)
@@ -62,15 +54,13 @@ def test_format_note_preserves_tags(
     assert result.tags == ["original", "tags"]
 
 
-def test_format_note_handles_html_br_tags(
-    addon_config: AddonConfig, addon_note1: AddonNote
-) -> None:
+def test_format_note_handles_html_br_tags(addon_note1: AddonNote) -> None:
     # Given
     addon_note1.front = "Line 1<br>Line 2"
     addon_note1.back = "Answer"
     response = json.dumps({"front": "Formatted<br>Text", "back": "A"})
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    fake_llm = FakeLLMClient([response])
+    formatter = NoteFormatter(fake_llm)
 
     # When
     result = formatter.format(addon_note1)
@@ -80,14 +70,14 @@ def test_format_note_handles_html_br_tags(
 
 
 def test_format_note_removes_alt_tags_from_images(
-    addon_config: AddonConfig, addon_note1: AddonNote
+    addon_note1: AddonNote,
 ) -> None:
     # Given
     response = json.dumps(
         {"front": '<img alt="test" src="foo.jpg">', "back": "A"}
     )
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    fake_llm = FakeLLMClient([response])
+    formatter = NoteFormatter(fake_llm)
 
     # When
     result = formatter.format(addon_note1)

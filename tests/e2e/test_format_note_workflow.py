@@ -2,19 +2,18 @@ import json
 
 import pytest
 from tests.fakes.aqt_fakes import FakeCollection, FakeMainWindow
-from tests.fakes.openai_fakes import FakeOpenAIClient
+from tests.fakes.openai_fakes import FakeLLMClient
 
 from addon.application.services.formatter_service import (
     AnkiNoteAdapter,
     NoteFormatter,
 )
-from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.ui.editor import EditorDialog
 
 
 @pytest.mark.slow
 def test_complete_format_workflow_for_basic_note(
-    addon_config: AddonConfig, mw: FakeMainWindow, collection: FakeCollection
+    mw: FakeMainWindow, collection: FakeCollection
 ) -> None:
     """E2E test: complete workflow from EditorDialog through formatting to persistence.
 
@@ -32,8 +31,7 @@ def test_complete_format_workflow_for_basic_note(
             "tags": ["hockey"],
         }
     )
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    formatter = NoteFormatter(FakeLLMClient([response]))
 
     # When: Run complete workflow as user would
     editor_dialog = EditorDialog(collection)
@@ -77,7 +75,7 @@ def test_complete_format_workflow_for_basic_note(
 
 @pytest.mark.slow
 def test_complete_format_workflow_for_cloze_note(
-    addon_config: AddonConfig, mw: FakeMainWindow, collection: FakeCollection
+    mw: FakeMainWindow, collection: FakeCollection
 ) -> None:
     """E2E test: complete workflow for cloze note type."""
     # Given: Setup formatter with canned LLM response for cloze
@@ -88,8 +86,7 @@ def test_complete_format_workflow_for_cloze_note(
             "tags": ["hockey"],
         }
     )
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    formatter = NoteFormatter(FakeLLMClient([response]))
 
     # When: Run complete workflow
     editor_dialog = EditorDialog(collection)
@@ -123,15 +120,14 @@ def test_complete_format_workflow_for_cloze_note(
 
 @pytest.mark.slow
 def test_format_workflow_preserves_note_on_skip(
-    addon_config: AddonConfig, mw: FakeMainWindow, collection: FakeCollection
+    mw: FakeMainWindow, collection: FakeCollection
 ) -> None:
     """E2E test: skipping a note and restoring preserves original content."""
     # Given
     response = json.dumps(
         {"front": "Changed", "back": "Changed", "tags": ["test"]}
     )
-    openai = FakeOpenAIClient.create(addon_config, [response])
-    formatter = NoteFormatter(openai)
+    formatter = NoteFormatter(FakeLLMClient([response]))
 
     editor_dialog = EditorDialog(collection)
     current_note = editor_dialog.current_note()
