@@ -1,4 +1,5 @@
 import pytest
+from tests.fakes.qdrant_fakes import FakeQdrantClient, FakeSentenceTransformer
 
 from addon.domain.repositories.document_repository import (
     Document,
@@ -60,8 +61,9 @@ def test_search_returns_configured_results(
     """Test search returns the configured responses"""
     # Given
     expected_results = [first_response, second_response]
-    repo = QdrantDocumentRepository.create_nullable(
-        search_responses=[expected_results]
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(search_responses=[expected_results]),
+        encoder=FakeSentenceTransformer(),
     )
     search_query = SearchQuery("test_query")
 
@@ -80,8 +82,9 @@ def test_search_respects_limit_parameter(
     """Test that search limit parameter controls number of results returned"""
     # Given
     all_responses = [first_response, second_response, third_response]
-    repo = QdrantDocumentRepository.create_nullable(
-        search_responses=[all_responses]
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(search_responses=[all_responses]),
+        encoder=FakeSentenceTransformer(),
     )
 
     # When
@@ -99,8 +102,11 @@ def test_multiple_searches_use_sequential_responses(
 ) -> None:
     """Test that multiple searches consume configured responses in order"""
     # Given
-    repo = QdrantDocumentRepository.create_nullable(
-        search_responses=[[first_response], [second_response]]
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(
+            search_responses=[[first_response], [second_response]]
+        ),
+        encoder=FakeSentenceTransformer(),
     )
 
     # When
@@ -118,7 +124,9 @@ def test_multiple_searches_use_sequential_responses(
 def test_store_document_succeeds() -> None:
     """Test that storing a document works without errors"""
     # Given
-    repo = QdrantDocumentRepository.create_nullable()
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
     document = Document(
         id="test_doc_1",
         content="Test document content",
@@ -133,7 +141,9 @@ def test_store_document_succeeds() -> None:
 def test_store_batch_documents_succeeds() -> None:
     """Test that batch storing documents works"""
     # Given
-    repo = QdrantDocumentRepository.create_nullable()
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
     documents = [
         Document(id="doc1", content="Content 1", source="test", metadata={}),
         Document(id="doc2", content="Content 2", source="test", metadata={}),
@@ -147,7 +157,9 @@ def test_store_batch_documents_succeeds() -> None:
 def test_store_batch_with_empty_list() -> None:
     """Test that storing empty list of documents handles gracefully"""
     # Given
-    repo = QdrantDocumentRepository.create_nullable()
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
 
     # When & Then - should not raise an exception
     repo.store_batch([])
@@ -156,7 +168,9 @@ def test_store_batch_with_empty_list() -> None:
 def test_find_by_id_returns_stored_document() -> None:
     """Test that find_by_id can retrieve a stored document"""
     # Given
-    repo = QdrantDocumentRepository.create_nullable()
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
     document = Document(
         id="test_doc_1",
         content="Test content",
@@ -183,7 +197,9 @@ def test_find_by_id_raises_error_for_nonexistent_document() -> None:
         DocumentNotFoundError,
     )
 
-    repo = QdrantDocumentRepository.create_nullable()
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
 
     # When/Then
     with pytest.raises(DocumentNotFoundError) as exc_info:
@@ -197,8 +213,9 @@ def test_exhausting_configured_responses_returns_empty_list(
 ) -> None:
     """Test that using more searches than configured responses returns empty list"""
     # Given - configure only one response
-    repo = QdrantDocumentRepository.create_nullable(
-        search_responses=[[first_response]]
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(search_responses=[[first_response]]),
+        encoder=FakeSentenceTransformer(),
     )
 
     # When - first search should work
@@ -214,27 +231,28 @@ def test_exhausting_configured_responses_returns_empty_list(
     assert second_result == []
 
 
-def test_default_search_responses_when_none_configured() -> None:
-    """Test that QdrantDocumentRepository provides sensible defaults when no search responses are configured"""
-    # Given - create null instance without specifying responses
-    repo = QdrantDocumentRepository.create_nullable()
+def test_empty_search_responses_returns_empty_list() -> None:
+    """Test that exhausting configured responses returns empty list"""
+    # Given - create with no search responses
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
 
     # When
     query = SearchQuery("any query")
     result = repo.find_similar(query)
 
-    # Then - should get the default response
-    assert len(result) == 1
-    assert result[0].document.id == "null_doc_1"
-    assert result[0].relevance_score == 0.95
-    assert result[0].document.content == "Default null content"
-    assert result[0].document.source == "null_source"
+    # Then - should get empty list
+    assert result == []
 
 
 def test_search_with_empty_response_list() -> None:
     """Test behavior when an empty response list is configured"""
     # Given
-    repo = QdrantDocumentRepository.create_nullable(search_responses=[[]])
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(search_responses=[[]]),
+        encoder=FakeSentenceTransformer(),
+    )
 
     # When
     query = SearchQuery("test query")
@@ -246,9 +264,10 @@ def test_search_with_empty_response_list() -> None:
 
 def test_domain_exceptions_are_raised_for_errors() -> None:
     """Test that domain exceptions are raised when infrastructure fails"""
-    # This test would require mocking the client to raise exceptions
-    # For now, we test that the methods exist and can be called
-    repo = QdrantDocumentRepository.create_nullable()
+    # These should not raise exceptions with the fake client
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    )
 
     # These should not raise exceptions with the stubbed client
     document = Document("test", "content", "source", {})
@@ -268,8 +287,9 @@ def test_complete_workflow() -> None:
     search_result1 = SearchResult(doc1, 0.95)
     search_result2 = SearchResult(doc2, 0.85)
 
-    repo = QdrantDocumentRepository.create_nullable(
-        search_responses=[[search_result1, search_result2]]
+    repo = QdrantDocumentRepository(
+        FakeQdrantClient(search_responses=[[search_result1, search_result2]]),
+        encoder=FakeSentenceTransformer(),
     )
 
     # When - store documents

@@ -1,7 +1,7 @@
 import pytest
+from tests.fakes.qdrant_fakes import FakeSentenceTransformer
 
 from addon.infrastructure.persistence.qdrant_repository import (
-    FakeSentenceTransformer,
     QdrantDocumentRepository,
 )
 
@@ -13,7 +13,7 @@ def encoder() -> FakeSentenceTransformer:
     integration tests relatively fast, we will use a fake object that mimic
     SentenceTransformer behavior.
     """
-    return FakeSentenceTransformer("fake")
+    return FakeSentenceTransformer()
 
 
 @pytest.fixture

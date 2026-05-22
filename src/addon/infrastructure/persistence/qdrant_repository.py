@@ -2,7 +2,7 @@ from __future__ import (
     annotations,  # Avoid slow import of torch.Tensor, which is only required for type hint
 )
 
-from typing import TYPE_CHECKING, Any, Optional, Protocol, cast
+from typing import TYPE_CHECKING, Protocol, cast
 
 from ...domain.repositories.document_repository import (
     Document,
@@ -24,68 +24,23 @@ class EmbeddingModel(Protocol):
     def encode(self, text: str) -> list[int]: ...
 
     def get_sentence_embedding_dimension(self) -> int:
-        """Do not remove. This method is required to create a new Qdrant
-        collection.
-        """
+        """Required to create a new Qdrant collection."""
         ...
 
 
-class FakeSentenceTransformer:
-    """Avoids 20+ second library loading overhead caused by SentenceTransformer
-    during test execution.
-    """
-
-    def __init__(self, model_name_or_path: str) -> None:
-        self._embedding = [0, 0, 0, 0, 0, 0, 0]
-        pass
-
-    def encode(self, text: str) -> list[int]:
-        return self._embedding
-
-    def get_sentence_embedding_dimension(self) -> int:
-        return len(self._embedding)
-
-
 class QdrantDocumentRepository(DocumentRepository):
-    """Vector database using Qdrant with Null Object pattern for testability."""
+    """Vector database adapter using Qdrant."""
 
     @staticmethod
     def create(
         encoder: EmbeddingModel,
-    ) -> QdrantDocumentRepository:  # forward reference
+    ) -> QdrantDocumentRepository:
         from qdrant_client import QdrantClient
 
         client = QdrantClient(":memory:")
         repo = QdrantDocumentRepository(client, encoder=encoder)
-        repo._ensure_collection_exists()  # Create collection on startup
+        repo._ensure_collection_exists()
         return repo
-
-    @staticmethod
-    def create_nullable(
-        search_responses: Optional[list[list[SearchResult]]] = None,
-        stored_documents: Optional[list[Document]] = None,
-    ) -> QdrantDocumentRepository:  # forward reference
-        # Create default responses if none provided
-        if search_responses is None:
-            default_doc = Document(
-                id="null_doc_1",
-                content="Default null content",
-                source="null_source",
-                metadata={},
-            )
-            search_responses = [[SearchResult(default_doc, 0.95)]]
-
-        # Loading the encoder model into memory is quite expensive (20+ seconds
-        # on old machines). We are using a Fake implementation, that mimic the
-        # original dependency to bypass this performance drag
-        encoder = FakeSentenceTransformer("fake-embedding-model")
-
-        return QdrantDocumentRepository(
-            QdrantDocumentRepository._StubbedQdrantClient(
-                search_responses, stored_documents or []
-            ),
-            encoder=encoder,
-        )
 
     def __init__(
         self,
@@ -98,17 +53,10 @@ class QdrantDocumentRepository(DocumentRepository):
         self._encoder = encoder
 
     def _ensure_collection_exists(self) -> None:
-        # Skip for stubbed clients (they don't need real collections)
-        if hasattr(self._client, "_search_responses"):
-            return
-
         try:
-            # Try to get collection info
             _ = self._client.get_collection(self._collection_name)
-            # If we get here, collection exists
             return
         except Exception:
-            # Collection doesn't exist, create it
             pass
 
         try:
@@ -122,43 +70,22 @@ class QdrantDocumentRepository(DocumentRepository):
                 ),
             )
         except Exception as e:
-            # Re-raise if we can't create the collection
             raise RuntimeError(
                 f"Failed to create Qdrant collection '{self._collection_name}': {e}"
             )
 
-    def _create_point(
-        self, document: Document
-    ) -> Any:  # returns PointStruct in production, mock object in tests
-        """Adapts between test mode (mock) and production mode (PointStruct)."""
-        if hasattr(self._client, "_search_responses"):
-            # Test mode - simple mock object
-            return type(
-                "MockPoint",
-                (),
-                {
-                    "id": document.id,
-                    "vector": self._vectorize(document.content),
-                    "payload": {
-                        "content": document.content,
-                        "source": document.source,
-                        "metadata": document.metadata,
-                    },
-                },
-            )()
-        else:
-            # Production mode - real PointStruct
-            from qdrant_client.models import PointStruct
+    def _create_point(self, document: Document) -> "PointStruct":
+        from qdrant_client.models import PointStruct
 
-            return PointStruct(
-                id=document.id,
-                vector=cast(list[float], self._vectorize(document.content)),
-                payload={
-                    "content": document.content,
-                    "source": document.source,
-                    "metadata": document.metadata,
-                },
-            )
+        return PointStruct(
+            id=document.id,
+            vector=cast(list[float], self._vectorize(document.content)),
+            payload={
+                "content": document.content,
+                "source": document.source,
+                "metadata": document.metadata,
+            },
+        )
 
     def store(self, document: Document) -> None:
         self._ensure_collection_exists()
@@ -243,68 +170,3 @@ class QdrantDocumentRepository(DocumentRepository):
             source=payload.get("source", ""),
             metadata=payload.get("metadata", {}),
         )
-
-    class _StubbedQdrantClient:
-        """Enables testing without running actual Qdrant server."""
-
-        def __init__(
-            self,
-            search_responses: list[list[SearchResult]],
-            stored_docs: list[Document],
-        ):
-            self._search_responses = search_responses.copy()
-            self._stored_docs = {doc.id: doc for doc in stored_docs}
-            self._points: dict[str, PointStruct] = {}
-
-        def get_collection(self, collection_name: str) -> dict:
-            return {"status": "green"}
-
-        def create_collection(
-            self, collection_name: str, vectors_config
-        ) -> None:
-            pass
-
-        def upsert(
-            self, collection_name: str, points: list[PointStruct]
-        ) -> None:
-            for point in points:
-                self._points[str(point.id)] = point
-
-        def query_points(
-            self, collection_name: str, query: list[float], limit: int
-        ):
-            class MockScoredPoint:
-                def __init__(self, result: SearchResult):
-                    self.id = result.document.id
-                    self.score = result.relevance_score
-                    self.payload = {
-                        "content": result.document.content,
-                        "source": result.document.source,
-                        "metadata": result.document.metadata,
-                    }
-
-            class MockQueryResponse:
-                def __init__(self, points):
-                    self.points = points
-
-            if not self._search_responses:
-                return MockQueryResponse([])
-
-            results = self._search_responses.pop(0)
-
-            mock_points = [MockScoredPoint(r) for r in results[:limit]]
-            return MockQueryResponse(mock_points)
-
-        def retrieve(self, collection_name: str, ids: list[str]) -> list:
-            results = []
-            for doc_id in ids:
-                if doc_id in self._points:
-                    point = self._points[doc_id]
-
-                    class MockPoint:
-                        def __init__(self, point_data):
-                            self.id = point_data.id
-                            self.payload = point_data.payload
-
-                    results.append(MockPoint(point))
-            return results
