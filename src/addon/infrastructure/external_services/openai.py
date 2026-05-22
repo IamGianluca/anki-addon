@@ -39,8 +39,11 @@ class OpenAIClient:
     """
 
     @staticmethod
-    def create(config: AddonConfig) -> OpenAIClient:
-        return OpenAIClient(config, requests)
+    def create(
+        config: AddonConfig,
+        http_client: object | None = None,
+    ) -> OpenAIClient:
+        return OpenAIClient(config, http_client or requests)
 
     def __init__(self, config: AddonConfig, http_client) -> None:
         self._config = config

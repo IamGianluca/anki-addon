@@ -34,10 +34,12 @@ class QdrantDocumentRepository(DocumentRepository):
     @staticmethod
     def create(
         encoder: EmbeddingModel,
+        client: object | None = None,
     ) -> QdrantDocumentRepository:
-        from qdrant_client import QdrantClient
+        if client is None:
+            from qdrant_client import QdrantClient
 
-        client = QdrantClient(":memory:")
+            client = QdrantClient(":memory:")
         repo = QdrantDocumentRepository(client, encoder=encoder)
         repo._ensure_collection_exists()
         return repo

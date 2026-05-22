@@ -61,9 +61,9 @@ def test_search_returns_configured_results(
     """Test search returns the configured responses"""
     # Given
     expected_results = [first_response, second_response]
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(search_responses=[expected_results]),
-        encoder=FakeSentenceTransformer(),
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(search_responses=[expected_results]),
     )
     search_query = SearchQuery("test_query")
 
@@ -82,9 +82,9 @@ def test_search_respects_limit_parameter(
     """Test that search limit parameter controls number of results returned"""
     # Given
     all_responses = [first_response, second_response, third_response]
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(search_responses=[all_responses]),
-        encoder=FakeSentenceTransformer(),
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(search_responses=[all_responses]),
     )
 
     # When
@@ -102,11 +102,11 @@ def test_multiple_searches_use_sequential_responses(
 ) -> None:
     """Test that multiple searches consume configured responses in order"""
     # Given
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(
             search_responses=[[first_response], [second_response]]
         ),
-        encoder=FakeSentenceTransformer(),
     )
 
     # When
@@ -124,8 +124,8 @@ def test_multiple_searches_use_sequential_responses(
 def test_store_document_succeeds() -> None:
     """Test that storing a document works without errors"""
     # Given
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
     document = Document(
         id="test_doc_1",
@@ -141,8 +141,8 @@ def test_store_document_succeeds() -> None:
 def test_store_batch_documents_succeeds() -> None:
     """Test that batch storing documents works"""
     # Given
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
     documents = [
         Document(id="doc1", content="Content 1", source="test", metadata={}),
@@ -157,8 +157,8 @@ def test_store_batch_documents_succeeds() -> None:
 def test_store_batch_with_empty_list() -> None:
     """Test that storing empty list of documents handles gracefully"""
     # Given
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
 
     # When & Then - should not raise an exception
@@ -168,8 +168,8 @@ def test_store_batch_with_empty_list() -> None:
 def test_find_by_id_returns_stored_document() -> None:
     """Test that find_by_id can retrieve a stored document"""
     # Given
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
     document = Document(
         id="test_doc_1",
@@ -197,8 +197,8 @@ def test_find_by_id_raises_error_for_nonexistent_document() -> None:
         DocumentNotFoundError,
     )
 
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
 
     # When/Then
@@ -213,9 +213,9 @@ def test_exhausting_configured_responses_returns_empty_list(
 ) -> None:
     """Test that using more searches than configured responses returns empty list"""
     # Given - configure only one response
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(search_responses=[[first_response]]),
-        encoder=FakeSentenceTransformer(),
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(search_responses=[[first_response]]),
     )
 
     # When - first search should work
@@ -234,8 +234,8 @@ def test_exhausting_configured_responses_returns_empty_list(
 def test_empty_search_responses_returns_empty_list() -> None:
     """Test that exhausting configured responses returns empty list"""
     # Given - create with no search responses
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
 
     # When
@@ -249,9 +249,9 @@ def test_empty_search_responses_returns_empty_list() -> None:
 def test_search_with_empty_response_list() -> None:
     """Test behavior when an empty response list is configured"""
     # Given
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(search_responses=[[]]),
-        encoder=FakeSentenceTransformer(),
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(search_responses=[[]]),
     )
 
     # When
@@ -265,11 +265,11 @@ def test_search_with_empty_response_list() -> None:
 def test_domain_exceptions_are_raised_for_errors() -> None:
     """Test that domain exceptions are raised when infrastructure fails"""
     # These should not raise exceptions with the fake client
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(), encoder=FakeSentenceTransformer()
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(), client=FakeQdrantClient()
     )
 
-    # These should not raise exceptions with the stubbed client
+    # These should not raise exceptions with the fake client
     document = Document("test", "content", "source", {})
     repo.store(document)
 
@@ -287,9 +287,11 @@ def test_complete_workflow() -> None:
     search_result1 = SearchResult(doc1, 0.95)
     search_result2 = SearchResult(doc2, 0.85)
 
-    repo = QdrantDocumentRepository(
-        FakeQdrantClient(search_responses=[[search_result1, search_result2]]),
-        encoder=FakeSentenceTransformer(),
+    repo = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(
+            search_responses=[[search_result1, search_result2]]
+        ),
     )
 
     # When - store documents

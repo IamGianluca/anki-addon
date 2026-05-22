@@ -1,4 +1,4 @@
-from addon.infrastructure.protocols import AddonManagerAPI
+from addon.infrastructure.protocols import ConfigProvider
 
 
 class FakeMainWindow:
@@ -6,7 +6,7 @@ class FakeMainWindow:
         self.col = collection
 
 
-class FakeAddonManager(AddonManagerAPI):
+class FakeAddonManager(ConfigProvider):
     def __init__(self, config: dict):
         self._config = config
 

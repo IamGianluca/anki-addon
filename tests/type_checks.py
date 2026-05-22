@@ -10,10 +10,10 @@ Note: ty does not resolve `__new__` return types correctly, so use mypy here.
 from aqt.addons import AddonManager
 from tests.fakes.aqt_fakes import FakeAddonManager
 
-from addon.infrastructure.protocols import AddonManagerAPI
+from addon.infrastructure.protocols import ConfigProvider
 
 
-def _accept_protocol(_obj: AddonManagerAPI) -> None:
+def _accept_protocol(_obj: ConfigProvider) -> None:
     """Type-checking helper — verifies structural Protocol compliance."""
 
 

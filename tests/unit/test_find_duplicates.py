@@ -20,8 +20,9 @@ def test_find_possible_duplicate_notes_given_a_new_note(
     addon_note2: AddonNote,
 ) -> None:
     # Given
-    repository = QdrantDocumentRepository(
-        FakeQdrantClient(
+    repository = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(
             search_responses=[
                 [
                     SearchResult(
@@ -37,7 +38,6 @@ def test_find_possible_duplicate_notes_given_a_new_note(
                 ]
             ]
         ),
-        encoder=FakeSentenceTransformer(),
     )
 
     finder = SimilarNoteFinder(
@@ -61,9 +61,9 @@ def test_find_duplicates_returns_empty_when_no_similar_notes(
     # Test the case where the collection exists but contains no documents.
     # This simulates a valid but empty vector database - we expect the finder
     # to gracefully return an empty list rather than raise an error.
-    repository = QdrantDocumentRepository(
-        FakeQdrantClient(search_responses=[[]]),
-        encoder=FakeSentenceTransformer(),
+    repository = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(search_responses=[[]]),
     )
     finder = SimilarNoteFinder(
         collection=addon_collection, repository=repository
@@ -84,8 +84,9 @@ def test_find_duplicates_respects_max_results(
     addon_note3: AddonNote,
 ) -> None:
     # Given - return 3 results but finder should only return the most similar
-    repository = QdrantDocumentRepository(
-        FakeQdrantClient(
+    repository = QdrantDocumentRepository.create(
+        FakeSentenceTransformer(),
+        client=FakeQdrantClient(
             search_responses=[
                 [
                     SearchResult(
@@ -100,7 +101,6 @@ def test_find_duplicates_respects_max_results(
                 ]
             ]
         ),
-        encoder=FakeSentenceTransformer(),
     )
     finder = SimilarNoteFinder(
         collection=addon_collection, repository=repository

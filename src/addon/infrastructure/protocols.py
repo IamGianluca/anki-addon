@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Any, Protocol
 
 
-class AddonManagerAPI(Protocol):
-    """Minimal Anki AddonManager contract our addon needs."""
+class ConfigProvider(Protocol):
+    """Minimal contract for reading addon configuration from Anki's addon manager."""
 
     def getConfig(self, module: str) -> dict[str, Any] | None: ...
