@@ -17,6 +17,6 @@ def get_formatter() -> NoteFormatter:
     from aqt import mw
 
     config = AddonConfig.create(mw.addonManager)
-    client = OpenAIClient.create(config)
+    client = OpenAIClient(config)
     _cached_formatter = NoteFormatter(client)
     return _cached_formatter

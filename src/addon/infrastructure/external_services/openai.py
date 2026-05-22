@@ -1,28 +1,24 @@
 from __future__ import annotations
 
 import re
-from typing import Protocol, Union
+from typing import Union
 
 import requests
 import requests.exceptions
 
 from ...infrastructure.configuration.settings import AddonConfig
+from ...infrastructure.protocols import HttpClient
 
 _REMOVE_MARKDOWN_FENCE_RE = re.compile(
     r"^```(?:\w+)?\n?(.*?)\n?```$", re.DOTALL
 )
 
 
-class HttpResponse(Protocol):
-    """Minimal response contract that OpenAIClient needs from an HTTP client."""
+class RequestsHttpClient:
+    """Adapter that wraps the requests library to implement HttpClient."""
 
-    @property
-    def status_code(self) -> int: ...
-
-    def json(self) -> dict: ...
-
-    @property
-    def text(self) -> str: ...
+    def post(self, url: str, json: dict | None = None) -> requests.Response:
+        return requests.post(url, json=json)
 
 
 class OpenAIClient:
@@ -38,16 +34,13 @@ class OpenAIClient:
     Implements LLMClient protocol.
     """
 
-    @staticmethod
-    def create(
+    def __init__(
+        self,
         config: AddonConfig,
-        http_client: object | None = None,
-    ) -> OpenAIClient:
-        return OpenAIClient(config, http_client or requests)
-
-    def __init__(self, config: AddonConfig, http_client) -> None:
+        http_client: HttpClient | None = None,
+    ) -> None:
         self._config = config
-        self._http_client = http_client
+        self._http_client = http_client or RequestsHttpClient()
         self._is_chat_completion = "chat/completions" in config.url
         self.last_reasoning_content: str | None = None
 

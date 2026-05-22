@@ -33,7 +33,7 @@ def test_builds_chat_payload() -> None:
     # Given
     http = FakeHttpClient()
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     client.run([{"role": "user", "content": "hi"}])
@@ -49,7 +49,7 @@ def test_builds_completions_payload() -> None:
     body = {"choices": [{"text": "hello world"}]}
     http = FakeHttpClient(json_body=body)
     config = _create_config({"openai_mode": "v1/completions"})
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     client.run("hello world")
@@ -64,7 +64,7 @@ def test_disables_thinking_when_reasoning_off() -> None:
     http = FakeHttpClient()
     # reasoning defaults to False when key is absent
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     client.run([{"role": "user", "content": "hi"}])
@@ -82,7 +82,7 @@ def test_preserves_thinking_when_configured() -> None:
     config = _create_config(
         {"openai_reasoning": "true", "openai_preserve_thinking": "true"}
     )
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     client.run([{"role": "user", "content": "hi"}])
@@ -104,7 +104,7 @@ def test_includes_optional_sampling_params() -> None:
             "openai_min_p": "0.05",
         }
     )
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     client.run([{"role": "user", "content": "hi"}])
@@ -120,7 +120,7 @@ def test_forwards_extra_kwargs() -> None:
     # Given
     http = FakeHttpClient()
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
     schema = {"type": "object", "properties": {}}
 
     # When
@@ -145,7 +145,7 @@ def test_returns_content_from_chat_response() -> None:
     body = {"choices": [{"message": {"content": "hello world"}}]}
     http = FakeHttpClient(json_body=body)
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     result = client.run([{"role": "user", "content": "hi"}])
@@ -161,7 +161,7 @@ def test_strips_markdown_fences() -> None:
     }
     http = FakeHttpClient(json_body=body)
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     result = client.run([{"role": "user", "content": "hi"}])
@@ -184,7 +184,7 @@ def test_captures_reasoning_content() -> None:
     }
     http = FakeHttpClient(json_body=body)
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When
     client.run([{"role": "user", "content": "hi"}])
@@ -203,7 +203,7 @@ def test_raises_on_connection_error() -> None:
             raise requests.exceptions.ConnectionError("refused")
 
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=FailingHttpClient())
+    client = OpenAIClient(config, http_client=FailingHttpClient())
 
     # When / Then
     with pytest.raises(ConnectionError, match="Cannot reach LLM server"):
@@ -215,7 +215,7 @@ def test_raises_on_non_200_response() -> None:
     body = {"error": {"message": "model not found"}}
     http = FakeHttpClient(status_code=404, json_body=body)
     config = _create_config()
-    client = OpenAIClient.create(config, http_client=http)
+    client = OpenAIClient(config, http_client=http)
 
     # When / Then
     with pytest.raises(RuntimeError, match="LLM server returned error 404"):

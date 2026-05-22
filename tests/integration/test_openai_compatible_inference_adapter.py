@@ -29,7 +29,7 @@ def fast_addon_config() -> AddonConfig:
 @pytest.mark.slow
 def test_openai(fast_addon_config: AddonConfig) -> None:
     # Given
-    openai_client = OpenAIClient.create(fast_addon_config)
+    openai_client = OpenAIClient(fast_addon_config)
     prompt = [
         {
             "role": "user",
@@ -50,7 +50,7 @@ def test_openai_with_json_schema_validation(
 ) -> None:
     """Test that OpenAI client can accept and use JSON schema to restrict output."""
     # Given
-    openai_client = OpenAIClient.create(fast_addon_config)
+    openai_client = OpenAIClient(fast_addon_config)
 
     person_schema = {
         "type": "object",

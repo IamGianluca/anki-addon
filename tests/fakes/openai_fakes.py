@@ -12,7 +12,7 @@ Two fakes at different levels:
 from __future__ import annotations
 
 from addon.application.protocols import LLMClient
-from addon.infrastructure.external_services.openai import HttpResponse
+from addon.infrastructure.protocols import HttpClient, HttpResponse
 
 
 class FakeLLMClient(LLMClient):
@@ -34,11 +34,10 @@ class FakeLLMClient(LLMClient):
         return self.responses.pop(0)
 
 
-class FakeHttpClient:
+class FakeHttpClient(HttpClient):
     """Fake HTTP client for adapter-level tests.
 
-    Implements the minimal interface that OpenAIClient needs from `requests`:
-    post(url, json) -> response with status_code and json().
+    Implements the HttpClient port, recording calls for verification.
     """
 
     def __init__(
@@ -53,7 +52,7 @@ class FakeHttpClient:
             "choices": [{"message": {"content": "ok"}}],
         }
 
-    def post(self, url: str, json: dict | None = None) -> "FakeResponse":
+    def post(self, url: str, json: dict | None = None) -> FakeResponse:
         self.last_url = url
         self.last_payload = json
         return FakeResponse(self._status_code, self._json_body)

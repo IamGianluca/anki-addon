@@ -14,3 +14,24 @@ class ConfigProvider(Protocol):
     """Minimal contract for reading addon configuration from Anki's addon manager."""
 
     def getConfig(self, module: str) -> dict[str, Any] | None: ...
+
+
+class HttpResponse(Protocol):
+    """Minimal response contract that HTTP clients must produce."""
+
+    @property
+    def status_code(self) -> int: ...
+
+    def json(self) -> dict: ...
+
+    @property
+    def text(self) -> str: ...
+
+
+class HttpClient(Protocol):
+    """Minimal HTTP client contract for making POST requests.
+
+    Both real adapters (requests, httpx) and test fakes implement this port.
+    """
+
+    def post(self, url: str, json: dict | None = None) -> HttpResponse: ...
