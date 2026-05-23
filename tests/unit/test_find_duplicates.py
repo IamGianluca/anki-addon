@@ -1,3 +1,4 @@
+from tests.fakes.domain_fakes import FakeDocumentRepository
 from tests.fakes.qdrant_fakes import FakeQdrantClient, FakeSentenceTransformer
 
 from addon.application.use_cases.note_duplicate_finder import (
@@ -5,13 +6,25 @@ from addon.application.use_cases.note_duplicate_finder import (
 )
 from addon.domain.entities.note import AddonCollection, AddonNote
 from addon.domain.repositories.document_repository import (
-    FakeDocumentRepository,
-    SearchResult,
     convert_addon_note_to_document,
 )
 from addon.infrastructure.persistence.qdrant_repository import (
     QdrantDocumentRepository,
 )
+
+
+def _point_from_note(note: AddonNote, score: float) -> dict:
+    """Build a mock scored point from an AddonNote."""
+    doc = convert_addon_note_to_document(note)
+    return {
+        "id": doc.id,
+        "score": score,
+        "payload": {
+            "content": doc.content,
+            "source": doc.source,
+            "metadata": doc.metadata,
+        },
+    }
 
 
 def test_find_possible_duplicate_notes_given_a_new_note(
@@ -20,21 +33,15 @@ def test_find_possible_duplicate_notes_given_a_new_note(
     addon_note2: AddonNote,
 ) -> None:
     # Given
-    repository = QdrantDocumentRepository.create(
+    repository = QdrantDocumentRepository(
         FakeSentenceTransformer(),
         client=FakeQdrantClient(
             search_responses=[
                 [
-                    SearchResult(
-                        document=convert_addon_note_to_document(addon_note2),
-                        relevance_score=0.98,
-                    ),
-                    # This result should be skipped because SimilarNoteFinder only return
+                    _point_from_note(addon_note2, 0.98),
+                    # This result should be skipped because SimilarNoteFinder only returns
                     # the most similar note for now
-                    SearchResult(
-                        document=convert_addon_note_to_document(addon_note1),
-                        relevance_score=0.92,
-                    ),
+                    _point_from_note(addon_note1, 0.92),
                 ]
             ]
         ),
@@ -61,7 +68,7 @@ def test_find_duplicates_returns_empty_when_no_similar_notes(
     # Test the case where the collection exists but contains no documents.
     # This simulates a valid but empty vector database - we expect the finder
     # to gracefully return an empty list rather than raise an error.
-    repository = QdrantDocumentRepository.create(
+    repository = QdrantDocumentRepository(
         FakeSentenceTransformer(),
         client=FakeQdrantClient(search_responses=[[]]),
     )
@@ -84,20 +91,14 @@ def test_find_duplicates_respects_max_results(
     addon_note3: AddonNote,
 ) -> None:
     # Given - return 3 results but finder should only return the most similar
-    repository = QdrantDocumentRepository.create(
+    repository = QdrantDocumentRepository(
         FakeSentenceTransformer(),
         client=FakeQdrantClient(
             search_responses=[
                 [
-                    SearchResult(
-                        convert_addon_note_to_document(addon_note1), 0.99
-                    ),
-                    SearchResult(
-                        convert_addon_note_to_document(addon_note2), 0.95
-                    ),
-                    SearchResult(
-                        convert_addon_note_to_document(addon_note3), 0.90
-                    ),
+                    _point_from_note(addon_note1, 0.99),
+                    _point_from_note(addon_note2, 0.95),
+                    _point_from_note(addon_note3, 0.90),
                 ]
             ]
         ),

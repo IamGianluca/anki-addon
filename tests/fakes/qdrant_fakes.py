@@ -10,13 +10,12 @@ Two fakes at different levels:
 
 from __future__ import annotations
 
-from addon.domain.repositories.document_repository import (
-    Document,
-    SearchResult,
-)
+from typing import Any
+
+from addon.infrastructure.protocols import EmbeddingModel, QdrantDriver
 
 
-class FakeSentenceTransformer:
+class FakeSentenceTransformer(EmbeddingModel):
     """Fake embedding model for tests.
 
     Returns a fixed 7-dimensional embedding regardless of input.
@@ -32,46 +31,56 @@ class FakeSentenceTransformer:
         return len(self._embedding)
 
 
-class FakeQdrantClient:
+class FakeQdrantClient(QdrantDriver):
     """Fake Qdrant client for unit tests.
 
-    Accepts pre-configured search responses and tracks stored documents.
+    Accepts pre-configured search responses (as mock point dicts) and tracks
+    stored documents.
     """
 
     def __init__(
         self,
-        search_responses: list[list[SearchResult]] | None = None,
-        stored_documents: list[Document] | None = None,
+        search_responses: list[list[dict[str, Any]]] | None = None,
+        stored_documents: list[object] | None = None,
     ) -> None:
         self._search_responses = (search_responses or []).copy()
-        self._stored_docs = {doc.id: doc for doc in stored_documents or []}
+        self._stored_docs: dict[str, object] = {}
+        if stored_documents:
+            self._stored_docs = {doc.id: doc for doc in stored_documents}
         self._points: dict[str, _MockPoint] = {}
 
-    def get_collection(self, collection_name: str) -> dict:
+    def get_collection(self, collection_name: str, **kwargs: object) -> dict:
         return {"status": "green"}
 
     def create_collection(
-        self, collection_name: str, vectors_config: object
+        self, collection_name: str, vectors_config: object, **kwargs: object
     ) -> None:
         pass
 
-    def upsert(self, collection_name: str, points: list[object]) -> None:
-        for point in points:
+    def upsert(
+        self, collection_name: str, points: object, **kwargs: object
+    ) -> None:
+        for point in points:  # type: ignore[misc]
             self._points[str(point.id)] = _MockPoint(
                 id=point.id, payload=point.payload
             )
 
     def query_points(
-        self, collection_name: str, query: list[float], limit: int
+        self, collection_name: str, query: object, limit: int, **kwargs: object
     ) -> _MockQueryResponse:
         if not self._search_responses:
             return _MockQueryResponse([])
 
         results = self._search_responses.pop(0)
-        mock_points = [_MockScoredPoint(r) for r in results[:limit]]
+        mock_points = [
+            _MockScoredPoint(p["id"], p["score"], p["payload"])
+            for p in results[:limit]
+        ]
         return _MockQueryResponse(mock_points)
 
-    def retrieve(self, collection_name: str, ids: list[str]) -> list:
+    def retrieve(
+        self, collection_name: str, ids: list[str], **kwargs: object
+    ) -> list[object]:
         return [
             self._points[doc_id] for doc_id in ids if doc_id in self._points
         ]
@@ -88,14 +97,10 @@ class _MockPoint:
 class _MockScoredPoint:
     """Minimal ScoredPoint stand-in for query results."""
 
-    def __init__(self, result: SearchResult) -> None:
-        self.id = result.document.id
-        self.score = result.relevance_score
-        self.payload = {
-            "content": result.document.content,
-            "source": result.document.source,
-            "metadata": result.document.metadata,
-        }
+    def __init__(self, id: str, score: float, payload: dict) -> None:
+        self.id = id
+        self.score = score
+        self.payload = payload
 
 
 class _MockQueryResponse:

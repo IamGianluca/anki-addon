@@ -18,5 +18,15 @@ def encoder() -> FakeSentenceTransformer:
 
 @pytest.fixture
 def repo(encoder) -> QdrantDocumentRepository:
-    repo = QdrantDocumentRepository.create(encoder)
-    return repo
+    from qdrant_client import QdrantClient
+    from qdrant_client.models import Distance, VectorParams
+
+    client = QdrantClient(":memory:")
+    client.create_collection(
+        collection_name="docs",
+        vectors_config=VectorParams(
+            size=encoder.get_sentence_embedding_dimension(),
+            distance=Distance.DOT,
+        ),
+    )
+    return QdrantDocumentRepository(encoder, client=client)

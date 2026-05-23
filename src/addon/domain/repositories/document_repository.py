@@ -90,24 +90,6 @@ class DocumentRepository(Protocol):
         ...
 
 
-class FakeDocumentRepository:
-    def __init__(self):
-        self.captured_queries = []
-
-    def store(self, document: Document) -> None:
-        pass
-
-    def store_batch(self, documents: list[Document]) -> None:
-        pass
-
-    def find_similar(self, query: SearchQuery) -> list[SearchResult]:
-        self.captured_queries.append(query.text)
-        return []
-
-    def find_by_id(self, doc_id: str) -> Document:
-        raise DocumentNotFoundError(f"Document with id '{doc_id}' not found")
-
-
 def convert_addon_note_to_document(note: AddonNote) -> Document:
     """Combines front/back/tags into searchable content; preserves original in metadata."""
     tags = ""

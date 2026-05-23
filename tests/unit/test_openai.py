@@ -13,6 +13,7 @@ from tests.fakes.openai_fakes import FakeHttpClient
 
 from addon.infrastructure.configuration.settings import AddonConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
+from addon.infrastructure.protocols import HttpClient
 
 
 def _create_config(overrides: dict | None = None) -> AddonConfig:
@@ -198,7 +199,7 @@ def test_captures_reasoning_content() -> None:
 
 def test_raises_on_connection_error() -> None:
     # Given
-    class FailingHttpClient:
+    class FailingHttpClient(HttpClient):
         def post(self, url, json=None):
             raise requests.exceptions.ConnectionError("refused")
 
