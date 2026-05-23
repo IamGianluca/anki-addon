@@ -23,7 +23,7 @@ def _create_config(overrides: dict | None = None) -> AddonConfig:
         "openai_model": "test-model",
     }
     base.update(overrides or {})
-    return AddonConfig.create(FakeAddonManager(base))
+    return AddonConfig(FakeAddonManager(base))
 
 
 # --- Payload construction ---

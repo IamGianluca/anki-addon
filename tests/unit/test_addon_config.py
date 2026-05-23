@@ -18,7 +18,7 @@ def test_reads_required_parameters_from_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.url == "http://localhost:8000/v1/chat/completions"
@@ -37,7 +37,7 @@ def test_defaults_temperature_when_not_in_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.temperature == 0.0
@@ -55,7 +55,7 @@ def test_reads_max_tokens_from_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.max_tokens == 200
@@ -72,7 +72,7 @@ def test_defaults_max_tokens_when_not_in_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.max_tokens == 200
@@ -90,7 +90,7 @@ def test_reads_optional_top_p_from_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.top_p == 0.8
@@ -108,7 +108,7 @@ def test_reads_optional_top_k_from_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.top_k == 20
@@ -126,7 +126,7 @@ def test_reads_optional_min_p_from_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.min_p == 0.05
@@ -143,7 +143,7 @@ def test_optional_parameters_are_none_when_not_in_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.top_p is None
@@ -167,7 +167,7 @@ def test_reads_all_parameters_from_anki_config() -> None:
     )
 
     # When
-    config = AddonConfig.create(addon_manager)
+    config = AddonConfig(addon_manager)
 
     # Then
     assert config.url == "http://localhost:8000/v1/chat/completions"
@@ -196,7 +196,7 @@ def test_raises_value_error_when_required_params_missing(
 
     # When / Then
     with pytest.raises(ValueError) as exc_info:
-        AddonConfig.create(addon_manager)
+        AddonConfig(addon_manager)
 
     error_msg = str(exc_info.value)
     for key in expected_missing:

@@ -58,7 +58,7 @@ def addon_collection(addon_note1, addon_note2, addon_note3) -> AddonCollection:
 
 @pytest.fixture
 def addon_config() -> AddonConfig:
-    return AddonConfig.create(
+    return AddonConfig(
         FakeAddonManager(
             {
                 "openai_host": "localhost",

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from ...utils import ensure_config
 from ..protocols import ConfigProvider
 
 
@@ -30,47 +29,42 @@ class AddonConfig:
             (optional, for models like Qwen3.6 with thinking mode).
     """
 
-    @staticmethod
-    def create(config_provider: ConfigProvider) -> AddonConfig:
-        c: dict = ensure_config(config_provider.getConfig("anki-addon"))
-        config = dict()
-        config["host"] = c.get("openai_host")
-        config["port"] = c.get("openai_port")
-        config["mode"] = c.get("openai_mode", "v1/chat/completions")
-        config["model_name"] = c.get("openai_model")
-        config["temperature"] = c.get("openai_temperature", 0.0)
-        config["max_tokens"] = c.get("openai_max_tokens", 200)
+    def __init__(self, config_provider: ConfigProvider) -> None:
+        raw = config_provider.getConfig("anki-addon")
+        if raw is None:
+            raise RuntimeError("Addon config not initialized")
 
-        # These parameters are optional, and needed only for certain LLMs
-        if top_p := c.get("openai_top_p"):
-            config["top_p"] = float(top_p)
-        if top_k := c.get("openai_top_k"):
-            config["top_k"] = int(top_k)
-        if min_p := c.get("openai_min_p"):
-            config["min_p"] = float(min_p)
-        config["reasoning"] = bool(c.get("openai_reasoning", False))
-        config["preserve_thinking"] = bool(
-            c.get("openai_preserve_thinking", False)
-        )
-        return AddonConfig(config)
+        host = raw.get("openai_host")
+        port = raw.get("openai_port")
+        model_name = raw.get("openai_model")
 
-    def __init__(self, config) -> None:
         missing = [
             key
-            for key in ("host", "port", "model_name")
-            if not config.get(key)
+            for key, value in zip(
+                ("host", "port", "model_name"), (host, port, model_name)
+            )
+            if not value
         ]
         if missing:
             raise ValueError(f"Missing required config: {', '.join(missing)}")
 
-        self.url = f"http://{config['host']}:{config['port']}/{config['mode']}"
-        self.model_name = config["model_name"]
-        self.temperature = float(config["temperature"])
-        self.max_tokens = int(config.get("max_tokens", 500))
+        mode = raw.get("openai_mode", "v1/chat/completions")
+        self.url = f"http://{host}:{port}/{mode}"
+        self.model_name = model_name
+        self.temperature = float(raw.get("openai_temperature", 0.0))
+        self.max_tokens = int(raw.get("openai_max_tokens", 200))
 
         # Optional LLM parameters
-        self.top_p = config.get("top_p")
-        self.top_k = config.get("top_k")
-        self.min_p = config.get("min_p")
-        self.reasoning = bool(config.get("reasoning", False))
-        self.preserve_thinking = bool(config.get("preserve_thinking", False))
+        self.top_p = (
+            float(raw["openai_top_p"]) if raw.get("openai_top_p") else None
+        )
+        self.top_k = (
+            int(raw["openai_top_k"]) if raw.get("openai_top_k") else None
+        )
+        self.min_p = (
+            float(raw["openai_min_p"]) if raw.get("openai_min_p") else None
+        )
+        self.reasoning = bool(raw.get("openai_reasoning", False))
+        self.preserve_thinking = bool(
+            raw.get("openai_preserve_thinking", False)
+        )

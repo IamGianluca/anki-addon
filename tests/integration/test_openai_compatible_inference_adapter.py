@@ -15,7 +15,7 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 def fast_addon_config() -> AddonConfig:
     """Config for integration tests: reads server address from env vars,
     reasoning disabled to save tokens/time."""
-    return AddonConfig.create(
+    return AddonConfig(
         FakeAddonManager(
             {
                 "openai_host": os.environ["OPENAI_HOST"],
