@@ -50,6 +50,7 @@ def test_find_possible_duplicate_notes_given_a_new_note(
     finder = SimilarNoteFinder(
         collection=addon_collection, repository=repository
     )
+    finder.load_collection()
     note = AddonNote(front="two", back="two")
 
     # When
@@ -75,6 +76,7 @@ def test_find_duplicates_returns_empty_when_no_similar_notes(
     finder = SimilarNoteFinder(
         collection=addon_collection, repository=repository
     )
+    finder.load_collection()
     note = AddonNote(front="unique", back="content")
 
     # When
@@ -106,6 +108,7 @@ def test_find_duplicates_respects_max_results(
     finder = SimilarNoteFinder(
         collection=addon_collection, repository=repository
     )
+    finder.load_collection()
 
     # When
     result = finder.find_duplicates(note=AddonNote(front="test", back="test"))
@@ -123,6 +126,7 @@ def test_find_duplicates_joins_tags_with_spaces(
     finder = SimilarNoteFinder(
         collection=addon_collection, repository=repository
     )
+    finder.load_collection()
 
     # When - search with multiple tags
     note = AddonNote(

@@ -17,10 +17,9 @@ class SimilarNoteFinder:
     search. It bridges the gap between domain entities (AddonNote/AddonCollection)
     and infrastructure concerns (document repository and vector storage).
 
-    The service initializes by bulk-loading all notes from a collection into
-    the vector database, then provides similarity search functionality to find
-    potential duplicates based on semantic content rather than exact text matching.
-    This enables detection of duplicates even when wording differs slightly.
+    After construction, callers must explicitly invoke `load_collection()` to
+    bulk-load the reference notes into the vector database before searching.
+    Construction itself has no side effects.
 
     Key responsibilities:
     - Converting domain entities to searchable document representations
@@ -43,10 +42,15 @@ class SimilarNoteFinder:
         self._collection = collection
         self._repository = repository
 
-        # Load notes in repository
-        documents = []
-        for note in self._collection:
-            documents.append(convert_addon_note_to_document(note))
+    def load_collection(self) -> None:
+        """Bulk-load all notes from the collection into the repository.
+
+        Must be called before `find_duplicates()` if the repository needs
+        to be populated. Calling it multiple times re-loads from scratch.
+        """
+        documents = [
+            convert_addon_note_to_document(note) for note in self._collection
+        ]
         self._repository.store_batch(documents)
 
     def find_duplicates(self, note: AddonNote) -> list[AddonNote]:
