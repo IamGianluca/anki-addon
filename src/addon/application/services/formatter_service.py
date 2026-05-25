@@ -17,8 +17,8 @@ if TYPE_CHECKING:
     from jinja2 import Template
 
 
-class AnkiNoteAdapter:
-    """Adapter between Anki's Note object and AddonNote domain entity."""
+class AnkiNoteMapper:
+    """Maps between Anki's Note object and AddonNote domain entity."""
 
     @staticmethod
     def to_addon_note(note: Note) -> AddonNote:

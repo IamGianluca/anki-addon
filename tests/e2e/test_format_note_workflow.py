@@ -5,7 +5,7 @@ from tests.fakes.aqt_fakes import FakeCollection, FakeMainWindow
 from tests.fakes.openai_fakes import FakeLLMClient
 
 from addon.application.services.formatter_service import (
-    AnkiNoteAdapter,
+    AnkiNoteMapper,
     NoteFormatter,
 )
 from addon.infrastructure.ui.editor import EditorDialog
@@ -42,9 +42,9 @@ def test_complete_format_workflow_for_basic_note(
     # Get current note and format it
     current_note = editor_dialog.current_note()
     original_front = current_note["Front"]
-    addon_note = AnkiNoteAdapter.to_addon_note(current_note)
+    addon_note = AnkiNoteMapper.to_addon_note(current_note)
     formatted_addon_note = formatter.format(addon_note)
-    formatted_note = AnkiNoteAdapter.merge_addon_changes(
+    formatted_note = AnkiNoteMapper.merge_addon_changes(
         current_note, formatted_addon_note
     )
 
@@ -98,9 +98,9 @@ def test_complete_format_workflow_for_cloze_note(
 
     assert current_note.id == 4  # Verify we found the cloze note
 
-    addon_note = AnkiNoteAdapter.to_addon_note(current_note)
+    addon_note = AnkiNoteMapper.to_addon_note(current_note)
     formatted_addon_note = formatter.format(addon_note)
-    formatted_note = AnkiNoteAdapter.merge_addon_changes(
+    formatted_note = AnkiNoteMapper.merge_addon_changes(
         current_note, formatted_addon_note
     )
     editor_dialog.strip_orange_flag(formatted_note)
@@ -137,9 +137,9 @@ def test_format_workflow_preserves_note_on_skip(
     original_back = current_note["Back"]
 
     # When: Format note but then restore (user changed their mind)
-    addon_note = AnkiNoteAdapter.to_addon_note(current_note)
+    addon_note = AnkiNoteMapper.to_addon_note(current_note)
     formatted_addon_note = formatter.format(addon_note)
-    formatted_note = AnkiNoteAdapter.merge_addon_changes(
+    formatted_note = AnkiNoteMapper.merge_addon_changes(
         current_note, formatted_addon_note
     )
     assert formatted_note["Front"] == "Changed"  # Verify it was changed

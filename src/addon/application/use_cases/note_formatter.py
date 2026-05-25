@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ...application.services.formatter_service import AnkiNoteAdapter
+from ...application.services.formatter_service import AnkiNoteMapper
 from ...infrastructure.persistence.training_dataset import (
     create_training_dataset,
 )
@@ -173,14 +173,14 @@ def on_custom_action(editor: Editor) -> None:
     note = ensure_note(editor.note)
 
     # Convert to domain model
-    original_addon_note = AnkiNoteAdapter.to_addon_note(note)
+    original_addon_note = AnkiNoteMapper.to_addon_note(note)
 
     # Format using pure domain logic (formatter is a session-level singleton)
     formatter = get_formatter()
     formatted_addon_note = formatter.format(original_addon_note)
 
     # Temporarily merge changes into note for preview
-    note = AnkiNoteAdapter.merge_addon_changes(note, formatted_addon_note)
+    note = AnkiNoteMapper.merge_addon_changes(note, formatted_addon_note)
     editor.loadNote()
 
     # Ask the user if they want to keep the changes
@@ -190,5 +190,5 @@ def on_custom_action(editor: Editor) -> None:
         tooltip("Changes applied")
     else:
         # User rejected changes, restore by merging original AddonNote back
-        note = AnkiNoteAdapter.merge_addon_changes(note, original_addon_note)
+        note = AnkiNoteMapper.merge_addon_changes(note, original_addon_note)
         editor.loadNote()
