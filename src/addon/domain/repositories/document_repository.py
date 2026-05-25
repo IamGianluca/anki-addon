@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import dataclass
 from typing import Any, Protocol
 from uuid import uuid4
@@ -99,7 +100,7 @@ def convert_addon_note_to_document(note: AddonNote) -> Document:
         id=str(uuid4()),
         content=f"{note.front} {note.back} {tags}",
         source="",
-        metadata=note.__dict__,
+        metadata=dataclasses.asdict(note),
     )
 
 

@@ -1,5 +1,7 @@
 from typing import Optional
 
+import dataclasses
+
 import pytest
 
 from addon.domain.entities.note import AddonNote, AddonNoteType
@@ -45,13 +47,13 @@ def test_convert_addon_note_to_document_and_back(
     doc = convert_addon_note_to_document(addon_note1)
 
     # Then
-    assert doc.metadata == addon_note1.__dict__
+    assert doc.metadata == dataclasses.asdict(addon_note1)
 
     # When
     note = convert_document_to_addon_note(doc)
 
     # Then
-    for attr, val in addon_note1.__dict__.items():
+    for attr, val in dataclasses.asdict(addon_note1).items():
         assert getattr(note, attr) == val
 
 
