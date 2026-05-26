@@ -31,7 +31,7 @@ class OpenAIClient:
     domain-specific exceptions with helpful error messages for debugging
     server connectivity issues.
 
-    Implements LLMClient protocol.
+    Implements CompletionProvider protocol.
     """
 
     def __init__(

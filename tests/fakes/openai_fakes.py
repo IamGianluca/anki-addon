@@ -2,7 +2,7 @@
 
 Two fakes at different levels:
 
-- FakeLLMClient: fakes the entire LLM port. Used in service-layer tests to
+- FakeCompletionProvider: fakes the entire completion port. Used in service-layer tests to
   return canned responses without any HTTP wiring.
 - FakeHttpClient: fakes only the HTTP layer. Used in adapter tests to exercise
   OpenAIClient's real logic (payload building, response parsing, etc.) while
@@ -11,12 +11,12 @@ Two fakes at different levels:
 
 from __future__ import annotations
 
-from addon.application.protocols import LLMClient
+from addon.application.protocols import CompletionProvider
 from addon.infrastructure.protocols import HttpClient, HttpResponse
 
 
-class FakeLLMClient(LLMClient):
-    """Fake LLM client for service-layer tests.
+class FakeCompletionProvider(CompletionProvider):
+    """Fake completion provider for service-layer tests.
 
     Returns pre-configured responses and records prompts for verification.
     """
@@ -30,7 +30,9 @@ class FakeLLMClient(LLMClient):
         self.prompts_received.append(prompt)
         self.kwargs_received.append(kwargs)
         if not self.responses:
-            raise RuntimeError("No more responses configured on FakeLLMClient")
+            raise RuntimeError(
+                "No more responses configured on FakeCompletionProvider"
+            )
         return self.responses.pop(0)
 
 

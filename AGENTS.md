@@ -118,13 +118,13 @@ The application layer depends on **protocols** (ports); the infrastructure layer
 **Ports** are `Protocol` classes that define minimal contracts. They live in the layer that consumes them:
 
 - `DocumentRepository` (`domain/repositories/`) — document storage and search
-- `LLMClient` (`application/protocols.py`) — language model interaction
+- `CompletionProvider` (`application/protocols.py`) — text completion provider
 - `ConfigProvider` (`infrastructure/protocols.py`) — reading addon configuration (lives in infrastructure because it adapts Anki's `AddonManager`, not a domain concept)
 
 **Adapters** are concrete classes that implement ports. They live in the infrastructure layer:
 
 - `QdrantDocumentRepository` — implements `DocumentRepository` via Qdrant
-- `OpenAIClient` — implements `LLMClient` via HTTP to OpenAI-compatible endpoints
+- `OpenAIClient` — implements `CompletionProvider` via HTTP to OpenAI-compatible endpoints
 
 **Factory with optional overrides** is the uniform construction strategy. Every adapter has a `create()` factory that accepts optional keyword arguments for all external dependencies. Production callers omit them for real defaults; test callers pass fakes:
 
@@ -145,7 +145,7 @@ Always use `.create()` — never call `__init__` directly.
 **Fakes** live in `tests/fakes/`, never in production code:
 
 - `FakeQdrantClient`, `FakeSentenceTransformer` (`tests/fakes/qdrant_fakes.py`)
-- `FakeHttpClient`, `FakeLLMClient` (`tests/fakes/openai_fakes.py`)
+- `FakeHttpClient`, `FakeCompletionProvider` (`tests/fakes/openai_fakes.py`)
 - `FakeAddonManager`, `FakeCollection`, `FakeNote` (`tests/fakes/aqt_fakes.py`)
 
 Fakes are production-like classes that behave predictably without real I/O. They are **not** mocks — they implement real logic (e.g. `FakeQdrantClient` tracks stored documents and returns configured search responses).
@@ -187,4 +187,4 @@ This project follows principles from "A Philosophy of Software Design" by John O
 - Tests should be sociable — exercise real code paths through collaborating objects
 - Use Given / When / Then structure in every test
 - **Adapter tests** inject fakes at the outermost infrastructure boundary (e.g. `FakeHttpClient` for `OpenAIClient`), exercising the adapter's real logic
-- **Service-layer tests** inject fakes at the port level (e.g. `FakeLLMClient` for `NoteFormatter`), bypassing adapter internals entirely
+- **Service-layer tests** inject fakes at the port level (e.g. `FakeCompletionProvider` for `NoteFormatter`), bypassing adapter internals entirely

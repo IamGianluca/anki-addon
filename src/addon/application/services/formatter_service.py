@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 from ...domain.entities.note import AddonNote, AddonNoteType
 from ...infrastructure.llm.schemas import AddonNoteChanges
 from ...utils import is_cloze_note
-from ..protocols import LLMClient
+from ..protocols import CompletionProvider
 
 if TYPE_CHECKING:
     from anki.notes import Note
@@ -90,10 +90,10 @@ class NoteFormatter:
     entire collection.
 
     Attributes:
-        _client: LLM client for generating formatted note content.
+        _client: Completion provider for generating formatted note content.
     """
 
-    def __init__(self, client: LLMClient) -> None:
+    def __init__(self, client: CompletionProvider) -> None:
         self._client = client
 
     def format(self, note: AddonNote) -> AddonNote:

@@ -2,7 +2,7 @@ import json
 
 import pytest
 from tests.fakes.aqt_fakes import FakeCollection, FakeMainWindow
-from tests.fakes.openai_fakes import FakeLLMClient
+from tests.fakes.openai_fakes import FakeCompletionProvider
 
 from addon.application.services.formatter_service import (
     AnkiNoteMapper,
@@ -31,7 +31,7 @@ def test_complete_format_workflow_for_basic_note(
             "tags": ["hockey"],
         }
     )
-    formatter = NoteFormatter(FakeLLMClient([response]))
+    formatter = NoteFormatter(FakeCompletionProvider([response]))
 
     # When: Run complete workflow as user would
     editor_dialog = EditorDialog(collection)
@@ -86,7 +86,7 @@ def test_complete_format_workflow_for_cloze_note(
             "tags": ["hockey"],
         }
     )
-    formatter = NoteFormatter(FakeLLMClient([response]))
+    formatter = NoteFormatter(FakeCompletionProvider([response]))
 
     # When: Run complete workflow
     editor_dialog = EditorDialog(collection)
@@ -127,7 +127,7 @@ def test_format_workflow_preserves_note_on_skip(
     response = json.dumps(
         {"front": "Changed", "back": "Changed", "tags": ["test"]}
     )
-    formatter = NoteFormatter(FakeLLMClient([response]))
+    formatter = NoteFormatter(FakeCompletionProvider([response]))
 
     editor_dialog = EditorDialog(collection)
     current_note = editor_dialog.current_note()
