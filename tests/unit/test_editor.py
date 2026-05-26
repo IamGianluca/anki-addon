@@ -247,6 +247,26 @@ def test_restore_note_preserves_tags(
     assert current_note.tags == original_tags
 
 
+def test_fake_collection_find_notes_filters_by_deck_id() -> None:
+    """FakeCollection.find_notes respects the deck ID in the query."""
+    # Given
+    collection = FakeCollection()
+    collection.notes = {
+        1: FakeNote(1, {"Front": "Q1", "Back": "A1"}),
+        2: FakeNote(2, {"Front": "Q2", "Back": "A2"}),
+    }
+    current_deck_id = collection.decks.current()["id"]
+
+    # When / Then — matching deck ID returns notes
+    assert collection.find_notes(f"did:{current_deck_id}") == [1, 2]
+
+    # When / Then — non-matching deck ID returns empty
+    assert collection.find_notes("did:999") == []
+
+    # When / Then — query without did: returns empty
+    assert collection.find_notes("tag:foo") == []
+
+
 def test_skip_multiple_notes_preserves_original_content(
     mw: FakeMainWindow, collection: FakeCollection
 ) -> None:

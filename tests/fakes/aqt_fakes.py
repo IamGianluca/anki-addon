@@ -1,3 +1,5 @@
+import re
+
 from addon.infrastructure.protocols import ConfigProvider
 
 
@@ -28,8 +30,10 @@ class FakeCollection:
         return self.cards.get(card_id)
 
     def find_notes(self, query):
-        # Simple implementation that returns all notes if query contains "did:"
-        if "did:" in query:
+        # Only returns notes when the query's deck ID matches the current deck.
+        # Ignores non-did queries (no caller uses them).
+        m = re.search(r"\bdid:(\d+)", query)
+        if m and int(m.group(1)) == self.decks.current()["id"]:
             return list(self.notes.keys())
         return []
 
