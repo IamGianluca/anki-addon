@@ -84,9 +84,10 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 
 | Date | Decision | Reasoning |
 |------|----------|-----------|
-| Q2 2025 | A-Frame architecture with Domain / Infrastructure / Application layers | Keeps domain pure; infrastructure swappable; aligns with time budget by making code easy to navigate |
+| Q2 2025 | A-Frame architecture with Domain / Infrastructure / Application layers | Keeps domain pure; infrastructure swappable; ease testing |
 | Q2 2026 | Port-and-adapters with `.create()` factory and Protocol ports | Enables testability without mocks; consistent construction pattern across all adapters |
 | Q3 2025 | No mocks — use fakes in `tests/fakes/` | Mocks couple tests to implementation; fakes exercise real logic and survive refactors |
+| Q2 2026 | Deprecate `.create()` and Nullable patterns in favor of `__init__()` and dedicated Fakes + Dependency Injection | No test code in production; simplify production code; more standard approach |
 
 ## Review cadence
 
@@ -95,4 +96,4 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
      2. Is the task ordering still right?
      3. Did I drift this week? On what? -->
 
-**Review every:** Every Monday @ 8PM
+**Review cadence:** Monthly

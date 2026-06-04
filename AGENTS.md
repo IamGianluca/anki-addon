@@ -6,7 +6,7 @@ This project is an Anki add-on that uses LLMs to refactor and improve flashcard 
 
 ## Version Control
 
-This repository uses **jj (Jujutsu)**, not git. Use `jj` commands instead of `git`:
+This repository uses **jj (Jujutsu)**, not `git`. Use `jj` commands instead of `git`:
 
 - `jj log` instead of `git log`
 - `jj diff` instead of `git diff`
@@ -117,7 +117,7 @@ The application layer depends on **protocols** (ports); the infrastructure layer
 
 **Ports** are `Protocol` classes that define minimal contracts. They live in the layer that consumes them:
 
-- `DocumentRepository` (`domain/repositories/`) — document storage and search
+- `DocumentRepository` (`domain/repositories/document_repository.py`) — document storage and search
 - `CompletionProvider` (`application/protocols.py`) — text completion provider
 - `ConfigProvider` (`infrastructure/protocols.py`) — reading addon configuration (lives in infrastructure because it adapts Anki's `AddonManager`, not a domain concept)
 
@@ -126,21 +126,19 @@ The application layer depends on **protocols** (ports); the infrastructure layer
 - `QdrantDocumentRepository` — implements `DocumentRepository` via Qdrant
 - `OpenAIClient` — implements `CompletionProvider` via HTTP to OpenAI-compatible endpoints
 
-**Factory with optional overrides** is the uniform construction strategy. Every adapter has a `create()` factory that accepts optional keyword arguments for all external dependencies. Production callers omit them for real defaults; test callers pass fakes:
+**Constructor injection with optional overrides** is the uniform construction strategy. Every adapter accepts its external dependencies as optional `__init__` parameters, defaulting to the real implementation. Production callers omit them; test callers pass fakes:
 
 ```python
-# Production — factory supplies real defaults
-repo = QdrantDocumentRepository.create(encoder)
-client = OpenAIClient.create(config)
+# Production — defaults supply real implementations
+repo = QdrantDocumentRepository(encoder)
+client = OpenAIClient(config)
 
-# Tests — override dependencies via keyword arguments
-repo = QdrantDocumentRepository.create(
-    encoder, client=FakeQdrantClient(search_responses=[...])
-)
-client = OpenAIClient.create(config, http_client=FakeHttpClient(json_body=...))
+# Tests — inject fakes via constructor arguments
+repo = QdrantDocumentRepository(encoder, client=FakeQdrantClient(search_responses=[...]))
+client = OpenAIClient(config, http_client=FakeHttpClient(json_body=...))
 ```
 
-Always use `.create()` — never call `__init__` directly.
+Always pass fakes through `__init__` — never subclass or monkey-patch.
 
 **Fakes** live in `tests/fakes/`, never in production code:
 
