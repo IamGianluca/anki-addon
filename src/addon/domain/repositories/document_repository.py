@@ -57,7 +57,8 @@ class SearchResult:
 
     Attributes:
         document: The matching document.
-        relevance_score: Numeric score indicating relevance (higher = more relevant).
+        relevance_score: Numeric score indicating relevance
+            (higher = more relevant).
     """
 
     document: Document
@@ -92,7 +93,9 @@ class DocumentRepository(Protocol):
 
 
 def convert_addon_note_to_document(note: AddonNote) -> Document:
-    """Combines front/back/tags into searchable content; preserves original in metadata."""
+    """Combines front/back/tags into searchable content; preserves
+    original in metadata.
+    """
     tags = ""
     if note.tags:
         tags = " ".join([t for t in note.tags])
@@ -105,7 +108,9 @@ def convert_addon_note_to_document(note: AddonNote) -> Document:
 
 
 def convert_document_to_addon_note(document: Document) -> AddonNote:
-    """Reconstructs from metadata - assumes document was created via convert_addon_note_to_document."""
+    """Reconstructs from metadata - assumes document was created via
+    convert_addon_note_to_document.
+    """
     return AddonNote(**document.metadata)  # type: ignore[missing-argument]
 
 

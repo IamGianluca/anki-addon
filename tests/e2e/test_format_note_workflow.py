@@ -15,7 +15,8 @@ from addon.infrastructure.ui.editor import EditorDialog
 def test_complete_format_workflow_for_basic_note(
     mw: FakeMainWindow, collection: FakeCollection
 ) -> None:
-    """E2E test: complete workflow from EditorDialog through formatting to persistence.
+    """E2E test: complete workflow from EditorDialog through formatting
+    to persistence.
 
     Tests the full user journey:
     1. EditorDialog discovers notes marked with orange flag
@@ -81,7 +82,9 @@ def test_complete_format_workflow_for_cloze_note(
     # Given: Setup formatter with canned LLM response for cloze
     response = json.dumps(
         {
-            "front": "NHL history: {{c1::Montreal Canadiens}} most successful team",
+            "front": (
+                "NHL history: {{c1::Montreal Canadiens}} most successful team"
+            ),
             "back": "",
             "tags": ["hockey"],
         }

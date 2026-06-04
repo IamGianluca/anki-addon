@@ -24,8 +24,9 @@ class RequestsHttpClient:
 class OpenAIClient:
     """HTTP client adapter for OpenAI-compatible inference servers.
 
-    This class abstracts the communication with OpenAI-compatible API endpoints,
-    such as vLLM servers, providing a unified interface for text generation.
+    This class abstracts the communication with OpenAI-compatible API
+    endpoints, such as vLLM servers, providing a unified interface for
+    text generation.
 
     The client handles connection errors gracefully and transforms them into
     domain-specific exceptions with helpful error messages for debugging
@@ -112,7 +113,8 @@ class OpenAIClient:
             except Exception:
                 error_body = response.text
             raise RuntimeError(
-                f"LLM server returned error {response.status_code} for {self._config.url}. "
+                f"LLM server returned error {response.status_code} "
+                f"for {self._config.url}. "
                 f"Response: {error_body}"
             )
 

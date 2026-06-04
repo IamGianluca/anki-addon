@@ -30,7 +30,7 @@ dev = [
 [tool.ruff]
 src = ["src"]
 extend-include = ["*.ipynb"]
-lint.extend-select = ["I"]
+lint.extend-select = ["I", "E501"]
 lint.extend-ignore = ["E741"]
 line-length = 79
 exclude = [

@@ -12,13 +12,14 @@ if TYPE_CHECKING:
 class EditorDialog:
     """UI state manager for batch note editing sessions within Anki.
 
-    This class orchestrates the editing workflow for notes that have been flagged
-    for review (typically with an orange flag). It provides navigation between notes,
-    tracks editing state, and enables rollback of changes to preserve data integrity
-    during the editing process.
+    This class orchestrates the editing workflow for notes that have been
+    flagged for review (typically with an orange flag). It provides
+    navigation between notes, tracks editing state, and enables rollback
+    of changes to preserve data integrity during the editing process.
 
-    The dialog manages the complete editing session lifecycle: discovering notes
-    that need review, maintaining current position in the editing sequence,
+    The dialog manages the complete editing session lifecycle: discovering
+    notes that need review, maintaining current position in the editing
+    sequence,
     backing up original content before modifications, and providing restoration
     capabilities if users want to undo changes.
 
@@ -32,8 +33,10 @@ class EditorDialog:
     Attributes:
         col: Reference to Anki's collection for note and card operations.
         review_notes: List of all notes that need to be reviewed/edited.
-        _current_index: Private tracker of which note is currently being edited (internal).
-        _original_fields: Private backup of original field content for current note (internal).
+        _current_index: Private tracker of which note is currently being
+            edited (internal).
+        _original_fields: Private backup of original field content for
+            current note (internal).
 
     Raises:
         ValueError: When no notes are found that are marked for review
@@ -75,8 +78,9 @@ class EditorDialog:
     def get_note_fields_with_tags(self, note: Note) -> dict[str, str]:
         """Extract all fields and tags from note.
 
-        Tags stored as __tags__ to avoid conflicts with user-defined field names
-        (Anki note types can have arbitrary field names including "Tags").
+        Tags stored as __tags__ to avoid conflicts with user-defined
+        field names (Anki note types can have arbitrary field names
+        including "Tags").
         """
         fields = {field_name: note[field_name] for field_name in note.keys()}
         fields["__tags__"] = " ".join(note.tags)

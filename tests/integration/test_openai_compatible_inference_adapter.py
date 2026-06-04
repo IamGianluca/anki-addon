@@ -33,7 +33,10 @@ def test_openai(fast_addon_config: AddonConfig) -> None:
     prompt = [
         {
             "role": "user",
-            "content": "Respond only with one word, lowercase, without punctuation. What is the Italian word for hello?",
+            "content": (
+                "Respond only with one word, lowercase, without punctuation. "
+                "What is the Italian word for hello?"
+            ),
         }
     ]
 
@@ -48,7 +51,9 @@ def test_openai(fast_addon_config: AddonConfig) -> None:
 def test_openai_with_json_schema_validation(
     fast_addon_config: AddonConfig,
 ) -> None:
-    """Test that OpenAI client can accept and use JSON schema to restrict output."""
+    """Test that OpenAI client can accept and use JSON schema
+    to restrict output.
+    """
     # Given
     openai_client = OpenAIClient(fast_addon_config)
 
@@ -66,7 +71,12 @@ def test_openai_with_json_schema_validation(
     prompt = [
         {
             "role": "user",
-            "content": "Create a JSON object for a fictional person. Include name, age, and city.\nExample: A 25-year-old software engineer named Alice who lives in San Francisco.",
+            "content": (
+                "Create a JSON object for a fictional person. Include name, "
+                "age, and city.\n"
+                "Example: A 25-year-old software engineer named Alice "
+                "who lives in San Francisco."
+            ),
         }
     ]
 

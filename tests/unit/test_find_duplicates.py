@@ -39,8 +39,9 @@ def test_find_possible_duplicate_notes_given_a_new_note(
             search_responses=[
                 [
                     _point_from_note(addon_note2, 0.98),
-                    # This result should be skipped because SimilarNoteFinder only returns
-                    # the most similar note for now
+                    # This result should be skipped because
+                    # SimilarNoteFinder only returns the most similar
+                    # note for now
                     _point_from_note(addon_note1, 0.92),
                 ]
             ]

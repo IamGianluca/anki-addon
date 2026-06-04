@@ -18,7 +18,9 @@ class TrainingDatasetRepository(Protocol):
 
 
 class JSONLTrainingDataset:
-    """Stores training examples in JSONL format for easy consumption by ML tools."""
+    """Stores training examples in JSONL format for easy consumption
+    by ML tools.
+    """
 
     def __init__(self, file_path: Path) -> None:
         self.file_path = file_path

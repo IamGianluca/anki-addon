@@ -11,7 +11,9 @@ from typing import Any, Protocol
 
 
 class ConfigProvider(Protocol):
-    """Minimal contract for reading addon configuration from Anki's addon manager."""
+    """Minimal contract for reading addon configuration
+    from Anki's addon manager.
+    """
 
     def getConfig(self, module: str) -> dict[str, Any] | None: ...
 

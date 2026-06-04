@@ -2,11 +2,11 @@
 
 Two fakes at different levels:
 
-- FakeCompletionProvider: fakes the entire completion port. Used in service-layer tests to
-  return canned responses without any HTTP wiring.
-- FakeHttpClient: fakes only the HTTP layer. Used in adapter tests to exercise
-  OpenAIClient's real logic (payload building, response parsing, etc.) while
-  avoiding real network calls.
+- FakeCompletionProvider: fakes the entire completion port. Used in
+  service-layer tests to return canned responses without any HTTP wiring.
+- FakeHttpClient: fakes only the HTTP layer. Used in adapter tests to
+  exercise OpenAIClient's real logic (payload building, response parsing,
+  etc.) while avoiding real network calls.
 """
 
 from __future__ import annotations

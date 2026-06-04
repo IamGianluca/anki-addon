@@ -5,7 +5,8 @@ Called by the makefile after pytest completes. Compares elapsed nanoseconds
 against the stored baseline and exits with code 1 if the threshold is exceeded.
 
 Usage:
-    python3 scripts/gate_test_time.py --elapsed <ns> --suite <name> [--update-baseline] [--threshold N]
+    python3 scripts/gate_test_time.py --elapsed <ns> --suite <name>
+    [--update-baseline] [--threshold N]
 """
 
 from __future__ import annotations
@@ -62,8 +63,10 @@ def main() -> None:
     if baseline_s is None:
         _save_baseline(baseline_path, {"total": round(elapsed_s, 3)})
         print(
-            f"\nNo baseline found. Created {baseline_path}: {elapsed_s:.3f}s\n"
-            f"Run 'make {args.suite}_update_baseline' to update it intentionally."
+            f"\nNo baseline found. Created {baseline_path}: "
+            f"{elapsed_s:.3f}s\n"
+            f"Run 'make {args.suite}_update_baseline' "
+            f"to update it intentionally."
         )
         sys.exit(0)
 

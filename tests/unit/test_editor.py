@@ -198,7 +198,9 @@ def test_save_note_keep_flag_preserves_orange_flag(
 def test_save_note_keep_flag_vs_strip_orange_flag_behavior(
     mw: FakeMainWindow, collection: FakeCollection
 ) -> None:
-    """Test that save_note_keep_flag behaves differently from strip_orange_flag."""
+    """Test that save_note_keep_flag behaves differently
+    from strip_orange_flag.
+    """
     # Given
     editor_dialog = EditorDialog(collection)
     current_note = editor_dialog.current_note()
@@ -278,7 +280,8 @@ def test_skip_multiple_notes_preserves_original_content(
     1. Skip one or more cards
     2. Make some changes to the note and press Save.
 
-    The skipped cards will change content and become duplicated of the first card skipped. The last card is correct.
+    The skipped cards will change content and become duplicated of the
+    first card skipped. The last card is correct.
     """
     # Given
     editor_dialog = EditorDialog(collection)

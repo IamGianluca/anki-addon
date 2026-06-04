@@ -67,16 +67,18 @@ class AnkiNoteMapper:
 class NoteFormatter:
     """Application service for AI-powered note formatting and optimization.
 
-    This service orchestrates the process of improving Anki note quality through
-    large language model (LLM) assistance. It takes existing notes and applies
-    consistent formatting rules, markdown standards, and content optimization
-    to make them more effective for spaced repetition learning.
+    This service orchestrates the process of improving Anki note quality
+    through large language model (LLM) assistance. It takes existing
+    notes and applies consistent formatting rules, markdown standards,
+    and content optimization to make them more effective for spaced
+    repetition learning.
 
     The formatter handles the complete workflow of note improvement: extracting
-    content from domain entities, preparing prompts with formatting guidelines,
-    interfacing with the LLM for content generation, parsing structured responses,
-    and reconstructing optimized notes while preserving essential elements like
-    images, code blocks, and mathematical expressions.
+    content from domain entities, preparing prompts with formatting
+    guidelines, interfacing with the LLM for content generation, parsing
+    structured responses, and reconstructing optimized notes while
+    preserving essential elements like images, code blocks, and
+    mathematical expressions.
 
     Key responsibilities:
     - Converting domain notes to LLM-compatible text format
@@ -109,7 +111,11 @@ class NoteFormatter:
 
         new_note = self._convert_br_tag_to_newline(new_note)
 
-        note_content = f"""Front: {new_note.front}\nBack: {new_note.back}\nTags: {note.tags}\n"""
+        note_content = (
+            f"Front: {new_note.front}\n"
+            f"Back: {new_note.back}\n"
+            f"Tags: {note.tags}\n"
+        )
         prompt_template = get_prompt_template()
         prompt = prompt_template.render(note=note_content)
 

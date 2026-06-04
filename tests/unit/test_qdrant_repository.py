@@ -217,7 +217,9 @@ def test_find_by_id_returns_stored_document() -> None:
 
 
 def test_find_by_id_raises_error_for_nonexistent_document() -> None:
-    """Test that find_by_id raises DocumentNotFoundError for documents that don't exist"""
+    """Test that find_by_id raises DocumentNotFoundError
+    for documents that don't exist
+    """
     # Given
     from addon.domain.repositories.document_repository import (
         DocumentNotFoundError,
@@ -235,7 +237,9 @@ def test_find_by_id_raises_error_for_nonexistent_document() -> None:
 
 
 def test_exhausting_configured_responses_returns_empty_list() -> None:
-    """Test that using more searches than configured responses returns empty list"""
+    """Test that using more searches than configured responses
+    returns empty list
+    """
     # Given - configure only one response
     repo = QdrantDocumentRepository(
         FakeSentenceTransformer(),
@@ -249,7 +253,8 @@ def test_exhausting_configured_responses_returns_empty_list() -> None:
     first_result = repo.find_similar(first_query)
     assert len(first_result) == 1
 
-    # When - second search should return empty list (no more responses configured)
+    # When - second search should return empty list
+    # (no more responses configured)
     second_query = SearchQuery("second query")
     second_result = repo.find_similar(second_query)
 

@@ -9,7 +9,8 @@ class AddonConfig:
 
     This class abstracts the complexity of Anki's configuration system,
     providing a clean interface for accessing addon settings set by the user.
-    These settings are currently limited to inference provider and LLM settings.
+    These settings are currently limited to inference provider and LLM
+    settings.
 
     The class handles the transformation of raw configuration data from
     Anki's addon manager into a structured format with validation and

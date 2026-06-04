@@ -10,12 +10,14 @@ from addon.domain.repositories.document_repository import (
 
 
 class SimilarNoteFinder:
-    """Application service for finding duplicate notes using semantic similarity search.
+    """Application service for finding duplicate notes using semantic
+    similarity search.
 
-    This class implements the core use case of identifying potentially duplicate
-    notes within a collection by leveraging vector embeddings and similarity
-    search. It bridges the gap between domain entities (AddonNote/AddonCollection)
-    and infrastructure concerns (document repository and vector storage).
+    This class implements the core use case of identifying potentially
+    duplicate notes within a collection by leveraging vector embeddings
+    and similarity search. It bridges the gap between domain entities
+    (AddonNote/AddonCollection) and infrastructure concerns (document
+    repository and vector storage).
 
     After construction, callers must explicitly invoke `load_collection()` to
     bulk-load the reference notes into the vector database before searching.
@@ -33,7 +35,8 @@ class SimilarNoteFinder:
 
     Attributes:
         _collection: The collection of notes being searched for duplicates.
-        _repository: Vector database repository for storing and searching documents.
+        _repository: Vector database repository for storing and searching
+            documents.
     """
 
     def __init__(

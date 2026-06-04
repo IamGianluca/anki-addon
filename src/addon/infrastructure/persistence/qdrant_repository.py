@@ -88,7 +88,9 @@ class QdrantDocumentRepository(DocumentRepository):
         return self._encoder.encode(text)
 
     def _qdrant_hit_to_search_result(self, hit) -> SearchResult:
-        """Handles both dict and object formats from different Qdrant client versions."""
+        """Handles both dict and object formats from different Qdrant
+        client versions.
+        """
         # Handle both dict and object formats from Qdrant
         if isinstance(hit, dict):
             doc_id = str(hit.get("id", ""))
@@ -108,7 +110,9 @@ class QdrantDocumentRepository(DocumentRepository):
         return SearchResult(doc, score)
 
     def _qdrant_point_to_document(self, point) -> Document:
-        """Handles both dict and object formats from different Qdrant client versions."""
+        """Handles both dict and object formats from different Qdrant
+        client versions.
+        """
         # Handle both dict and object formats from Qdrant
         if isinstance(point, dict):
             doc_id = str(point.get("id", ""))
