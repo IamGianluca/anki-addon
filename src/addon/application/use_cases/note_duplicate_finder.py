@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from addon.domain.entities.note import AddonCollection, AddonNote
-from addon.domain.repositories.document_repository import (
+from ...domain.entities.note import AddonCollection, AddonNote
+from ...domain.repositories.document_repository import (
     DocumentRepository,
     SearchQuery,
     convert_addon_note_to_document,

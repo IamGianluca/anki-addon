@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 from uuid import uuid4
 
-from addon.domain.entities.note import AddonNote
+from ..entities.note import AddonNote
 
 
 class DocumentNotFoundError(Exception):
