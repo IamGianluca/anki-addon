@@ -1,7 +1,4 @@
-import sys
-
 import pytest
-from pytest import MonkeyPatch
 from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
 from addon.infrastructure.ui.editor import EditorDialog
@@ -22,9 +19,7 @@ def test_init_editor_dialog_with_cards_marked_for_review(
     assert editor_dialog.review_notes[1].id == 3
 
 
-def test_init_editor_dialog_without_cards_marked_for_review(
-    monkeypatch: MonkeyPatch,
-) -> None:
+def test_init_editor_dialog_without_cards_marked_for_review() -> None:
     """EditorDialog raises an error if initialized without any card marked
     for review.
     """
@@ -38,12 +33,6 @@ def test_init_editor_dialog_without_cards_marked_for_review(
         },
     )
     collection.notes = {1: note}
-
-    fake_mw = FakeMainWindow(collection)
-    monkeypatch.setattr("aqt.mw", fake_mw)
-    for name, module in list(sys.modules.items()):
-        if hasattr(module, "mw"):
-            monkeypatch.setattr(f"{name}.mw", fake_mw)
 
     # When and Then
     with pytest.raises(ValueError) as exc_info:

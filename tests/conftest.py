@@ -1,5 +1,3 @@
-import sys
-
 import pytest
 
 from addon.domain.entities.note import AddonCollection, AddonNote
@@ -116,16 +114,11 @@ def collection(note1, note2, note3, cloze1) -> FakeCollection:
 
 
 @pytest.fixture()
-def mw(monkeypatch, collection) -> FakeMainWindow:
-    fake_mw = FakeMainWindow(collection)
-    monkeypatch.setattr("aqt.mw", fake_mw)
-
-    # If modules have already imported mw, patch in those modules too
-    for name, module in list(sys.modules.items()):
-        if hasattr(module, "mw"):
-            monkeypatch.setattr(f"{name}.mw", fake_mw)
-
-    return fake_mw
+def mw(collection) -> FakeMainWindow:
+    # No patching of aqt.mw: the code under test receives the collection
+    # directly and never reads the global. Patching it would import aqt,
+    # adding seconds to the test session for no benefit.
+    return FakeMainWindow(collection)
 
 
 ###########
