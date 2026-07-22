@@ -47,9 +47,9 @@ The project uses **A-Frame architecture**: Domain and Infrastructure are peers a
           Domain        Infrastructure
 ```
 
-- **Domain** (`src/addon/domain/`): Core entities, value objects, repository interfaces. No imports from application or infrastructure layers.
-- **Infrastructure** (`src/addon/infrastructure/`): Adapters for external systems — LLM client, Qdrant vector DB, PyQt6 UI, config loading. No imports from application or domain layers.
-- **Application** (`src/addon/application/`): Use cases and services that orchestrate domain logic and infrastructure adapters.
+- **Domain** (`src/addon/domain/`): Core entities and repository interfaces (ports). No imports from application or infrastructure layers.
+- **Infrastructure** (`src/addon/infrastructure/`): Adapters for external systems — LLM client, Qdrant vector DB, PyQt6 UI, config loading. Implements the ports defined in the domain and application layers; the domain layer never imports infrastructure.
+- **Application** (`src/addon/application/`): Use cases and services that orchestrate domain logic and infrastructure adapters. The only layer that may import both — use cases wire concrete adapters to ports (composition root).
 
 The add-on entry point is `__init__.py` at the repo root, which Anki loads directly from the add-ons folder.
 
@@ -59,13 +59,14 @@ The add-on entry point is `__init__.py` at the repo root, which Anki loads direc
 src/addon/
 ├── domain/
 │   ├── entities/            # Core domain entities with identity
-│   ├── value_objects/       # Immutable concepts without identity
 │   ├── repositories/        # Repository interfaces (ports)
 │   └── services/            # Domain services
 ├── application/
+│   ├── protocols.py         # Ports consumed by the application layer (e.g. CompletionProvider)
 │   ├── use_cases/           # Application use cases
 │   └── services/            # Application services
 └── infrastructure/
+    ├── protocols.py         # Ports for external systems (HttpClient, ConfigProvider, QdrantDriver)
     ├── configuration/       # Config loading
     ├── external_services/   # LLM client (OpenAI-compatible)
     ├── llm/                 # Pydantic schemas for LLM structured output

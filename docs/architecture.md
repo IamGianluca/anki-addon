@@ -1,18 +1,25 @@
 # Architecture
 
-The project adopts Domain-Driven Design principles with a clear separation between domain, application, and infrastructure layers:
+The project uses **A-Frame architecture**: Domain and Infrastructure are peers at the base, with Application on top orchestrating both.
+
+```
+              Application
+             /           \
+          Domain        Infrastructure
+```
 
 ```
 src/addon/
 ├── domain/
 │   ├── entities/            # Core domain entities with identity
-│   ├── value_objects/       # Immutable concepts without identity
-│   ├── repositories/        # Repository interfaces
+│   ├── repositories/        # Repository ports (interfaces)
 │   └── services/            # Domain services
 ├── application/
+│   ├── protocols.py         # Ports consumed by the application layer (e.g. CompletionProvider)
 │   ├── use_cases/           # Application use cases
 │   └── services/            # Application services
 └── infrastructure/
+    ├── protocols.py         # Ports for external systems (HttpClient, ConfigProvider, QdrantDriver)
     ├── configuration/       # Config loading
     ├── external_services/   # LLM client (OpenAI-compatible)
     ├── llm/                 # Pydantic schemas for LLM structured output
@@ -21,9 +28,11 @@ src/addon/
     └── ui/                  # PyQt6 UI components
 ```
 
-The domain model should not have any dependencies on application and infrastructure layers. A practical rule of thumb: check the imports. You should never import from application or infrastructure layers when working on the domain layer.
+Dependency rules — a practical rule of thumb: check the imports.
 
-This separation is not arbitrary. A domain layer free of application and infrastructure dependencies keeps logic pure — no I/O, no networking — which makes it easier to test and reason about.
+- **Domain** imports nothing from the other layers. A domain layer free of application and infrastructure dependencies keeps logic pure — no I/O, no networking — which makes it easier to test and reason about.
+- **Infrastructure** implements the ports defined in the domain and application layers, so it imports those port definitions (and the domain entities they reference). The domain layer never imports infrastructure.
+- **Application** is the only layer that may import both: use cases wire concrete adapters to ports, acting as the composition root.
 
 For more information on the architectural patterns used in this project, see [Architecture Patterns in Python](https://www.cosmicpython.com/).
 
