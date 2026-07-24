@@ -19,10 +19,13 @@ def ensure_note(note: Optional[Note]) -> Note:
     return note
 
 
-def is_cloze_note(note: Note) -> bool:
-    from anki.consts import MODEL_CLOZE
+# Value of anki.consts.MODEL_CLOZE, inlined so that checking note types
+# never imports anki at runtime (~1s, which unit tests would pay).
+_MODEL_CLOZE = 1
 
+
+def is_cloze_note(note: Note) -> bool:
     note_type = note.note_type()
     if note_type is None:
         return False
-    return note_type["type"] == MODEL_CLOZE
+    return note_type["type"] == _MODEL_CLOZE
