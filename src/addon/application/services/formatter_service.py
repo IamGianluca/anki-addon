@@ -52,15 +52,19 @@ class AnkiNoteMapper:
         return addon_note
 
     @staticmethod
-    def merge_addon_changes(note: Note, addon_note: AddonNote) -> Note:
+    def merge_addon_changes(
+        note: Note, addon_note: AddonNote, include_tags: bool = False
+    ) -> Note:
         if is_cloze_note(note):
             note["Text"] = addon_note.front
             note["Back Extra"] = addon_note.back
         else:
             note["Front"] = addon_note.front
             note["Back"] = addon_note.back
-        # NOTE: we are intentionally not updating the tags, and keeping the
-        # original ones
+        # Tags are opt-in: the note formatter keeps the original tags,
+        # while curation (edit/split proposals) may change them.
+        if include_tags:
+            note.tags = list(addon_note.tags or [])
         return note
 
 

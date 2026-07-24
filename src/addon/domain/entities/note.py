@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import NewType, Optional
+from typing import Optional
 from uuid import uuid4
 
 # Anki's integer note id: identity within a collection, distinct from
 # AddonNote.guid (the sync identity). Used by repositories and tools to
-# refer to notes stored in Anki.
-NoteId = NewType("NoteId", int)
+# refer to notes stored in Anki. A plain alias (not NewType) so it stays
+# interchangeable with anki.ids.NoteId at the adapter boundary.
+NoteId = int
 
 
 class AddonNoteType(str, Enum):

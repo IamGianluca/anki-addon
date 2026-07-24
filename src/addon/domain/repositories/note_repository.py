@@ -9,6 +9,10 @@ class NoteNotFoundError(Exception):
     """Raised when a note lookup by ID fails."""
 
 
+class InvalidSearchQueryError(Exception):
+    """Raised when the backend cannot parse a search query."""
+
+
 class NoteRepository(Protocol):
     """Repository port for notes in the user's collection.
 

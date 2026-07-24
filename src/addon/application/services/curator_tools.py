@@ -13,6 +13,7 @@ from ...domain.entities.proposals import (
     ProposedChangeSet,
 )
 from ...domain.repositories.note_repository import (
+    InvalidSearchQueryError,
     NoteNotFoundError,
     NoteRepository,
 )
@@ -47,7 +48,10 @@ class CuratorTools:
     def search_notes(self, query: str, limit: int = 10) -> str:
         """Search the collection; return one line per hit with the note
         id and a plain-text front snippet."""
-        note_ids = self._repository.search(query, limit)
+        try:
+            note_ids = self._repository.search(query, limit)
+        except InvalidSearchQueryError as e:
+            return f"error: invalid search query {query!r}: {e}"
         if not note_ids:
             return f"No notes found for query: {query!r}"
         lines = []
