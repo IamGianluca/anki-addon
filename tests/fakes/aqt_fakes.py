@@ -21,6 +21,7 @@ class FakeCollection:
         self.notes = {}  # note_id -> note
         self.cards = {}  # card_id -> card
         self.decks = FakeDeckManager()
+        self.models = FakeModelsManager()
 
     def get_note(self, note_id):
         return self.notes.get(note_id)
@@ -30,12 +31,48 @@ class FakeCollection:
         return self.cards.get(card_id)
 
     def find_notes(self, query):
-        # Only returns notes when the query's deck ID matches the current deck.
-        # Ignores non-did queries (no caller uses them).
+        # Supports nid:<id>, did:<id>, and plain text terms (all terms
+        # must appear, case-insensitive, across fields and tags).
+        # Combined queries are not supported (no caller uses them).
+        m = re.search(r"\bnid:(\d+)", query)
+        if m:
+            note_id = int(m.group(1))
+            return [note_id] if note_id in self.notes else []
         m = re.search(r"\bdid:(\d+)", query)
-        if m and int(m.group(1)) == self.decks.current()["id"]:
+        if m:
+            if int(m.group(1)) == self.decks.current()["id"]:
+                return list(self.notes.keys())
+            return []
+        terms = query.lower().split()
+        if not terms:
             return list(self.notes.keys())
-        return []
+        return [
+            note_id
+            for note_id, note in self.notes.items()
+            if all(term in _note_text(note) for term in terms)
+        ]
+
+    def new_note(self, notetype):
+        fields = {f["name"]: "" for f in notetype["flds"]}
+        # FakeNote reads its type marker from a "type" field
+        fields["type"] = notetype.get("type", 0)
+        return FakeNote(max(self.notes, default=0) + 1, fields)
+
+    def add_note(self, note, deck_id):
+        self.notes[note.id] = note
+
+    def update_note(self, note):
+        self.notes[note.id] = note
+        note.flush()
+
+    def remove_notes(self, note_ids):
+        for note_id in note_ids:
+            self.notes.pop(note_id, None)
+        self.cards = {
+            card_id: card
+            for card_id, card in self.cards.items()
+            if card.note_id not in note_ids
+        }
 
     def find_cards(self, query):
         # Simple implementation that returns card IDs for a note ID
@@ -52,12 +89,48 @@ class FakeCollection:
         return []
 
 
+def _note_text(note) -> str:
+    fields = " ".join(str(note[key]) for key in note.keys())
+    return f"{fields} {' '.join(note.tags)}".lower()
+
+
+class FakeModelsManager:
+    """By default provides the stock 'Basic' and 'Cloze' notetypes."""
+
+    _BASIC = {
+        "name": "Basic",
+        "type": 0,
+        "flds": [{"name": "Front"}, {"name": "Back"}],
+    }
+    _CLOZE = {
+        "name": "Cloze",
+        "type": 1,
+        "flds": [{"name": "Text"}, {"name": "Back Extra"}],
+    }
+
+    def __init__(self, notetypes=None):
+        if notetypes is None:
+            notetypes = [self._BASIC, self._CLOZE]
+        self._notetypes = notetypes
+
+    def by_name(self, name):
+        for notetype in self._notetypes:
+            if notetype["name"] == name:
+                return notetype
+        return None
+
+
 class FakeDeckManager:
     def __init__(self):
         self.current_deck = {"id": 1, "name": "Default"}
 
     def current(self):
         return self.current_deck
+
+    def id_for_name(self, name):
+        if name == self.current_deck["name"]:
+            return self.current_deck["id"]
+        return None
 
 
 class FakeNote:

@@ -70,6 +70,14 @@ def test_search_returns_matching_notes_with_snippets(
     assert "beta_2 control in Adam" in result
 
 
+def test_search_reports_invalid_query(tools: CuratorTools) -> None:
+    # When
+    result = tools.search_notes('"unbalanced')
+
+    # Then
+    assert result.startswith("error: invalid search query")
+
+
 def test_search_reports_when_nothing_matches(tools: CuratorTools) -> None:
     # When
     result = tools.search_notes("kubernetes")

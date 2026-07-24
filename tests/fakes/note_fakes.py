@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from addon.domain.entities.note import AddonNote, NoteId
 from addon.domain.repositories.note_repository import (
+    InvalidSearchQueryError,
     NoteNotFoundError,
     NoteRepository,
 )
@@ -14,7 +15,8 @@ class FakeNoteRepository(NoteRepository):
 
     Search does case-insensitive substring matching over front, back and
     tags (all terms must appear) — a predictable stand-in for Anki's
-    search grammar.
+    search grammar. Queries with unbalanced quotes raise
+    InvalidSearchQueryError, mimicking Anki's parser.
     """
 
     def __init__(self, notes: dict[int, AddonNote] | None = None) -> None:
@@ -22,6 +24,8 @@ class FakeNoteRepository(NoteRepository):
         self._next_id = max(self._notes, default=0) + 1
 
     def search(self, query: str, limit: int = 10) -> list[NoteId]:
+        if query.count('"') % 2:
+            raise InvalidSearchQueryError("unbalanced quotes")
         terms = query.lower().split()
         matches = [
             NoteId(note_id)
