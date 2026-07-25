@@ -8,6 +8,7 @@ def setup_addon() -> None:
     from .application.use_cases.note_counter import (
         display_notes_marked_for_review_count,
     )
+    from .application.use_cases.note_curator import add_curator_button
     from .application.use_cases.note_formatter import (
         add_custom_button,
         open_review_editor,
@@ -27,3 +28,6 @@ def setup_addon() -> None:
 
     # Add button in Browser view to format notes using AI
     gui_hooks.editor_did_init_buttons.append(add_custom_button)
+
+    # Add button in the editor to curate the note's cluster using AI
+    gui_hooks.editor_did_init_buttons.append(add_curator_button)
