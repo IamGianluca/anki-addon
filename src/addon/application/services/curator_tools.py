@@ -68,11 +68,15 @@ class CuratorTools:
         except NoteNotFoundError:
             return self._not_found(note_id)
         tags = " ".join(note.tags) if note.tags else ""
+        extras = "".join(
+            f"{name}: {value}\n" for name, value in note.extra_fields.items()
+        )
         return (
             f"Note {note_id}\n"
             f"Type: {note.notetype.value}\n"
             f"Front: {note.front}\n"
             f"Back: {note.back}\n"
+            f"{extras}"
             f"Tags: {tags}"
         )
 
@@ -83,13 +87,26 @@ class CuratorTools:
         back: str,
         tags: list[str],
         rationale: str,
+        extra_fields: dict[str, str] | None = None,
     ) -> str:
-        """Record a proposal to replace a note's fields and tags."""
+        """Record a proposal to replace a note's fields and tags.
+
+        extra_fields uses merge semantics: provided keys override the
+        current values, unmentioned keys are preserved, and an empty
+        string clears a field.
+        """
         try:
             before = self._repository.get(note_id)
         except NoteNotFoundError:
             return self._not_found(note_id)
-        after = dataclasses.replace(before, front=front, back=back, tags=tags)
+        merged_extra = {**before.extra_fields, **(extra_fields or {})}
+        after = dataclasses.replace(
+            before,
+            front=front,
+            back=back,
+            tags=tags,
+            extra_fields=merged_extra,
+        )
         try:
             self.change_set.add_edit(
                 EditProposal(note_id, before, after, rationale)
@@ -105,6 +122,7 @@ class CuratorTools:
         tags: list[str],
         notetype: str,
         rationale: str,
+        extra_fields: dict[str, str] | None = None,
     ) -> str:
         """Record a proposal to create a new note."""
         try:
@@ -117,7 +135,11 @@ class CuratorTools:
         self.change_set.add_create(
             CreateProposal(
                 AddonNote(
-                    front=front, back=back, tags=tags, notetype=note_type
+                    front=front,
+                    back=back,
+                    tags=tags,
+                    notetype=note_type,
+                    extra_fields=extra_fields or {},
                 ),
                 rationale,
             )
@@ -146,6 +168,7 @@ class CuratorTools:
         kept_tags: list[str],
         new_notes: list[dict],
         rationale: str,
+        kept_extra_fields: dict[str, str] | None = None,
     ) -> str:
         """Record a proposal to split a note: the original is edited
         down to one facet (preserving its scheduling history) and each
@@ -178,13 +201,19 @@ class CuratorTools:
                         back=fields["back"],
                         tags=fields.get("tags", []),
                         notetype=note_type,
+                        extra_fields=fields.get("extra_fields", {}),
                     ),
                     rationale,
                 )
             )
 
+        merged_extra = {**before.extra_fields, **(kept_extra_fields or {})}
         after = dataclasses.replace(
-            before, front=kept_front, back=kept_back, tags=kept_tags
+            before,
+            front=kept_front,
+            back=kept_back,
+            tags=kept_tags,
+            extra_fields=merged_extra,
         )
         try:
             self.change_set.add_edit(
