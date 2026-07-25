@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+
 from addon.domain.entities.note import AddonNote, NoteId
 from addon.domain.repositories.note_repository import (
     InvalidSearchQueryError,
@@ -47,7 +49,7 @@ class FakeNoteRepository(NoteRepository):
     def add(self, note: AddonNote, deck_name: str) -> NoteId:
         note_id = NoteId(self._next_id)
         self._next_id += 1
-        self._notes[note_id] = note
+        self._notes[note_id] = dataclasses.replace(note, deck_name=deck_name)
         return note_id
 
     def remove(self, note_ids: list[NoteId]) -> None:
