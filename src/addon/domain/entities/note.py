@@ -46,6 +46,9 @@ class AddonNote:
         tags: Optional list of tags for categorization.
         notetype: The abstract note type (BASIC or CLOZE).
         deck_name: Optional target deck name in Anki.
+        extra_fields: Any Anki fields beyond the primary two (e.g.
+            "Extra", "Difficulty" on notetypes that have them), keyed by
+            field name. Empty for notetypes with only the primary fields.
     """
 
     front: str
@@ -54,6 +57,7 @@ class AddonNote:
     tags: Optional[list[str]] = None
     notetype: AddonNoteType = AddonNoteType.BASIC
     deck_name: Optional[str] = None
+    extra_fields: dict[str, str] = field(default_factory=dict)
 
 
 class AddonCollection:

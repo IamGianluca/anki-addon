@@ -35,19 +35,28 @@ class AnkiNoteMapper:
         Cloze notes map:
         - "Text" -> "front"
         - "Back Extra" to "back"
+
+        Any other fields the notetype has (e.g. "Extra", "Difficulty")
+        are preserved in extra_fields, keyed by field name.
         """
         if is_cloze_note(note):
             front, back = note["Text"], note["Back Extra"]
             notetype = AddonNoteType.CLOZE
+            primary = ("Text", "Back Extra")
         else:
             front, back = note["Front"], note["Back"]
             notetype = AddonNoteType.BASIC
+            primary = ("Front", "Back")
+        extra_fields = {
+            name: note[name] for name in note.keys() if name not in primary
+        }
         addon_note = AddonNote(
             guid=note.guid,
             front=front,
             back=back,
             tags=note.tags,
             notetype=notetype,
+            extra_fields=extra_fields,
         )
         return addon_note
 
@@ -65,6 +74,12 @@ class AnkiNoteMapper:
         # while curation (edit/split proposals) may change them.
         if include_tags:
             note.tags = list(addon_note.tags or [])
+        # Extra fields round-trip; keys the notetype doesn't have are
+        # skipped rather than failing (e.g. an agent-provided field
+        # name that doesn't exist on this notetype).
+        for name, value in addon_note.extra_fields.items():
+            if name in note.keys():
+                note[name] = value
         return note
 
 
