@@ -1,8 +1,12 @@
 import json
 
+from tests.fakes.aqt_fakes import FakeNote
 from tests.fakes.openai_fakes import FakeCompletionProvider
 
-from addon.application.services.formatter_service import NoteFormatter
+from addon.application.services.formatter_service import (
+    AnkiNoteMapper,
+    NoteFormatter,
+)
 from addon.domain.entities.note import AddonNote, AddonNoteType
 
 
@@ -85,3 +89,61 @@ def test_format_note_removes_alt_tags_from_images(
     # Then
     assert "alt=" not in result.front
     assert "<img " in result.front
+
+
+def test_mapper_captures_fields_beyond_front_and_back() -> None:
+    # Given
+    anki_note = FakeNote(
+        1,
+        {"Front": "Q", "Back": "A", "Extra": "an example", "Difficulty": "2"},
+    )
+
+    # When
+    addon_note = AnkiNoteMapper.to_addon_note(anki_note)
+
+    # Then
+    assert addon_note.extra_fields == {
+        "Extra": "an example",
+        "Difficulty": "2",
+    }
+
+
+def test_mapper_of_standard_notetype_has_no_extra_fields() -> None:
+    # Given
+    anki_note = FakeNote(1, {"Front": "Q", "Back": "A"})
+
+    # When
+    addon_note = AnkiNoteMapper.to_addon_note(anki_note)
+
+    # Then
+    assert addon_note.extra_fields == {}
+
+
+def test_merge_writes_back_extra_fields() -> None:
+    # Given
+    anki_note = FakeNote(
+        1, {"Front": "Q", "Back": "A", "Extra": "old", "Difficulty": "2"}
+    )
+    addon_note = AnkiNoteMapper.to_addon_note(anki_note)
+    addon_note.extra_fields["Extra"] = "new example"
+
+    # When
+    AnkiNoteMapper.merge_addon_changes(anki_note, addon_note)
+
+    # Then
+    assert anki_note["Extra"] == "new example"
+    assert anki_note["Difficulty"] == "2"
+
+
+def test_merge_skips_extra_fields_the_notetype_does_not_have() -> None:
+    # Given
+    anki_note = FakeNote(1, {"Front": "Q", "Back": "A"})
+    addon_note = AddonNote(
+        front="Q", back="A", extra_fields={"Extra": "ignored"}
+    )
+
+    # When
+    AnkiNoteMapper.merge_addon_changes(anki_note, addon_note)
+
+    # Then
+    assert "Extra" not in anki_note.keys()

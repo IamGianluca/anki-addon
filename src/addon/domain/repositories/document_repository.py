@@ -99,9 +99,10 @@ def convert_addon_note_to_document(note: AddonNote) -> Document:
     tags = ""
     if note.tags:
         tags = " ".join([t for t in note.tags])
+    extras = " ".join(note.extra_fields.values())
     return Document(
         id=str(uuid4()),
-        content=f"{note.front} {note.back} {tags}",
+        content=f"{note.front} {note.back} {tags} {extras}",
         source="",
         metadata=dataclasses.asdict(note),
     )
