@@ -108,3 +108,40 @@ def test_delete_detail_shows_content_to_be_lost() -> None:
 
     # Then
     assert f"Front: {_BEFORE.front}" in detail
+
+
+def test_edit_detail_diffs_changed_extra_fields() -> None:
+    # Given
+    before = AddonNote(
+        front="Q",
+        back="A",
+        extra_fields={"Extra": "old example", "Difficulty": "2"},
+    )
+    after = AddonNote(
+        front="Q",
+        back="A",
+        extra_fields={"Extra": "new example", "Difficulty": "2"},
+    )
+    proposal = EditProposal(NoteId(1), before, after, "r")
+
+    # When
+    detail = proposal_detail(proposal)
+
+    # Then
+    assert "Extra (before)" in detail
+    assert "-old example" in detail
+    assert "+new example" in detail
+    # unchanged extra field is omitted
+    assert "Difficulty (before)" not in detail
+
+
+def test_create_detail_shows_extra_fields() -> None:
+    # Given
+    note = AddonNote(front="Q", back="A", extra_fields={"Extra": "E"})
+    proposal = CreateProposal(note, "r")
+
+    # When
+    detail = proposal_detail(proposal)
+
+    # Then
+    assert "Extra: E" in detail

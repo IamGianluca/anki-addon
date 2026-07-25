@@ -112,29 +112,49 @@ def review_proposals(
 
 
 def _edit_diff(proposal: EditProposal) -> str:
-    sections = []
-    for label, before, after in [
+    fields = [
         ("Front", proposal.before.front, proposal.after.front),
         ("Back", proposal.before.back, proposal.after.back),
         ("Tags", _tags(proposal.before), _tags(proposal.after)),
-    ]:
-        if before != after:
-            sections.append(
-                "\n".join(
-                    difflib.unified_diff(
-                        before.splitlines(),
-                        after.splitlines(),
-                        fromfile=f"{label} (before)",
-                        tofile=f"{label} (after)",
-                        lineterm="",
-                    )
-                )
+    ]
+    extra_names = set(proposal.before.extra_fields) | set(
+        proposal.after.extra_fields
+    )
+    for name in sorted(extra_names):
+        fields.append(
+            (
+                name,
+                proposal.before.extra_fields.get(name, ""),
+                proposal.after.extra_fields.get(name, ""),
             )
+        )
+    sections = [
+        _field_diff(label, before, after)
+        for label, before, after in fields
+        if before != after
+    ]
     return "\n\n".join(sections) or "(no changes)"
 
 
+def _field_diff(label: str, before: str, after: str) -> str:
+    return "\n".join(
+        difflib.unified_diff(
+            before.splitlines(),
+            after.splitlines(),
+            fromfile=f"{label} (before)",
+            tofile=f"{label} (after)",
+            lineterm="",
+        )
+    )
+
+
 def _note_content(note: AddonNote) -> str:
-    return f"Front: {note.front}\nBack: {note.back}\nTags: {_tags(note)}"
+    lines = [f"Front: {note.front}", f"Back: {note.back}"]
+    lines.extend(
+        f"{name}: {value}" for name, value in note.extra_fields.items()
+    )
+    lines.append(f"Tags: {_tags(note)}")
+    return "\n".join(lines)
 
 
 def _tags(note: AddonNote) -> str:
