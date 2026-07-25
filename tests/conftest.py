@@ -86,7 +86,8 @@ def note3() -> FakeNote:
 def cloze1() -> FakeNote:
     return FakeNote(
         4,
-        {"type": 1, "Text": "This is a {{c1::fake note}}", "Back Extra": ""},
+        {"Text": "This is a {{c1::fake note}}", "Back Extra": ""},
+        model_type=1,
     )
 
 

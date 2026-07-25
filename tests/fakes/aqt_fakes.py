@@ -54,9 +54,11 @@ class FakeCollection:
 
     def new_note(self, notetype):
         fields = {f["name"]: "" for f in notetype["flds"]}
-        # FakeNote reads its type marker from a "type" field
-        fields["type"] = notetype.get("type", 0)
-        return FakeNote(max(self.notes, default=0) + 1, fields)
+        return FakeNote(
+            max(self.notes, default=0) + 1,
+            fields,
+            model_type=notetype.get("type", 0),
+        )
 
     def add_note(self, note, deck_id):
         self.notes[note.id] = note
@@ -138,17 +140,20 @@ class FakeNote:
     Only implements the essential functionality needed for basic operations.
     """
 
-    def __init__(self, note_id, fields=None):
+    def __init__(self, note_id, fields=None, model_type=0):
         self.id = note_id
         self.guid = str(self.id)  # TODO: properly implement guid
         self._fields = fields or {}
-        self.model = {"flds": [{"name": k} for k in self._fields.keys()]}
+        self._model_type = model_type  # 0 = basic, 1 = cloze
+        self.model = {
+            "type": model_type,
+            "flds": [{"name": k} for k in self._fields.keys()],
+        }
         self.tags = []
         self._was_flushed = False
 
     def note_type(self) -> dict:
-        note_type = self._fields.get("type", 0)  # 0 = basic, 1 = cloze
-        return dict(type=note_type)
+        return dict(type=self._model_type)
 
     def keys(self):
         return self._fields.keys()
