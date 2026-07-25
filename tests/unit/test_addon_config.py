@@ -201,3 +201,41 @@ def test_raises_value_error_when_required_params_missing(
     error_msg = str(exc_info.value)
     for key in expected_missing:
         assert key in error_msg
+
+
+def test_defaults_notetype_names_when_not_in_config() -> None:
+    # Given
+    addon_manager = FakeAddonManager(
+        {
+            "openai_host": "localhost",
+            "openai_port": "8000",
+            "openai_model": "test-model",
+        }
+    )
+
+    # When
+    config = AddonConfig(addon_manager)
+
+    # Then
+    assert config.basic_notetype == "Basic"
+    assert config.cloze_notetype == "Cloze"
+
+
+def test_reads_custom_notetype_names_from_config() -> None:
+    # Given
+    addon_manager = FakeAddonManager(
+        {
+            "openai_host": "localhost",
+            "openai_port": "8000",
+            "openai_model": "test-model",
+            "basic_notetype_name": "Better Markdown : Basic",
+            "cloze_notetype_name": "Better Markdown : Cloze",
+        }
+    )
+
+    # When
+    config = AddonConfig(addon_manager)
+
+    # Then
+    assert config.basic_notetype == "Better Markdown : Basic"
+    assert config.cloze_notetype == "Better Markdown : Cloze"

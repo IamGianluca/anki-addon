@@ -28,6 +28,10 @@ class AddonConfig:
             Set to False to skip reasoning tokens, saving tokens and latency.
         preserve_thinking: Whether to preserve reasoning tokens in the output
             (optional, for models like Qwen3.6 with thinking mode).
+        basic_notetype: Name of the Anki notetype used when creating
+            basic notes. Must use the standard "Front"/"Back" fields.
+        cloze_notetype: Name of the Anki notetype used when creating
+            cloze notes. Must use the standard "Text"/"Back Extra" fields.
     """
 
     def __init__(self, config_provider: ConfigProvider) -> None:
@@ -69,3 +73,7 @@ class AddonConfig:
         self.preserve_thinking = bool(
             raw.get("openai_preserve_thinking", False)
         )
+
+        # Notetypes used when the curator creates notes
+        self.basic_notetype = raw.get("basic_notetype_name", "Basic")
+        self.cloze_notetype = raw.get("cloze_notetype_name", "Cloze")
