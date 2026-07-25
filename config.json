@@ -1,5 +1,7 @@
 {
   "openai_host": "",
   "openai_port": "",
-  "openai_model": ""
+  "openai_model": "",
+  "basic_notetype_name": "Basic",
+  "cloze_notetype_name": "Cloze"
 }
