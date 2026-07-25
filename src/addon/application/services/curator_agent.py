@@ -133,6 +133,7 @@ class CuratorAgent:
                 action.back,
                 action.tags,
                 action.rationale,
+                extra_fields=action.extra_fields,
             )
         if isinstance(action, ProposeCreateAction):
             return tools.propose_create(
@@ -141,6 +142,7 @@ class CuratorAgent:
                 action.tags,
                 action.notetype,
                 action.rationale,
+                extra_fields=action.extra_fields,
             )
         if isinstance(action, ProposeDeleteAction):
             return tools.propose_delete(
@@ -154,6 +156,7 @@ class CuratorAgent:
                 action.kept_tags,
                 [n.model_dump(exclude_none=True) for n in action.new_notes],
                 action.rationale,
+                kept_extra_fields=action.kept_extra_fields,
             )
         raise ValueError(f"unexpected action: {action}")
 

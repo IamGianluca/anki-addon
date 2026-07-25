@@ -212,3 +212,30 @@ def test_structured_output_schema_is_requested(
     # Then
     kwargs = client.kwargs_received[0]
     assert kwargs["response_format"]["type"] == "json_schema"
+
+
+def test_extra_fields_flow_from_action_to_change_set(
+    adam_cluster: dict[int, AddonNote],
+) -> None:
+    # Given
+    responses = [
+        _step(
+            {
+                "action": "propose_edit",
+                "note_id": 1,
+                "front": "What does beta_2 control in Adam?",
+                "back": "Decay rate of the second moment estimate.",
+                "tags": ["ml", "optimizers"],
+                "extra_fields": {"Extra": "See the Adam paper"},
+                "rationale": "add a reference",
+            }
+        ),
+        _step({"action": "finish", "summary": "done"}),
+    ]
+
+    # When
+    session, _ = _run_agent(responses, adam_cluster)
+
+    # Then
+    (edit,) = [p for p in session.change_set if isinstance(p, EditProposal)]
+    assert edit.after.extra_fields == {"Extra": "See the Adam paper"}

@@ -36,6 +36,7 @@ class ProposeEditAction(BaseModel):
     front: str
     back: str
     tags: list[str]
+    extra_fields: dict[str, str] = {}
     rationale: str
 
 
@@ -45,6 +46,7 @@ class ProposeCreateAction(BaseModel):
     back: str
     tags: list[str]
     notetype: str
+    extra_fields: dict[str, str] = {}
     rationale: str
 
 
@@ -62,6 +64,7 @@ class NewNoteFields(BaseModel):
     back: str
     tags: list[str] = []
     notetype: Optional[str] = None
+    extra_fields: dict[str, str] = {}
 
 
 class ProposeSplitAction(BaseModel):
@@ -70,6 +73,7 @@ class ProposeSplitAction(BaseModel):
     kept_front: str
     kept_back: str
     kept_tags: list[str]
+    kept_extra_fields: dict[str, str] = {}
     new_notes: list[NewNoteFields]
     rationale: str
 

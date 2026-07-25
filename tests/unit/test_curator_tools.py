@@ -311,3 +311,118 @@ def test_propose_split_requires_at_least_one_new_note(
     # Then
     assert result.startswith("error:")
     assert len(tools.change_set) == 0
+
+
+def test_read_note_shows_extra_fields() -> None:
+    # Given
+    repo = FakeNoteRepository(
+        {
+            1: AddonNote(
+                front="Q",
+                back="A",
+                tags=["ml"],
+                extra_fields={"Extra": "an example", "Difficulty": "2"},
+            )
+        }
+    )
+    tools = CuratorTools(repo)
+
+    # When
+    result = tools.read_note(NoteId(1))
+
+    # Then
+    assert "Extra: an example" in result
+    assert "Difficulty: 2" in result
+    assert result.index("Extra:") < result.index("Tags:")
+
+
+def test_propose_edit_merges_extra_fields_with_stored_note() -> None:
+    # Given: the stored note already has extra fields
+    repo = FakeNoteRepository(
+        {
+            1: AddonNote(
+                front="Q",
+                back="A",
+                extra_fields={"Extra": "old", "Difficulty": "1"},
+            )
+        }
+    )
+    tools = CuratorTools(repo)
+
+    # When: the edit only mentions one of them
+    result = tools.propose_edit(
+        NoteId(1), "f", "b", [], "r", extra_fields={"Extra": "new"}
+    )
+
+    # Then
+    assert result == "Edit proposal recorded for note 1."
+    (edit,) = _edits(tools)
+    assert edit.after.extra_fields == {"Extra": "new", "Difficulty": "1"}
+
+
+def test_second_edit_replaces_first_wholesale(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_edit(
+        NoteId(1), "f", "b", [], "first", extra_fields={"Extra": "E1"}
+    )
+
+    # When: a second edit on the same note does not mention Extra
+    tools.propose_edit(
+        NoteId(1),
+        "f",
+        "b",
+        [],
+        "second",
+        extra_fields={"Difficulty": "2"},
+    )
+
+    # Then: the newer edit replaces the older one entirely, merging
+    # extra fields against the stored note (as front/back/tags do)
+    (edit,) = _edits(tools)
+    assert edit.after.extra_fields == {"Difficulty": "2"}
+
+
+def test_propose_edit_can_clear_an_extra_field() -> None:
+    # Given
+    repo = FakeNoteRepository(
+        {1: AddonNote(front="Q", back="A", extra_fields={"Extra": "E"})}
+    )
+    tools = CuratorTools(repo)
+
+    # When
+    tools.propose_edit(
+        NoteId(1), "Q", "A", [], "r", extra_fields={"Extra": ""}
+    )
+
+    # Then
+    (edit,) = _edits(tools)
+    assert edit.after.extra_fields == {"Extra": ""}
+
+
+def test_propose_edit_preserves_extra_fields_when_omitted() -> None:
+    # Given
+    repo = FakeNoteRepository(
+        {1: AddonNote(front="Q", back="A", extra_fields={"Extra": "E"})}
+    )
+    tools = CuratorTools(repo)
+
+    # When
+    tools.propose_edit(NoteId(1), "new front", "A", [], "r")
+
+    # Then
+    (edit,) = _edits(tools)
+    assert edit.after.extra_fields == {"Extra": "E"}
+
+
+def test_propose_create_with_extra_fields(tools: CuratorTools) -> None:
+    # When
+    result = tools.propose_create(
+        "f", "b", [], "basic", "r", extra_fields={"Extra": "E"}
+    )
+
+    # Then
+    assert result == "Create proposal recorded."
+    (create,) = _creates(tools)
+    assert create.note.extra_fields == {"Extra": "E"}
