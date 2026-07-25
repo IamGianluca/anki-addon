@@ -90,8 +90,14 @@ def on_curator_action(editor: Editor) -> None:
         except Exception as e:
             showWarning(f"Failed to apply changes: {e}")
             return
-        # The seed note may have been edited under the open editor
+        # Reload the editor's note in place: apply_proposals wrote
+        # through freshly-fetched note objects, so the object the editor
+        # holds (and anything aliasing it, like EditorDialog.review_notes
+        # in the 'Improve note with AI' window) is still the pre-curation
+        # copy. Re-rendering or saving from that stale object would
+        # silently revert the applied edits.
         try:
+            ensure_note(editor.note).load()
             editor.loadNote()
         except Exception:
             pass
