@@ -56,7 +56,7 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 - [ ] Identify notes that are not atomic and suggest fix — **Goal 2**
 - [ ] Identify isolated notes — these will be harder to learn ― and suggest fix — **Goal 2**
 - [ ] Support converting existing note to a different type (e.g., Basic --> Cloze, Cloze --> Basic) — **Goal 2**
-- [ ] Evolve the backend approach from one-shot LLM call to an AI agent using dedicated tools ― **Goal 2**
+- [x] Evolve the backend approach from one-shot LLM call to an AI agent using dedicated tools ― **Goal 2**
 - [ ] Add web search capability to AI agent to overcome knowledge limitation in the specific language model ― **Goal 2**
 - [ ] For OpenAI-compatible servers (llama.cpp, vLLM), hide per-model quirks (e.g., thinking params, markdown fence stripping) inside `OpenAIClient` driven by `AddonConfig`. — **Goal 3**
 - [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — **Goal 3**
@@ -88,6 +88,7 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 | Q2 2026 | Port-and-adapters with `.create()` factory and Protocol ports | Enables testability without mocks; consistent construction pattern across all adapters |
 | Q3 2025 | No mocks — use fakes in `tests/fakes/` | Mocks couple tests to implementation; fakes exercise real logic and survive refactors |
 | Q2 2026 | Deprecate `.create()` and Nullable patterns in favor of `__init__()` and dedicated Fakes + Dependency Injection | No test code in production; simplify production code; more standard approach |
+| Q3 2026 | Curation agent has no write access to the collection; mutations are proposals the user approves in batch | Data integrity (Goal 1) by construction: the agent cannot corrupt notes; one review point instead of per-action prompts |
 
 ## Review cadence
 
