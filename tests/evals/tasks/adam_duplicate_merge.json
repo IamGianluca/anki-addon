@@ -1,0 +1,56 @@
+{
+  "id": "adam_duplicate_merge_1",
+  "suite": "capability",
+  "desc": "Two notes ask the same question about beta_2 in Adam with different wording; one of them also states the typical value (0.999). The agent should merge them: keep one note carrying the typical value, delete the other, and leave the unrelated beta_1 note untouched.",
+  "seed_note_id": 1,
+  "trials": 1,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "What does beta_2 control in Adam?",
+      "back": "Decay rate of the second moment estimate.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "In the Adam optimizer, what is beta_2?",
+      "back": "It controls the decay rate of the second moment estimate. Typical value: 0.999.",
+      "tags": ["ml", "adam"],
+      "notetype": "basic"
+    },
+    {
+      "id": 3,
+      "front": "What does beta_1 control in Adam?",
+      "back": "Decay rate of the first moment estimate.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [1, 2],
+    "creates": [0, 0],
+    "deletes": [1, 1],
+    "must_not_touch": [3],
+    "facts": ["second moment", "0.999", "first moment"]
+  },
+  "judge_assertions": [
+    "The surviving beta_2 note is a well-formed atomic flashcard: the front asks one precise question and the back is as short as possible while still complete."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "What does beta_2 control in Adam?",
+      "back": "Decay rate of the second moment estimate. Typical value: 0.999.",
+      "tags": ["ml", "optimizers"],
+      "rationale": "carry the typical value from the duplicate over to the better-worded note"
+    },
+    {
+      "type": "delete",
+      "note_id": 2,
+      "rationale": "duplicate of note 1; its unique content was merged into note 1"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "id": "clean_cluster_no_changes_1",
+  "suite": "capability",
+  "desc": "A well-formed cluster: three atomic notes with no duplication and no gaps. The correct behavior is to propose nothing and finish. Negative task guarding against an over-eager curator.",
+  "seed_note_id": 1,
+  "trials": 1,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "What does beta_1 control in Adam?",
+      "back": "Decay rate of the first moment estimate.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "What does beta_2 control in Adam?",
+      "back": "Decay rate of the second moment estimate.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    },
+    {
+      "id": 3,
+      "front": "What is the typical learning rate for Adam?",
+      "back": "0.001.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "empty": true,
+    "facts": ["first moment", "second moment", "0.001"]
+  },
+  "judge_assertions": [],
+  "reference": []
+}

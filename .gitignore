@@ -12,6 +12,9 @@ wheels/
 # Dev files
 .coverage
 
+# LLM eval transcripts and grades
+tests/evals/results/
+
 # Training data
 data/
 

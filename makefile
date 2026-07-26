@@ -1,4 +1,4 @@
-.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline
+.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval
 
 install:
 	uv sync --all-extras && \
@@ -45,6 +45,11 @@ test_slow_update_baseline:
 	ELAPSED=$$(( (END - START) )); \
 	python3 scripts/gate_test_time.py --elapsed $$ELAPSED --suite test_slow --update-baseline; \
 	exit $$EXIT
+
+# LLM evals are not part of test_slow: they are slow, non-deterministic,
+# and spend tokens. No timing gate applies. See tests/evals/README.md.
+eval:
+	RUN_EVALS=1 uv run pytest tests/evals/ -vv -s
 
 format:
 	uv run ruff check --fix && uv run ruff format
