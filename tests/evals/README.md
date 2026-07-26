@@ -33,11 +33,12 @@ the model and settings the addon actually ships with. Point the vars at
 a different server/model to compare candidates on the same suite.
 
 Every trial writes a full record (cluster, change set, transcript,
-grade) to `tests/evals/results/<timestamp>/` (git-ignored). To
-summarize a run:
+judge verdicts, grade) to `tests/evals/results/<timestamp>/`
+(git-ignored). To summarize the latest run:
 
 ```bash
-uv run python tests/evals/summarize.py tests/evals/results/<stamp>
+make eval_summary                                      # latest run
+make eval_summary RESULTS=tests/evals/results/<stamp>  # older run
 ```
 
 **Read the transcripts when a task fails.** A failure should look fair:
@@ -97,7 +98,15 @@ One JSON file per task in `tasks/`. See the existing files for examples.
 Each assertion is judged in a **separate** call (no trading dimensions
 off against each other), seeing the cluster, the change set, and one
 assertion, answering `pass` / `fail` / `unknown`. `unknown` is recorded
-separately — never silently counted either way. Two caveats:
+separately — never silently counted either way.
+
+The judge's instructions live in `judge_prompt.md` (edit it there);
+the per-assertion rubric is each string in a task's `judge_assertions`.
+**Every verdict — passes included — is recorded with its reason** in
+the trial record under `judge_verdicts` and printed by `summarize.py`.
+To review a decision, open the trial record: it contains the cluster
+and the change set, i.e. everything the judge saw, so you can
+re-adjudicate the assertion yourself. Two caveats:
 
 - The judge is the same client (and model) as the agent by default,
   which means self-grading bias. For calibration runs, point the env

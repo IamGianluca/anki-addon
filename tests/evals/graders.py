@@ -21,6 +21,8 @@ import html
 import json
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from addon.domain.entities.note import AddonNoteType
@@ -51,11 +53,15 @@ class GradeResult:
         separately, never silently counted as pass or fail.
     stats: tracked metrics that don't affect passing (step count,
         schema errors, proposal counts).
+    judge_verdicts: every judge decision (assertion, verdict, reason),
+        passes included — the audit trail for calibrating the judge
+        against your own reading of the record.
     """
 
     failures: list[str] = field(default_factory=list)
     unknowns: list[str] = field(default_factory=list)
     stats: dict = field(default_factory=dict)
+    judge_verdicts: list[dict] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
@@ -65,6 +71,7 @@ class GradeResult:
         self.failures.extend(other.failures)
         self.unknowns.extend(other.unknowns)
         self.stats.update(other.stats)
+        self.judge_verdicts.extend(other.judge_verdicts)
 
 
 def grade_trial(
@@ -203,15 +210,10 @@ _JUDGE_VERDICT_SCHEMA = {
     "additionalProperties": False,
 }
 
-_JUDGE_SYSTEM_PROMPT = """\
-You are grading an LLM flashcard-curation agent. You will be shown a
-cluster of Anki notes, the changes the agent proposed, and ONE
-assertion about those changes. Judge only that assertion, based only
-on what you are shown.
 
-Respond with JSON: {"verdict": "pass"|"fail"|"unknown", "reason": ...}.
-Use "unknown" whenever the information shown is insufficient to decide
-confidently — never guess."""
+@lru_cache(maxsize=1)
+def _get_judge_prompt() -> str:
+    return (Path(__file__).parent / "judge_prompt.md").read_text()
 
 
 def grade_by_judge(
@@ -225,6 +227,9 @@ def grade_by_judge(
     for assertion in task.judge_assertions:
         verdict, reason = _judge_assertion(
             task, session, judge_client, assertion
+        )
+        result.judge_verdicts.append(
+            {"assertion": assertion, "verdict": verdict, "reason": reason}
         )
         if verdict == "fail":
             result.failures.append(f"judge rejected {assertion!r}: {reason}")
@@ -243,7 +248,7 @@ def _judge_assertion(
 ) -> tuple[str, str]:
     response = judge_client.run(
         [
-            {"role": "system", "content": _JUDGE_SYSTEM_PROMPT},
+            {"role": "system", "content": _get_judge_prompt()},
             {
                 "role": "user",
                 "content": (

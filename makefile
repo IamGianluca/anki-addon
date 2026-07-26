@@ -1,4 +1,4 @@
-.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval
+.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_summary
 
 install:
 	uv sync --all-extras && \
@@ -50,6 +50,11 @@ test_slow_update_baseline:
 # and spend tokens. No timing gate applies. See tests/evals/README.md.
 eval:
 	RUN_EVALS=1 uv run pytest tests/evals/ -vv -s
+
+# Summarize the latest eval run; for an older one:
+# make eval_summary RESULTS=tests/evals/results/<timestamp>
+eval_summary:
+	uv run python tests/evals/summarize.py $(RESULTS)
 
 format:
 	uv run ruff check --fix && uv run ruff format

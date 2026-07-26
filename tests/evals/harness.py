@@ -197,6 +197,7 @@ def write_trial_record(
         "failures": grade.failures,
         "unknowns": grade.unknowns,
         "stats": grade.stats,
+        "judge_verdicts": grade.judge_verdicts,
         "summary": outcome.session.summary,
         "cluster": [
             {"id": note_id, **_render_note(note)}
