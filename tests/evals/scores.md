@@ -1,43 +1,26 @@
 # Eval scores
 
-run: 20260731T023243Z
+run: 20260731T213706Z
 model: unsloth/Qwen3.6-27B-MTP-GGUF:Q4_K_XL
 
-✗ adam_duplicate_merge_1       pass@1   0%  pass^3 0  (0/3 trials)
-  trial 0: ✗  (10 steps, 0 schema errors)
-    failure: note 3 should not have been touched
-    failure: fact 'second moment' is missing from the notes after applying the
-             change set
-    failure: fact 'first moment' is missing from the notes after applying the
-             change set
+✗ adam_duplicate_merge_1       pass@1  67%  pass^3 0  (2/3 trials)
+  trial 0: ✗  (8 steps, 0 schema errors)
+    failure: expected deletes in [1, 1], got 0
     judge ✓ The surviving beta_2 note is a well-formed atomic flashcard: the…
-  trial 1: ✗  (12 steps, 0 schema errors)
-    failure: note 3 should not have been touched
+  trial 1: ✓  (10 steps, 0 schema errors)
     judge ✓ The surviving beta_2 note is a well-formed atomic flashcard: the…
-  trial 2: ✗  (9 steps, 0 schema errors)
-    failure: note 3 should not have been touched
-    judge ✗ The surviving beta_2 note is a well-formed atomic flashcard: the…
+  trial 2: ✓  (9 steps, 0 schema errors)
+    judge ✓ The surviving beta_2 note is a well-formed atomic flashcard: the…
 
-✗ clean_cluster_no_changes_1   pass@1   0%  pass^3 0  (0/3 trials)
-  trial 0: ✗  (10 steps, 0 schema errors)
-    failure: expected an empty change set, got 2 proposal(s)
-  trial 1: ✗  (10 steps, 0 schema errors)
-    failure: expected an empty change set, got 3 proposal(s)
-  trial 2: ✗  (12 steps, 0 schema errors)
-    failure: expected an empty change set, got 3 proposal(s)
+✓ clean_cluster_no_changes_1   pass@1 100%  pass^3 1  (3/3 trials)
 
-✗ split_compound_note_1        pass@1   0%  pass^3 0  (0/3 trials)
-  trial 0: ✗  (11 steps, 0 schema errors)
-    failure: expected edits in [1, 1], got 2
-    failure: note 2 should not have been touched
+✗ split_compound_note_1        pass@1  33%  pass^3 0  (1/3 trials)
+  trial 0: ✓  (6 steps, 0 schema errors)
     judge ✓ After the split, each resulting note tests exactly one idea.
-  trial 1: ✗  (8 steps, 0 schema errors)
-    failure: expected edits in [1, 1], got 2
-    failure: note 2 should not have been touched
+  trial 1: ✗  (9 steps, 0 schema errors)
+    failure: expected creates in [1, 2], got 3
     judge ✓ After the split, each resulting note tests exactly one idea.
-  trial 2: ✗  (9 steps, 0 schema errors)
-    failure: expected edits in [1, 1], got 2
-    failure: note 2 should not have been touched
+  trial 2: ✗  (8 steps, 0 schema errors)
     judge ✗ After the split, each resulting note tests exactly one idea.
 
-summary: 0/3 tasks pass^k, mean pass@1 0%
+summary: 1/3 tasks pass^k, mean pass@1 67%
