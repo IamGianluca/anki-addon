@@ -3,7 +3,7 @@
   "suite": "capability",
   "desc": "A well-formed cluster: three atomic notes with no duplication and no gaps. The correct behavior is to propose nothing and finish. Negative task guarding against an over-eager curator.",
   "seed_note_id": 1,
-  "trials": 1,
+  "trials": 3,
   "max_steps": 15,
   "notes": [
     {

@@ -3,7 +3,7 @@
   "suite": "capability",
   "desc": "The seed note tests two distinct facts (beta_1 and beta_2, each with its typical value) in one card. The agent should split it into atomic notes preserving every fact, and leave the unrelated learning-rate note untouched.",
   "seed_note_id": 1,
-  "trials": 1,
+  "trials": 3,
   "max_steps": 15,
   "notes": [
     {
