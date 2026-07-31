@@ -1,4 +1,4 @@
-.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_summary
+.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_summary eval_snapshot
 
 install:
 	uv sync --all-extras && \
@@ -55,6 +55,11 @@ eval:
 # make eval_summary RESULTS=tests/evals/results/<timestamp>
 eval_summary:
 	uv run python tests/evals/summarize.py $(RESULTS)
+
+# Snapshot the latest run's scores into the tracked, diff-friendly
+# tests/evals/scores.md — commit it with the change it measures.
+eval_snapshot:
+	uv run python tests/evals/summarize.py --write
 
 format:
 	uv run ruff check --fix && uv run ruff format

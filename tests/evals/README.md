@@ -41,6 +41,20 @@ make eval_summary                                      # latest run
 make eval_summary RESULTS=tests/evals/results/<stamp>  # older run
 ```
 
+To keep a diffable history of scores, snapshot a run into the
+tracked `tests/evals/scores.md` and commit it together with the
+change it measures — the commit becomes the experiment record, and
+diffing against the previous snapshot shows the effect line by line:
+
+```bash
+make eval_snapshot   # write tests/evals/scores.md from the latest run
+```
+
+The snapshot contains verdicts and deterministic failure details but
+no judge reasons and no transcripts — nothing beyond what the task
+files themselves contain. `results/` (full transcripts, note content)
+stays git-ignored.
+
 **Read the transcripts when a task fails.** A failure should look fair:
 it should be obvious what went wrong and why. If the agent found a
 valid solution the graders rejected, fix the grader or the task — not
