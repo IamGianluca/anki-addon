@@ -1,7 +1,7 @@
 {
   "id": "split_compound_note_1",
   "suite": "capability",
-  "desc": "The seed note tests two distinct facts (beta_1 and beta_2, each with its typical value) in one card. The agent should split it into atomic notes preserving every fact, and leave the unrelated learning-rate note untouched.",
+  "desc": "The seed note tests four distinct facts in one card (the roles of beta_1 and beta_2, and the typical value of each). The agent should split it into four atomic notes — one per fact, with the parameter's role and its typical value on separate cards — preserving every fact, and leave the unrelated learning-rate note untouched.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -23,7 +23,7 @@
   ],
   "expect": {
     "edits": [1, 1],
-    "creates": [1, 2],
+    "creates": [3, 3],
     "deletes": [0, 0],
     "must_touch": [1],
     "must_not_touch": [2],
@@ -36,18 +36,34 @@
     {
       "type": "edit",
       "note_id": 1,
-      "front": "What does beta_1 control in Adam, and what is its typical value?",
-      "back": "Decay rate of the first moment estimate; typically 0.9.",
+      "front": "What does beta_1 control in Adam?",
+      "back": "Decay rate of the first moment estimate.",
       "tags": ["ml", "optimizers"],
-      "rationale": "keep the beta_1 facet on the original note"
+      "rationale": "keep the beta_1 role on the original note"
     },
     {
       "type": "create",
-      "front": "What does beta_2 control in Adam, and what is its typical value?",
-      "back": "Decay rate of the second moment estimate; typically 0.999.",
+      "front": "What is the typical value of beta_1 in Adam?",
+      "back": "0.9.",
       "tags": ["ml", "optimizers"],
       "notetype": "basic",
-      "rationale": "the beta_2 facet becomes its own atomic note"
+      "rationale": "the typical value is a separate memory from the role"
+    },
+    {
+      "type": "create",
+      "front": "What does beta_2 control in Adam?",
+      "back": "Decay rate of the second moment estimate.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic",
+      "rationale": "the beta_2 role becomes its own note"
+    },
+    {
+      "type": "create",
+      "front": "What is the typical value of beta_2 in Adam?",
+      "back": "0.999.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic",
+      "rationale": "the typical value is a separate memory from the role"
     }
   ]
 }
