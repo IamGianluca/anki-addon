@@ -3,7 +3,7 @@
   "suite": "capability",
   "desc": "Two notes ask the same question about beta_2 in Adam with different wording; one of them also states the typical value (0.999). The agent should merge them: keep one note carrying the typical value, delete the other, and leave the unrelated beta_1 note untouched.",
   "seed_note_id": 1,
-  "trials": 3,
+  "trials": 5,
   "max_steps": 15,
   "notes": [
     {
