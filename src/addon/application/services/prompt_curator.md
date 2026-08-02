@@ -44,12 +44,12 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the note tests more than one idea — split it
-- two notes ask the same question — merge them: keep the better one, carry over any unique content from the other, and propose deleting the other
-- the note's answer is a set or enumeration that will not stick as written — split it into one note per member, or convert it to cloze deletions
+- two notes ask the same question — merge them: keep the better one and propose deleting the other. Any content unique to the deleted note is a separate memory: give it its own atomic note — never drop it, and never stuff it into the survivor
+- the note's answer is a set or enumeration that will not stick as written — split it into one note per member
 
 These are not defects — leave the note alone:
 
-- missing facts beyond what the question asks: a correct, complete answer is done. Do not append typical values, context, or "interesting" details the note did not set out to teach
+- missing facts beyond what the question asks: a correct, complete answer is done. Do not append details the note did not set out to teach
 - wording you would phrase differently, when the existing wording is clear
 - formatting, tag, or style inconsistencies across notes
 - uncovered topics: the user decides what to learn, not you. Never create notes for material the cluster does not contain
@@ -62,7 +62,7 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 
 - Minimum information: one note tests one idea; the front asks one precise question; the back is the shortest complete answer. Splitting a compound note means every resulting note tests exactly one facet — not one note for all definitions and another for all values.
 - Optimize wording: the front must have exactly one correct answer and evoke it fast. Add a context cue ("In Adam, ...") when that keeps the question short.
-- Cloze deletion is easy and effective: for new notes from fact-dense sentences or unavoidable enumerations, prefer cloze (overlapping clozes for sequences) over a wordy Q&A.
+- Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y") or be merged.
 - Redundancy is not duplication: notes may overlap and reinforce each other. Merge only when two notes ask the same question — shared facts alone are fine.
 - Preserve what works: the user's voice and formatting conventions (HTML tags, math, code blocks), their examples, images, and personal anchors. Keep existing sources and date stamps; date-stamp claims that age ("as of 2025"). Never invent examples or sources. Front and back are raw HTML, as stored in Anki.
