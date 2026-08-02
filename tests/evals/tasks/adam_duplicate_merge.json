@@ -1,7 +1,7 @@
 {
   "id": "adam_duplicate_merge_1",
   "suite": "capability",
-  "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should merge the overlapping role cards into one, give the typical value its own atomic note, and leave the unrelated beta_1 note untouched.",
+  "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should merge them into one role card and repurpose the other note into an atomic typical-value card (preserving its review history), leaving the unrelated beta_1 note untouched.",
   "seed_note_id": 1,
   "trials": 5,
   "max_steps": 15,
@@ -29,36 +29,23 @@
     }
   ],
   "expect": {
-    "edits": [0, 1],
-    "creates": [1, 1],
-    "deletes": [1, 1],
+    "edits": [1, 2],
+    "creates": [0, 0],
+    "deletes": [0, 0],
     "must_not_touch": [3],
     "facts": ["second moment", "0.999", "first moment"]
   },
   "judge_assertions": [
-    "After the merge, every resulting note tests exactly one fact."
+    "After the merge, no two notes ask the same question, and each resulting note tests exactly one fact."
   ],
   "reference": [
     {
       "type": "edit",
-      "note_id": 1,
-      "front": "In the Adam optimizer, what does beta_2 control?",
-      "back": "Decay rate of the second moment estimate.",
-      "tags": ["ml", "optimizers"],
-      "rationale": "keep the cleaner role question, adopting the duplicate's context cue"
-    },
-    {
-      "type": "delete",
       "note_id": 2,
-      "rationale": "overlaps note 1 on beta_2's role; its unique content moves to its own note"
-    },
-    {
-      "type": "create",
       "front": "What is the typical value of beta_2 in Adam?",
       "back": "0.999.",
-      "tags": ["ml", "optimizers"],
-      "notetype": "basic",
-      "rationale": "the typical value is a separate memory and gets its own atomic note"
+      "tags": ["ml", "adam"],
+      "rationale": "repurpose the duplicate into the atomic typical-value note, preserving its review history"
     }
   ]
 }
