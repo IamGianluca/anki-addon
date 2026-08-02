@@ -45,33 +45,75 @@ _SCHEMA_ERROR_MARKER = "did not match the required schema"
 
 
 @dataclass
+class Check:
+    """One graded dimension of a trial.
+
+    name: short label for the dimension (e.g. "no_deletes", "atomic").
+    verdict: pass, fail, or unknown (judge could not decide).
+    reason: explanation — always present, even for passes.
+    """
+
+    name: str
+    verdict: str  # "pass" | "fail" | "unknown"
+    reason: str
+
+
+@dataclass
 class GradeResult:
     """The grade of one trial.
 
-    failures: hard violations; the trial passes iff this is empty.
-    unknowns: judge assertions the judge could not decide — recorded
-        separately, never silently counted as pass or fail.
+    checks: individual graded dimensions — the trial passes iff all
+        checks pass (no fails, no unknowns). Each check carries a
+        human-readable name and reason for the summary output.
     stats: tracked metrics that don't affect passing (step count,
         schema errors, proposal counts).
-    judge_verdicts: every judge decision (assertion, verdict, reason),
-        passes included — the audit trail for calibrating the judge
-        against your own reading of the record.
     """
 
-    failures: list[str] = field(default_factory=list)
-    unknowns: list[str] = field(default_factory=list)
+    checks: list[Check] = field(default_factory=list)
     stats: dict = field(default_factory=dict)
-    judge_verdicts: list[dict] = field(default_factory=list)
 
     @property
     def passed(self) -> bool:
-        return not self.failures
+        return all(c.verdict == "pass" for c in self.checks)
+
+    @property
+    def score(self) -> float:
+        """Fraction of non-unknown checks that passed.
+
+        Unknowns are excluded from the denominator — they represent
+        missing information, not a failure. With zero decidable checks
+        the score is 0.0.
+        """
+        decidable = [c for c in self.checks if c.verdict != "unknown"]
+        if not decidable:
+            return 0.0
+        return sum(1 for c in decidable if c.verdict == "pass") / len(decidable)
+
+    @property
+    def failures(self) -> list[str]:
+        """Backward-compatible view: fail reasons as a flat list."""
+        return [
+            f"{c.name}: {c.reason}" if c.reason else c.name
+            for c in self.checks
+            if c.verdict == "fail"
+        ]
+
+    @property
+    def unknowns(self) -> list[str]:
+        """Backward-compatible view: unknown reasons as a flat list."""
+        return [
+            f"{c.name}: {c.reason}" if c.reason else c.name
+            for c in self.checks
+            if c.verdict == "unknown"
+        ]
+
+    def add_check(self, name: str, verdict: str, reason: str = "") -> None:
+        """Add a single check result."""
+        self.checks.append(Check(name=name, verdict=verdict, reason=reason))
 
     def merge(self, other: "GradeResult") -> None:
-        self.failures.extend(other.failures)
-        self.unknowns.extend(other.unknowns)
+        self.checks.extend(other.checks)
         self.stats.update(other.stats)
-        self.judge_verdicts.extend(other.judge_verdicts)
 
 
 def grade_trial(
@@ -90,6 +132,10 @@ def grade_trial(
 def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
     """Grade the change set and the cluster state it produces.
 
+    Each dimension is a separate check so partial credit is visible:
+    correct edit count, correct create count, correct delete count,
+    must-touch, must-not-touch, fact preservation, and cloze safety.
+
     Also used by test_task_files to validate reference solutions, so it
     must not look at the transcript.
     """
@@ -104,10 +150,14 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
 
     if expect.empty:
         if proposals:
-            result.failures.append(
-                f"expected an empty change set, got {len(proposals)} "
-                "proposal(s)"
+            result.add_check(
+                name="empty_change_set",
+                verdict="fail",
+                reason=f"expected an empty change set, got "
+                f"{len(proposals)} proposal(s)",
             )
+        else:
+            result.add_check(name="empty_change_set", verdict="pass")
         return result
 
     _check_count(result, "edits", len(edits), expect.edits)
@@ -117,22 +167,38 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
     touched = {p.note_id for p in [*edits, *deletes]}
     for note_id in expect.must_touch:
         if note_id not in touched:
-            result.failures.append(
-                f"note {note_id} should have been edited or deleted"
+            result.add_check(
+                name=f"must_touch_{note_id}",
+                verdict="fail",
+                reason=f"note {note_id} should have been edited or deleted",
+            )
+        else:
+            result.add_check(
+                name=f"must_touch_{note_id}", verdict="pass"
             )
     for note_id in expect.must_not_touch:
         if note_id in touched:
-            result.failures.append(
-                f"note {note_id} should not have been touched"
+            result.add_check(
+                name=f"must_not_touch_{note_id}",
+                verdict="fail",
+                reason=f"note {note_id} should not have been touched",
+            )
+        else:
+            result.add_check(
+                name=f"must_not_touch_{note_id}", verdict="pass"
             )
 
     final_text = _final_state_text(task, proposals)
     for fact in expect.facts:
         if fact.lower() not in final_text:
-            result.failures.append(
-                f"fact {fact!r} is missing from the notes after "
-                "applying the change set"
+            result.add_check(
+                name=f"fact_{fact}",
+                verdict="fail",
+                reason=f"fact {fact!r} is missing from the notes after "
+                "applying the change set",
             )
+        else:
+            result.add_check(name=f"fact_{fact}", verdict="pass")
 
     for proposal in edits:
         if (
@@ -140,9 +206,11 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
             and _CLOZE_RE.search(proposal.before.front)
             and not _CLOZE_RE.search(proposal.after.front)
         ):
-            result.failures.append(
-                f"edit to cloze note {proposal.note_id} drops the "
-                "cloze markup from the front"
+            result.add_check(
+                name=f"cloze_safe_{proposal.note_id}",
+                verdict="fail",
+                reason=f"edit to cloze note {proposal.note_id} drops the "
+                "cloze markup from the front",
             )
     return result
 
@@ -156,9 +224,13 @@ def grade_transcript(task: EvalTask, session: CurationSession) -> GradeResult:
     """
     result = GradeResult()
     if task.expect.finish and session.summary is None:
-        result.failures.append(
-            "agent reached max_steps without calling finish"
+        result.add_check(
+            name="finished",
+            verdict="fail",
+            reason="agent reached max_steps without calling finish",
         )
+    elif task.expect.finish:
+        result.add_check(name="finished", verdict="pass")
 
     read_ids: set[int] = set()
     reported: set[tuple[str, int]] = set()
@@ -188,8 +260,10 @@ def grade_transcript(task: EvalTask, session: CurationSession) -> GradeResult:
             and (kind, note_id) not in reported
         ):
             reported.add((kind, note_id))
-            result.failures.append(
-                f"{kind} on note {note_id} without reading it first"
+            result.add_check(
+                name=f"read_before_{kind}_{note_id}",
+                verdict="fail",
+                reason=f"{kind} on note {note_id} without reading it first",
             )
 
     result.stats.update(
@@ -228,15 +302,13 @@ def grade_by_judge(
         verdict, reason = _judge_assertion(
             task, session, judge_client, assertion
         )
-        result.judge_verdicts.append(
-            {"assertion": assertion, "verdict": verdict, "reason": reason}
+        # Use a short name derived from the assertion for the check label.
+        short_name = assertion[:40].replace(" ", "_")
+        result.add_check(
+            name=f"judge_{short_name}",
+            verdict=verdict,
+            reason=reason,
         )
-        if verdict == "fail":
-            result.failures.append(f"judge rejected {assertion!r}: {reason}")
-        elif verdict == "unknown":
-            result.unknowns.append(
-                f"judge could not decide {assertion!r}: {reason}"
-            )
     return result
 
 
@@ -291,9 +363,13 @@ def _check_count(
     if expected is None:
         return
     low, high = expected
-    if not low <= actual <= high:
-        result.failures.append(
-            f"expected {label} in [{low}, {high}], got {actual}"
+    if low <= actual <= high:
+        result.add_check(name=label, verdict="pass")
+    else:
+        result.add_check(
+            name=label,
+            verdict="fail",
+            reason=f"expected {label} in [{low}, {high}], got {actual}",
         )
 
 

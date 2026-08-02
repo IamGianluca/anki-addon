@@ -8,10 +8,11 @@ tests/evals/results/ — the usual thing to do after `make eval`.
 to tests/evals/scores.md, a tracked, diff-friendly file: commit it
 together with a prompt or model change to record its measured effect.
 
-Per task, prints pass@1 (mean per-trial success) and pass^k (all
-trials passed). Trials that passed cleanly are silent; failures and
-judge verdicts are printed with their reasons wrapped for
-readability. Colors are used when the output stream is a terminal.
+Per task, prints pass@1 (mean per-trial success), mean score (partial
+credit across graded dimensions), and pass^k (all trials passed).
+Trials that passed cleanly are silent; partial and full failures show
+individual check verdicts for diagnostic visibility.
+Colors are used when the output stream is a terminal.
 """
 
 from __future__ import annotations
@@ -25,11 +26,6 @@ from pathlib import Path
 
 RESULTS_ROOT = Path(__file__).parent / "results"
 SCORES_FILE = Path(__file__).parent / "scores.md"
-
-# graders.py emits judge-originated failures/unknowns with these
-# prefixes; they are shown in the judge section, not the failure list.
-_JUDGE_FAILURE_PREFIX = "judge rejected "
-_JUDGE_UNKNOWN_PREFIX = "judge could not decide "
 
 _WIDTH = 79
 _MAX_REASON = 600
@@ -75,17 +71,25 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
 
     n_tasks_passed = 0
     pass_rates = []
+    mean_scores = []
     for task_id, trials in sorted(by_task.items()):
         k = len(trials)
-        n_passed = sum(trial["passed"] for trial in trials)
+        n_passed = sum(1 for t in trials if t["passed"])
+        task_scores = [t.get("score") for t in trials if t.get("score") is not None]
         n_tasks_passed += n_passed == k
         pass_rates.append(n_passed / k)
+        if task_scores:
+            mean_scores.append(sum(task_scores) / len(task_scores))
         _print_task(out, color, with_reasons, task_id, trials, n_passed)
         print(file=out)
 
+    score_line = ""
+    if mean_scores:
+        score_line = f", mean score {sum(mean_scores) / len(mean_scores):.0%}"
     print(
         f"summary: {n_tasks_passed}/{len(by_task)} tasks pass^k, "
-        f"mean pass@1 {sum(pass_rates) / len(pass_rates):.0%}",
+        f"mean pass@1 {sum(pass_rates) / len(pass_rates):.0%}"
+        f"{score_line}",
         file=out,
     )
 
@@ -100,18 +104,23 @@ def _print_task(
 ) -> None:
     k = len(trials)
     all_passed = n_passed == k
+    # Compute mean score for this task.
+    task_scores = [t.get("score") for t in trials if t.get("score") is not None]
+    score_str = ""
+    if task_scores:
+        mean_s = sum(task_scores) / len(task_scores)
+        score_str = f"  score {mean_s:.0%}"
+
     print(
         f"{_marker(all_passed, color)} {task_id:<28} "
         f"pass@1 {n_passed / k:>4.0%}  "
-        f"pass^{k} {int(all_passed)}  ({n_passed}/{k} trials)",
+        f"pass^{k} {int(all_passed)}  ({n_passed}/{k} trials)"
+        f"{score_str}",
         file=out,
     )
     for trial in trials:
-        has_detail = (
-            not trial["passed"]
-            or trial["failures"]
-            or trial["unknowns"]
-            or trial.get("judge_verdicts")
+        has_detail = not trial["passed"] or trial.get("failures") or trial.get(
+            "unknowns"
         )
         if has_detail:
             _print_trial(out, color, with_reasons, trial)
@@ -122,22 +131,70 @@ def _print_trial(
 ) -> None:
     stats = trial.get("stats", {})
     steps = stats.get("n_steps")
-    detail = ""
+    detail_parts = []
     if steps is not None:
         errors = stats.get("n_schema_errors", 0)
-        detail = f"  ({steps} steps, {errors} schema errors)"
+        detail_parts.append(f"{steps} steps")
+        if errors:
+            detail_parts.append(f"{errors} schema errors")
+    score = trial.get("score")
+    if score is not None:
+        detail_parts.append(f"score {score:.0%}")
+    detail = f"  ({', '.join(detail_parts)})" if detail_parts else ""
     print(
         f"  trial {trial['trial']}: {_marker(trial['passed'], color)}{detail}",
         file=out,
     )
-    for failure in trial["failures"]:
-        if not failure.startswith(_JUDGE_FAILURE_PREFIX):
-            _print_wrapped(out, "    failure: ", failure)
-    for unknown in trial["unknowns"]:
-        if not unknown.startswith(_JUDGE_UNKNOWN_PREFIX):
-            _print_wrapped(out, "    unknown: ", unknown)
+
+    # Prefer the structured checks if available.
+    checks = trial.get("checks")
+    if checks:
+        _print_checks(out, color, with_reasons, checks)
+    else:
+        # Fallback for old records without structured checks.
+        _print_legacy_trial(out, trial)
+
+
+def _print_checks(
+    out: io.TextIOBase,
+    color: bool,
+    with_reasons: bool,
+    checks: list[dict],
+) -> None:
+    """Print individual check verdicts with compact markers."""
+    for check in checks:
+        if check["verdict"] == "pass":
+            continue  # silent on passing checks
+        mark = {
+            "fail": _paint("✗", _RED, color),
+            "unknown": _paint("?", _YELLOW, color),
+        }.get(check["verdict"], _paint("?", _YELLOW, color))
+        name = check["name"]
+        reason = check.get("reason", "")
+        print(f"    {mark} {name}", file=out)
+        if reason and with_reasons:
+            if len(reason) > _MAX_REASON:
+                reason = reason[:_MAX_REASON] + "…"
+            _print_wrapped(out, "       ", reason)
+
+
+def _print_legacy_trial(
+    out: io.TextIOBase,
+    trial: dict,
+) -> None:
+    """Fallback for old records that use flat failures/unknowns lists."""
+    # Old prefixes for judge-originated messages.
+    _JUDGE_PREFIX = "judge "
+    for failure in trial.get("failures", []):
+        if failure.startswith(_JUDGE_PREFIX):
+            continue
+        _print_wrapped(out, "    failure: ", failure)
+    for unknown in trial.get("unknowns", []):
+        if unknown.startswith(_JUDGE_PREFIX):
+            continue
+        _print_wrapped(out, "    unknown: ", unknown)
     for verdict in trial.get("judge_verdicts", []):
-        _print_verdict(out, color, with_reasons, verdict)
+        _print_verdict(out, False, False, verdict)
 
 
 def _print_verdict(

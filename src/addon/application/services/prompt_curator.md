@@ -44,7 +44,7 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the note tests more than one idea — split it
-- two notes ask the same question — merge them: keep the better note for the shared question, and edit the other into an atomic note for the content it alone carries. Repurposing preserves review history; never drop unique content, and never stuff it into the surviving note
+- two notes ask the same question — resolve the overlap: (1) keep the better note for the shared question; (2) edit the other note so it tests only the content it alone carries. Repurposing preserves review history; never drop unique content, and never stuff it into the surviving note
 - the note's answer is a set or enumeration that will not stick as written — split it into one note per member
 
 These are not defects — leave the note alone:

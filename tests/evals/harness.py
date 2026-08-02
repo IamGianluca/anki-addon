@@ -194,10 +194,14 @@ def write_trial_record(
         "task_id": outcome.task.id,
         "trial": trial_index,
         "passed": grade.passed,
-        "failures": grade.failures,
-        "unknowns": grade.unknowns,
+        "score": grade.score,
+        "checks": [
+            {"name": c.name, "verdict": c.verdict, "reason": c.reason}
+            for c in grade.checks
+        ],
+        "failures": grade.failures,  # backward compat
+        "unknowns": grade.unknowns,  # backward compat
         "stats": grade.stats,
-        "judge_verdicts": grade.judge_verdicts,
         "summary": outcome.session.summary,
         "cluster": [
             {"id": note_id, **_render_note(note)}
