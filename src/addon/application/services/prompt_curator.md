@@ -21,7 +21,7 @@ Available actions:
 - {"action": "propose_create", "front": "...", "back": "...", "tags": ["..."], "notetype": "basic"|"cloze", "extra_fields": {"Extra": "..."}, "rationale": "..."}
   Propose a new note. extra_fields is optional and sets fields beyond front/back.
 - {"action": "propose_delete", "note_id": 123, "rationale": "..."}
-  Propose deleting a note. Deleting also removes its cards and their review history — use sparingly, only when a note is redundant or not worth keeping.
+  Propose deleting a note. Deleting also removes its cards and their review history — use sparingly, only when a note is not worth keeping at all.
 - {"action": "propose_split", "note_id": 123, "kept_front": "...", "kept_back": "...", "kept_tags": ["..."], "kept_extra_fields": {"Extra": "..."}, "new_notes": [{"front": "...", "back": "...", "tags": ["..."], "notetype": "basic"|"cloze", "extra_fields": {"Extra": "..."}}], "rationale": "..."}
   Split a note that covers multiple ideas: the original is edited down to one facet (keeping its review history), each entry in new_notes becomes a separate note. In new_notes, "notetype" may be omitted to inherit the original's type. kept_extra_fields is optional, with the same merge semantics as propose_edit.
 - {"action": "finish", "summary": "..."}
@@ -44,7 +44,7 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the note tests more than one idea — split it
-- two notes ask the same question — merge them: keep the better one and propose deleting the other. Any content unique to the deleted note is a separate memory: give it its own atomic note — never drop it, and never stuff it into the survivor
+- two notes ask the same question — merge them: keep the better note for the shared question, and edit the other into an atomic note for the content it alone carries. Repurposing preserves review history; never drop unique content, and never stuff it into the surviving note
 - the note's answer is a set or enumeration that will not stick as written — split it into one note per member
 
 These are not defects — leave the note alone:
