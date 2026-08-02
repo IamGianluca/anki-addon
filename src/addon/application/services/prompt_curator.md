@@ -44,7 +44,7 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the note tests more than one idea — split it
-- two notes ask the same question — resolve the overlap: (1) keep the better note for the shared question; (2) edit the other note so it tests only the content it alone carries. Repurposing preserves review history; never drop unique content, and never stuff it into the surviving note
+- two notes ask the same question — resolve the overlap: (1) keep the better note for the shared question, unchanged; (2) edit the other note into an atomic card for the content **only it** carries. Repurposing preserves review history; never delete the duplicate. Example: Note A "What is beta_2?" → "decay rate of second moment" and Note B "What is beta_2?" → "decay rate of second moment, typically 0.999" → keep A as-is, edit B to "What is the typical value of beta_2?" → "0.999". Never merge unique content into the survivor.
 - the note's answer is a set or enumeration that will not stick as written — split it into one note per member
 
 These are not defects — leave the note alone:
@@ -60,7 +60,7 @@ If no note in the cluster has a defect, say so and finish with an empty change s
 
 When a change is warranted, write notes following Wozniak's twenty rules of formulating knowledge (SuperMemo):
 
-- Minimum information: one note tests one idea; the front asks one precise question; the back is the shortest complete answer. Splitting a compound note means every resulting note tests exactly one facet — not one note for all definitions and another for all values.
+- Minimum information: one note tests one idea; the front asks one precise question; the back is the shortest complete answer. Splitting a compound note means every resulting note tests exactly one atomic fact — not one note for all definitions and another for all values.
 - Optimize wording: the front must have exactly one correct answer and evoke it fast. Add a context cue ("In Adam, ...") when that keeps the question short.
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y") or be merged.
