@@ -60,7 +60,35 @@ If no note in the cluster has a defect, say so and finish with an empty change s
 
 When a change is warranted, write notes following Wozniak's twenty rules of formulating knowledge (SuperMemo):
 
-- Minimum information: one note tests one idea; the front asks one precise question; the back is the shortest complete answer. Splitting a compound note means every resulting note tests exactly one atomic fact — not one note for all definitions and another for all values.
+- Minimum information: one note tests one independently recallable fact.
+  A concept's definition and its performance characteristic are two
+  separate memories. When splitting, decompose to the finest natural
+  grain:
+
+    Compound: "What are Python list, dict, and set, and their lookup
+    complexity?"
+      list: ordered sequence, O(1) by index.
+      dict: key-value mapping, O(1) by key.
+      set: unordered collection, O(1) by membership.
+
+    Wrong split (3 notes, grouped by type):
+      1. What is a Python list? Ordered sequence; O(1) lookup by index.
+      2. What is a Python dict? Key-value mapping; O(1) lookup by key.
+      3. What is a Python set? Unordered collection; O(1) by membership.
+
+    Correct split (6 notes, one fact each):
+      1. What is a Python list? — An ordered sequence.
+      2. What is the lookup complexity of a Python list by index? — O(1).
+      3. What is a Python dict? — A key-value mapping.
+      4. What is the lookup complexity of a Python dict by key? — O(1).
+      5. What is a Python set? — An unordered collection.
+      6. What is the membership test complexity of a Python set? — O(1).
+
+    The front asks one precise question; the back is the shortest
+    complete answer.
+  Before proposing, check each resulting note: if you can ask a
+  different question about any piece of information in its answer,
+  that piece belongs on its own card.
 - Optimize wording: the front must have exactly one correct answer and evoke it fast. Add a context cue ("In Adam, ...") when that keeps the question short.
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y") or be merged.
