@@ -1,0 +1,53 @@
+{
+  "id": "split_non_atomic_note_1",
+  "suite": "capability",
+  "desc": "The seed note tests two unrelated facts in a single card (two Python built-in functions). The agent should split it into two atomic notes — one per fact — and leave the unrelated third note untouched.",
+  "seed_note_id": 1,
+  "trials": 5,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "What do len() and range() do in Python?",
+      "back": "len() returns the number of items in an object. range() generates a sequence of integers.",
+      "tags": ["python", "builtins"],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "What does enumerate() return in Python?",
+      "back": "An iterator of (index, item) pairs.",
+      "tags": ["python", "builtins"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [1, 1],
+    "creates": [1, 1],
+    "deletes": [0, 0],
+    "must_touch": [1],
+    "must_not_touch": [2],
+    "facts": ["len", "range", "enumerate"]
+  },
+  "judge_assertions": [
+    "After the split, each resulting note tests exactly one idea."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "What does len() do in Python?",
+      "back": "Returns the number of items in an object.",
+      "tags": ["python", "builtins"],
+      "rationale": "keep the len() fact on the original note"
+    },
+    {
+      "type": "create",
+      "front": "What does range() do in Python?",
+      "back": "Generates a sequence of integers.",
+      "tags": ["python", "builtins"],
+      "notetype": "basic",
+      "rationale": "range() is a separate fact that deserves its own card"
+    }
+  ]
+}
