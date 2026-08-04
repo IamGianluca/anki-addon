@@ -100,14 +100,18 @@ def _extract_terms(clause: str) -> list[str]:
         if clause[i] == '"':
             # Find closing quote.
             end = clause.index('"', i + 1)
-            terms.append(clause[i + 1:end])
+            terms.append(clause[i + 1 : end])
             i = end + 1
         elif clause[i].isspace():
             i += 1
         else:
             # Read until next space or quote.
             end = i
-            while end < len(clause) and not clause[end].isspace() and clause[end] != '"':
+            while (
+                end < len(clause)
+                and not clause[end].isspace()
+                and clause[end] != '"'
+            ):
                 end += 1
             word = clause[i:end]
             # Strip negation prefix.

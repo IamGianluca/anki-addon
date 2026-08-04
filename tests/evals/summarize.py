@@ -75,7 +75,9 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
     for task_id, trials in sorted(by_task.items()):
         k = len(trials)
         n_passed = sum(1 for t in trials if t["passed"])
-        task_scores = [t.get("score") for t in trials if t.get("score") is not None]
+        task_scores = [
+            t.get("score") for t in trials if t.get("score") is not None
+        ]
         n_tasks_passed += n_passed == k
         pass_rates.append(n_passed / k)
         if task_scores:
@@ -105,7 +107,9 @@ def _print_task(
     k = len(trials)
     all_passed = n_passed == k
     # Compute mean score for this task.
-    task_scores = [t.get("score") for t in trials if t.get("score") is not None]
+    task_scores = [
+        t.get("score") for t in trials if t.get("score") is not None
+    ]
     score_str = ""
     if task_scores:
         mean_s = sum(task_scores) / len(task_scores)
@@ -119,8 +123,10 @@ def _print_task(
         file=out,
     )
     for trial in trials:
-        has_detail = not trial["passed"] or trial.get("failures") or trial.get(
-            "unknowns"
+        has_detail = (
+            not trial["passed"]
+            or trial.get("failures")
+            or trial.get("unknowns")
         )
         if has_detail:
             _print_trial(out, color, with_reasons, trial)

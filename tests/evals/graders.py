@@ -87,7 +87,8 @@ class GradeResult:
         decidable = [c for c in self.checks if c.verdict != "unknown"]
         if not decidable:
             return 0.0
-        return sum(1 for c in decidable if c.verdict == "pass") / len(decidable)
+        passed = sum(1 for c in decidable if c.verdict == "pass")
+        return passed / len(decidable)
 
     @property
     def failures(self) -> list[str]:
@@ -173,9 +174,7 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
                 reason=f"note {note_id} should have been edited or deleted",
             )
         else:
-            result.add_check(
-                name=f"must_touch_{note_id}", verdict="pass"
-            )
+            result.add_check(name=f"must_touch_{note_id}", verdict="pass")
     for note_id in expect.must_not_touch:
         if note_id in touched:
             result.add_check(
@@ -184,9 +183,7 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
                 reason=f"note {note_id} should not have been touched",
             )
         else:
-            result.add_check(
-                name=f"must_not_touch_{note_id}", verdict="pass"
-            )
+            result.add_check(name=f"must_not_touch_{note_id}", verdict="pass")
 
     final_text = _final_state_text(task, proposals)
     for fact in expect.facts:
