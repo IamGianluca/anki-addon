@@ -3,6 +3,6 @@ cluster of Anki notes, the changes the agent proposed, and ONE
 assertion about those changes. Judge only that assertion, based only
 on what you are shown.
 
-Respond with JSON: {"verdict": "pass"|"fail"|"unknown", "reason": ...}.
+Respond with JSON: {"reason": ..., "verdict": "pass"|"fail"|"unknown"}.
 Use "unknown" whenever the information shown is insufficient to decide
 confidently — never guess.

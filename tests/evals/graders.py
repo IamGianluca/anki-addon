@@ -112,7 +112,7 @@ class GradeResult:
         """Add a single check result."""
         self.checks.append(Check(name=name, verdict=verdict, reason=reason))
 
-    def merge(self, other: "GradeResult") -> None:
+    def merge(self, other: GradeResult) -> None:
         self.checks.extend(other.checks)
         self.stats.update(other.stats)
 
@@ -274,8 +274,8 @@ def grade_transcript(task: EvalTask, session: CurationSession) -> GradeResult:
 _JUDGE_VERDICT_SCHEMA = {
     "type": "object",
     "properties": {
-        "verdict": {"type": "string", "enum": ["pass", "fail", "unknown"]},
         "reason": {"type": "string"},
+        "verdict": {"type": "string", "enum": ["pass", "fail", "unknown"]},
     },
     "required": ["verdict", "reason"],
     "additionalProperties": False,
