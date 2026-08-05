@@ -61,9 +61,8 @@ If no note in the cluster has a defect, say so and finish with an empty change s
 When a change is warranted, write notes following Wozniak's twenty rules of formulating knowledge (SuperMemo):
 
 - Minimum information: one note tests one independently recallable fact.
-  A concept's definition and its performance characteristic are two
-  separate memories. When splitting, decompose to the finest natural
-  grain:
+  When splitting, decompose to the finest natural grain, this could 
+  require splitting one compound note into two or more atomic ones:
 
     Compound: "What are Python list, dict, and set, and their lookup
     complexity?"
