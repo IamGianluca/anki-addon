@@ -426,3 +426,46 @@ def test_propose_create_with_extra_fields(tools: CuratorTools) -> None:
     assert result == "Create proposal recorded."
     (create,) = _creates(tools)
     assert create.note.extra_fields == {"Extra": "E"}
+
+
+def test_review_changeset_returns_no_changes_when_empty(
+    tools: CuratorTools,
+) -> None:
+    # When
+    result = tools.review_changeset()
+
+    # Then
+    assert result == "No changes proposed."
+
+
+def test_review_changeset_renders_edits_and_creates(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_edit(
+        NoteId(1),
+        front="What is beta_2 in Adam?",
+        back="Decay rate of the second moment estimate.",
+        tags=["ml"],
+        rationale="tighter wording",
+    )
+    tools.propose_create(
+        front="Typical value of beta_2?",
+        back="0.999",
+        tags=["ml"],
+        notetype="basic",
+        rationale="split out the value",
+    )
+
+    # When
+    result = tools.review_changeset()
+
+    # Then
+    assert "What is beta_2 in Adam?" in result
+    assert "Decay rate of the second moment estimate" in result
+    assert "Typical value of beta_2?" in result
+    assert "0.999" in result
+    # Deleted notes are not shown
+    tools.propose_delete(NoteId(4), "off-topic")
+    result = tools.review_changeset()
+    assert "capital of France" not in result

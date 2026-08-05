@@ -24,6 +24,10 @@ Available actions:
   Propose deleting a note. Deleting also removes its cards and their review history — use sparingly, only when a note is not worth keeping at all.
 - {"action": "propose_split", "note_id": 123, "kept_front": "...", "kept_back": "...", "kept_tags": ["..."], "kept_extra_fields": {"Extra": "..."}, "new_notes": [{"front": "...", "back": "...", "tags": ["..."], "notetype": "basic"|"cloze", "extra_fields": {"Extra": "..."}}], "rationale": "..."}
   Split a note that covers multiple ideas: the original is edited down to one atomic fact (keeping its review history), each entry in new_notes becomes a separate note. In new_notes, "notetype" may be omitted to inherit the original's type. kept_extra_fields is optional, with the same merge semantics as propose_edit.
+- {"action": "review_changeset"}
+  Review all proposed changes for atomicity. Returns a per-note verdict
+  on whether each note tests exactly one fact. Use this before finish
+  to catch non-atomic notes and fix them.
 - {"action": "finish", "summary": "..."}
   End the session. Summarize what you proposed and why.
 

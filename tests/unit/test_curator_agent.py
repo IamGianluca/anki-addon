@@ -239,3 +239,136 @@ def test_extra_fields_flow_from_action_to_change_set(
     # Then
     (edit,) = [p for p in session.change_set if isinstance(p, EditProposal)]
     assert edit.after.extra_fields == {"Extra": "See the Adam paper"}
+
+
+def test_review_changeset_runs_atomicity_check(
+    adam_cluster: dict[int, AddonNote],
+) -> None:
+    # Given
+    atomicity_review_response = json.dumps(
+        {
+            "verdicts": [
+                {
+                    "note_id": 1,
+                    "atomic": True,
+                    "reason": "Tests one fact: the role of beta_2.",
+                }
+            ]
+        }
+    )
+    responses = [
+        _step(
+            {
+                "action": "propose_edit",
+                "note_id": 1,
+                "front": "What does beta_2 control in Adam?",
+                "back": "Decay rate of the second moment estimate.",
+                "tags": ["ml", "optimizers"],
+                "rationale": "tighter wording",
+            }
+        ),
+        _step({"action": "review_changeset"}),
+        # The atomicity review response
+        atomicity_review_response,
+        _step({"action": "finish", "summary": "all atomic"}),
+    ]
+
+    # When
+    session, client = _run_agent(responses, adam_cluster)
+
+    # Then
+    assert session.summary == "all atomic"
+    # The atomicity sub-call (call 2) uses the atomicity judge prompt
+    atomicity_call = client.prompts_received[2]
+    assert any("atomicity checker" in str(m).lower() for m in atomicity_call)
+    # The finish prompt includes the atomicity review observation
+    finish_call = client.prompts_received[3]
+    assert any("atomic" in str(m).lower() for m in finish_call)
+
+
+def test_review_changeset_with_no_changes_is_noop(
+    adam_cluster: dict[int, AddonNote],
+) -> None:
+    # Given
+    responses = [
+        _step({"action": "review_changeset"}),
+        _step({"action": "finish", "summary": "nothing to do"}),
+    ]
+
+    # When
+    session, client = _run_agent(responses, adam_cluster)
+
+    # Then
+    assert session.summary == "nothing to do"
+    # Only 2 LLM calls: review + finish (no atomicity sub-call)
+    assert len(client.prompts_received) == 2
+    second_call = client.prompts_received[1]
+    assert any("No changes proposed" in str(m) for m in second_call)
+
+
+def test_review_changeset_non_atomic_feedback_prompts_fix(
+    adam_cluster: dict[int, AddonNote],
+) -> None:
+    # Given: atomicity review says note is NOT atomic
+    non_atomic_review = json.dumps(
+        {
+            "verdicts": [
+                {
+                    "note_id": 1,
+                    "atomic": False,
+                    "reason": (
+                        "Back contains two facts: role and typical value."
+                    ),
+                }
+            ]
+        }
+    )
+    responses = [
+        _step(
+            {
+                "action": "propose_edit",
+                "note_id": 1,
+                "front": "What is beta_2 in Adam?",
+                "back": "Decay rate. Typical value: 0.999.",
+                "tags": ["ml"],
+                "rationale": "combine facts",
+            }
+        ),
+        _step({"action": "review_changeset"}),
+        non_atomic_review,
+        # Agent fixes the non-atomic note
+        _step(
+            {
+                "action": "propose_edit",
+                "note_id": 1,
+                "front": "What does beta_2 control?",
+                "back": "Decay rate of the second moment estimate.",
+                "tags": ["ml"],
+                "rationale": "split to one fact",
+            }
+        ),
+        _step(
+            {
+                "action": "propose_create",
+                "front": "Typical value of beta_2?",
+                "back": "0.999",
+                "tags": ["ml"],
+                "notetype": "basic",
+                "rationale": "atomic value card",
+            }
+        ),
+        _step({"action": "finish", "summary": "fixed"}),
+    ]
+
+    # When
+    session, _ = _run_agent(responses, adam_cluster)
+
+    # Then
+    assert session.summary == "fixed"
+    edits = [p for p in session.change_set if isinstance(p, EditProposal)]
+    creates = [p for p in session.change_set if isinstance(p, CreateProposal)]
+    # Second edit replaced the first
+    assert len(edits) == 1
+    assert "0.999" not in edits[0].after.back
+    # Create was added
+    assert len(creates) == 1

@@ -160,6 +160,46 @@ class CuratorTools:
             return f"error: {e}"
         return f"Delete proposal recorded for note {note_id}."
 
+    def review_changeset(self) -> str:
+        """Render the after-state of every note affected by the change
+        set, so the agent can review atomicity before finishing.
+
+        Returns a formatted block showing each note's effective content
+        after applying all proposals. Notes not in the change set are
+        omitted — the agent only needs to review what changed.
+        """
+        if not self.change_set:
+            return "No changes proposed."
+
+        # Build the effective "after" state for each affected note.
+        # Edits replace, creates add, deletes remove.
+        after_notes: dict[int, AddonNote] = {}
+        for proposal in self.change_set:
+            if isinstance(proposal, EditProposal):
+                after_notes[proposal.note_id] = proposal.after
+            elif isinstance(proposal, CreateProposal):
+                # New notes get a synthetic id for display.
+                synthetic_id = max(after_notes.keys(), default=0) + 1000
+                after_notes[synthetic_id] = proposal.note
+            # Deletes: note is removed, so don't include it.
+
+        lines = ["Proposed notes after applying changes:"]
+        for note_id, note in sorted(after_notes.items()):
+            tags = ", ".join(note.tags) if note.tags else "(none)"
+            lines.append(
+                f"Note {note_id} [tags: {tags}]\n"
+                f"  Front: {note.front}\n"
+                f"  Back:  {note.back}"
+            )
+            if note.extra_fields:
+                lines.append(
+                    "  Extra: "
+                    + ", ".join(
+                        f"{k}={v}" for k, v in note.extra_fields.items()
+                    )
+                )
+        return "\n".join(lines)
+
     def propose_split(
         self,
         note_id: NoteId,

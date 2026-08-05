@@ -78,6 +78,13 @@ class ProposeSplitAction(BaseModel):
     rationale: str
 
 
+class ReviewChangesetAction(BaseModel):
+    """Ask the agent to review its proposed changes for atomicity
+    and coherence before finishing."""
+
+    action: Literal["review_changeset"]
+
+
 class FinishAction(BaseModel):
     action: Literal["finish"]
     summary: str
@@ -90,8 +97,23 @@ AgentAction = Union[
     ProposeCreateAction,
     ProposeDeleteAction,
     ProposeSplitAction,
+    ReviewChangesetAction,
     FinishAction,
 ]
+
+
+class AtomicityVerdict(BaseModel):
+    """Per-note atomicity verdict from a changeset review."""
+
+    note_id: int
+    atomic: bool
+    reason: str
+
+
+class AtomicityReview(BaseModel):
+    """Structured atomicity review of a changeset's resulting notes."""
+
+    verdicts: list[AtomicityVerdict]
 
 
 class AgentStep(BaseModel):

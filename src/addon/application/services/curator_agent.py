@@ -11,12 +11,14 @@ from ...domain.entities.proposals import ProposedChangeSet
 from ...infrastructure.llm.schemas import (
     AgentAction,
     AgentStep,
+    AtomicityReview,
     FinishAction,
     ProposeCreateAction,
     ProposeDeleteAction,
     ProposeEditAction,
     ProposeSplitAction,
     ReadNoteAction,
+    ReviewChangesetAction,
     SearchNotesAction,
 )
 from ..protocols import CompletionProvider
@@ -158,7 +160,60 @@ class CuratorAgent:
                 action.rationale,
                 kept_extra_fields=action.kept_extra_fields,
             )
+        if isinstance(action, ReviewChangesetAction):
+            return self._review_changeset(tools)
         raise ValueError(f"unexpected action: {action}")
+
+    def _review_changeset(self, tools: CuratorTools) -> str:
+        """Render the changeset and run an LLM-based atomicity check."""
+        rendered = tools.review_changeset()
+        if rendered == "No changes proposed.":
+            return rendered
+
+        response = self._client.run(
+            [
+                {"role": "system", "content": _ATOMICITY_REVIEW_PROMPT},
+                {"role": "user", "content": rendered},
+            ],
+            response_format={
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "atomicity_review",
+                    "schema": AtomicityReview.model_json_schema(),
+                },
+            },
+        )
+        try:
+            review = AtomicityReview.model_validate_json(response)
+        except ValidationError as e:
+            return f"error: atomicity review failed ({str(e)[:200]})"
+
+        lines = ["Atomicity review:"]
+        all_atomic = True
+        for v in review.verdicts:
+            status = "atomic" if v.atomic else "NOT atomic"
+            if not v.atomic:
+                all_atomic = False
+            lines.append(f"  Note {v.note_id}: {status} — {v.reason}")
+        if all_atomic:
+            lines.append("All proposed notes are atomic. You can finish.")
+        else:
+            lines.append(
+                "Some notes are not atomic. Fix them before calling finish."
+            )
+        return "\n".join(lines)
+
+
+_ATOMICITY_REVIEW_PROMPT = (
+    "You are an atomicity checker for flashcard notes. Each note should test "
+    "exactly one independently-recallable fact. If a note's back contains "
+    "multiple facts, definitions, or values, it is NOT atomic.\n\n"
+    "For each note, judge whether it is atomic (tests one fact) or not. "
+    "Be strict: if the back could be split into two or more separate "
+    "questions, it is not atomic.\n\n"
+    "Return a JSON object with a 'verdicts' array. Each entry has: "
+    "'note_id' (int), 'atomic' (bool), 'reason' (str explaining why)."
+)
 
 
 @lru_cache(maxsize=1)
