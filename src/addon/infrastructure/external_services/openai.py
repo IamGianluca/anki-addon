@@ -1,24 +1,11 @@
 from __future__ import annotations
 
-import re
 from typing import Union
 
-import requests
-import requests.exceptions
-
-from ...infrastructure.configuration.settings import AddonConfig
+from ...infrastructure.configuration.settings import OpenAIConfig
+from ...infrastructure.http import RequestsHttpClient, post_json
+from ...infrastructure.llm.parsing import strip_markdown_fence
 from ...infrastructure.protocols import HttpClient
-
-_REMOVE_MARKDOWN_FENCE_RE = re.compile(
-    r"^```(?:\w+)?\n?(.*?)\n?```$", re.DOTALL
-)
-
-
-class RequestsHttpClient:
-    """Adapter that wraps the requests library to implement HttpClient."""
-
-    def post(self, url: str, json: dict | None = None) -> requests.Response:
-        return requests.post(url, json=json)
 
 
 class OpenAIClient:
@@ -37,11 +24,11 @@ class OpenAIClient:
 
     def __init__(
         self,
-        config: AddonConfig,
+        config: OpenAIConfig,
         http_client: HttpClient | None = None,
     ) -> None:
         self._config = config
-        self._http_client = http_client or RequestsHttpClient()
+        self._http_client: HttpClient = http_client or RequestsHttpClient()
         self._is_chat_completion = "chat/completions" in config.url
         self.last_reasoning_content: str | None = None
 
@@ -52,7 +39,7 @@ class OpenAIClient:
     ) -> str:
         """Generate text using the configured LLM endpoint.
 
-        The input format depends on the API endpoint configured in AddonConfig:
+        The input format depends on the endpoint configured in OpenAIConfig:
         - Chat Completions (/v1/chat/completions): Pass list of message dicts
         - Completions (/v1/completions): Pass string prompt
 
@@ -98,27 +85,7 @@ class OpenAIClient:
             # Incorporate extra parameters like `guided_json` schema
             payload.update(kwargs)
 
-        try:
-            response = self._http_client.post(self._config.url, json=payload)
-        except requests.exceptions.ConnectionError as e:
-            raise ConnectionError(
-                f"Cannot reach LLM server at {self._config.url}. "
-                "Check if the inference server is running."
-            ) from e
-
-        # Check for HTTP errors
-        if response.status_code != 200:
-            try:
-                error_body = response.json()
-            except Exception:
-                error_body = response.text
-            raise RuntimeError(
-                f"LLM server returned error {response.status_code} "
-                f"for {self._config.url}. "
-                f"Response: {error_body}"
-            )
-
-        response_data = response.json()
+        response_data = post_json(self._http_client, self._config.url, payload)
         if self._is_chat_completion:
             message = response_data["choices"][0]["message"]
             text = message["content"]
@@ -126,4 +93,4 @@ class OpenAIClient:
         else:
             text = response_data["choices"][0]["text"]
             self.last_reasoning_content = None
-        return _REMOVE_MARKDOWN_FENCE_RE.sub(r"\1", text.strip())
+        return strip_markdown_fence(text)

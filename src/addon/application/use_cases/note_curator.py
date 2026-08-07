@@ -11,7 +11,11 @@ from ...application.services.curator_agent import (
 from ...application.services.curator_tools import CuratorTools
 from ...application.use_cases.apply_curation import apply_proposals
 from ...domain.entities.note import NoteId
-from ...infrastructure.configuration.settings import AddonConfig
+from ...infrastructure.configuration.settings import (
+    AddonConfig,
+    OpenAIConfig,
+    load_raw_config,
+)
 from ...infrastructure.external_services.openai import OpenAIClient
 from ...infrastructure.persistence.anki_note_repository import (
     AnkiNoteRepository,
@@ -64,7 +68,8 @@ def on_curator_action(editor: Editor) -> None:
         col, config.basic_notetype, config.cloze_notetype
     )
     tools = CuratorTools(repository)
-    agent = CuratorAgent(OpenAIClient(config), tools)
+    client = OpenAIClient(OpenAIConfig(load_raw_config(mw.addonManager)))
+    agent = CuratorAgent(client, tools)
     seed_note_id = NoteId(note.id)
 
     def on_success(session: CurationSession) -> None:

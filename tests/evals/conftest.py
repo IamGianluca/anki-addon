@@ -13,9 +13,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-from tests.fakes.aqt_fakes import FakeAddonManager
 
-from addon.infrastructure.configuration.settings import AddonConfig
+from addon.infrastructure.configuration.settings import OpenAIConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -35,7 +34,7 @@ _BOOL_ENV = {"OPENAI_REASONING", "OPENAI_PRESERVE_THINKING"}
 
 
 @pytest.fixture(scope="session")
-def eval_config() -> AddonConfig:
+def eval_config() -> OpenAIConfig:
     missing = [key for key in _REQUIRED_ENV if not os.environ.get(key)]
     if missing:
         pytest.skip(f"eval env vars not set: {', '.join(missing)}")
@@ -50,11 +49,11 @@ def eval_config() -> AddonConfig:
     # The addon default (200) truncates agent steps; evals need room
     # for a full JSON action per turn.
     raw.setdefault("openai_max_tokens", "8192")
-    return AddonConfig(FakeAddonManager(raw))
+    return OpenAIConfig(raw)
 
 
 @pytest.fixture(scope="session")
-def llm_client(eval_config: AddonConfig) -> OpenAIClient:
+def llm_client(eval_config: OpenAIConfig) -> OpenAIClient:
     return OpenAIClient(eval_config)
 
 

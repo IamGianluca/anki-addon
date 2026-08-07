@@ -49,14 +49,21 @@ class FakeHttpClient(HttpClient):
     ) -> None:
         self.last_url: str | None = None
         self.last_payload: dict | None = None
+        self.last_headers: dict[str, str] | None = None
         self._status_code = status_code
         self._json_body = json_body or {
             "choices": [{"message": {"content": "ok"}}],
         }
 
-    def post(self, url: str, json: dict | None = None) -> FakeResponse:
+    def post(
+        self,
+        url: str,
+        json: dict | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> FakeResponse:
         self.last_url = url
         self.last_payload = json
+        self.last_headers = headers
         return FakeResponse(self._status_code, self._json_body)
 
 

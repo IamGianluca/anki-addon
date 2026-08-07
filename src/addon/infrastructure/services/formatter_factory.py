@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from ...application.services.formatter_service import NoteFormatter
-from ...infrastructure.configuration.settings import AddonConfig
+from ...infrastructure.configuration.settings import (
+    OpenAIConfig,
+    load_raw_config,
+)
 from ...infrastructure.external_services.openai import OpenAIClient
 
 # Module-level cache: populated on first call, reused for the session.
@@ -16,7 +19,6 @@ def get_formatter() -> NoteFormatter:
 
     from aqt import mw
 
-    config = AddonConfig(mw.addonManager)
-    client = OpenAIClient(config)
+    client = OpenAIClient(OpenAIConfig(load_raw_config(mw.addonManager)))
     _cached_formatter = NoteFormatter(client)
     return _cached_formatter

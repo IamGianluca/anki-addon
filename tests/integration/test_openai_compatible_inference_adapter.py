@@ -2,9 +2,8 @@ import json
 import os
 
 import pytest
-from tests.fakes.aqt_fakes import FakeAddonManager
 
-from addon.infrastructure.configuration.settings import AddonConfig
+from addon.infrastructure.configuration.settings import OpenAIConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 # NOTE: These tests require a live inference server. Configure it via env vars
@@ -12,22 +11,20 @@ from addon.infrastructure.external_services.openai import OpenAIClient
 
 
 @pytest.fixture
-def fast_addon_config() -> AddonConfig:
+def fast_addon_config() -> OpenAIConfig:
     """Config for integration tests: reads server address from env vars,
     reasoning disabled to save tokens/time."""
-    return AddonConfig(
-        FakeAddonManager(
-            {
-                "openai_host": os.environ["OPENAI_HOST"],
-                "openai_port": os.environ["OPENAI_PORT"],
-                "openai_model": os.environ["OPENAI_MODEL"],
-            }
-        )
+    return OpenAIConfig(
+        {
+            "openai_host": os.environ["OPENAI_HOST"],
+            "openai_port": os.environ["OPENAI_PORT"],
+            "openai_model": os.environ["OPENAI_MODEL"],
+        }
     )
 
 
 @pytest.mark.slow
-def test_openai(fast_addon_config: AddonConfig) -> None:
+def test_openai(fast_addon_config: OpenAIConfig) -> None:
     # Given
     openai_client = OpenAIClient(fast_addon_config)
     prompt = [
@@ -49,7 +46,7 @@ def test_openai(fast_addon_config: AddonConfig) -> None:
 
 @pytest.mark.slow
 def test_openai_with_json_schema_validation(
-    fast_addon_config: AddonConfig,
+    fast_addon_config: OpenAIConfig,
 ) -> None:
     """Test that OpenAI client can accept and use JSON schema
     to restrict output.

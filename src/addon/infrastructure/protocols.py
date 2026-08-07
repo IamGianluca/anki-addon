@@ -36,7 +36,12 @@ class HttpClient(Protocol):
     Both real adapters (requests, httpx) and test fakes implement this port.
     """
 
-    def post(self, url: str, json: dict | None = None) -> HttpResponse: ...
+    def post(
+        self,
+        url: str,
+        json: dict | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> HttpResponse: ...
 
 
 class EmbeddingModel(Protocol):

@@ -1,10 +1,8 @@
 import pytest
 
 from addon.domain.entities.note import AddonCollection, AddonNote
-from addon.infrastructure.configuration.settings import AddonConfig
 
 from .fakes.aqt_fakes import (
-    FakeAddonManager,
     FakeCard,
     FakeCollection,
     FakeMainWindow,
@@ -52,19 +50,6 @@ def addon_collection(addon_note1, addon_note2, addon_note3) -> AddonCollection:
 ###########
 # Anki fixtures
 ###########
-
-
-@pytest.fixture
-def addon_config() -> AddonConfig:
-    return AddonConfig(
-        FakeAddonManager(
-            {
-                "openai_host": "localhost",
-                "openai_port": "8000",
-                "openai_model": "test-model",
-            }
-        )
-    )
 
 
 @pytest.fixture

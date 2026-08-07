@@ -3,14 +3,36 @@ from __future__ import annotations
 from ..protocols import ConfigProvider
 
 
+def load_raw_config(config_provider: ConfigProvider) -> dict:
+    """Load the addon's raw settings dict from Anki's addon manager."""
+    raw = config_provider.getConfig("anki-addon")
+    if raw is None:
+        raise RuntimeError("Addon config not initialized")
+    return raw
+
+
 class AddonConfig:
-    """Configuration adapter that bridges Anki's addon settings with
-    application logic.
+    """Addon-wide settings that are independent of the LLM provider.
+
+    Attributes:
+        basic_notetype: Name of the Anki notetype used when creating
+            basic notes. Must use the standard "Front"/"Back" fields.
+        cloze_notetype: Name of the Anki notetype used when creating
+            cloze notes. Must use the standard "Text"/"Back Extra" fields.
+    """
+
+    def __init__(self, config_provider: ConfigProvider) -> None:
+        raw = load_raw_config(config_provider)
+        self.basic_notetype = raw.get("basic_notetype_name", "Basic")
+        self.cloze_notetype = raw.get("cloze_notetype_name", "Cloze")
+
+
+class OpenAIConfig:
+    """Settings for a self-hosted OpenAI-compatible inference server.
 
     This class abstracts the complexity of Anki's configuration system,
-    providing a clean interface for accessing addon settings set by the user.
-    These settings are currently limited to inference provider and LLM
-    settings.
+    providing a clean interface for accessing the inference provider and
+    LLM settings set by the user.
 
     The class handles the transformation of raw configuration data from
     Anki's addon manager into a structured format with validation and
@@ -28,17 +50,9 @@ class AddonConfig:
             Set to False to skip reasoning tokens, saving tokens and latency.
         preserve_thinking: Whether to preserve reasoning tokens in the output
             (optional, for models like Qwen3.6 with thinking mode).
-        basic_notetype: Name of the Anki notetype used when creating
-            basic notes. Must use the standard "Front"/"Back" fields.
-        cloze_notetype: Name of the Anki notetype used when creating
-            cloze notes. Must use the standard "Text"/"Back Extra" fields.
     """
 
-    def __init__(self, config_provider: ConfigProvider) -> None:
-        raw = config_provider.getConfig("anki-addon")
-        if raw is None:
-            raise RuntimeError("Addon config not initialized")
-
+    def __init__(self, raw: dict) -> None:
         host = raw.get("openai_host")
         port = raw.get("openai_port")
         model_name = raw.get("openai_model")
@@ -73,7 +87,3 @@ class AddonConfig:
         self.preserve_thinking = bool(
             raw.get("openai_preserve_thinking", False)
         )
-
-        # Notetypes used when the curator creates notes
-        self.basic_notetype = raw.get("basic_notetype_name", "Basic")
-        self.cloze_notetype = raw.get("cloze_notetype_name", "Cloze")

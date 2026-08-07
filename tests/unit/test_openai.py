@@ -8,23 +8,22 @@ from __future__ import annotations
 
 import pytest
 import requests.exceptions
-from tests.fakes.aqt_fakes import FakeAddonManager
 from tests.fakes.openai_fakes import FakeHttpClient
 
-from addon.infrastructure.configuration.settings import AddonConfig
+from addon.infrastructure.configuration.settings import OpenAIConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 from addon.infrastructure.protocols import HttpClient
 
 
-def _create_config(overrides: dict | None = None) -> AddonConfig:
-    """Build an AddonConfig for adapter tests."""
+def _create_config(overrides: dict | None = None) -> OpenAIConfig:
+    """Build an OpenAIConfig for adapter tests."""
     base = {
         "openai_host": "localhost",
         "openai_port": "8000",
         "openai_model": "test-model",
     }
     base.update(overrides or {})
-    return AddonConfig(FakeAddonManager(base))
+    return OpenAIConfig(base)
 
 
 # --- Payload construction ---
@@ -200,7 +199,7 @@ def test_captures_reasoning_content() -> None:
 def test_raises_on_connection_error() -> None:
     # Given
     class FailingHttpClient(HttpClient):
-        def post(self, url, json=None):
+        def post(self, url, json=None, headers=None):
             raise requests.exceptions.ConnectionError("refused")
 
     config = _create_config()
