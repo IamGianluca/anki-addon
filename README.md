@@ -32,14 +32,30 @@ cd [your-anki-addons-path]/addons21/anki-addon
 
 1. Start Anki and go to `Tools > Add-ons`
 2. Select "anki-addon" and click `Config`
-3. Fill in the required settings:
+3. Fill in the required settings for your LLM provider.
+
+   **Self-hosted OpenAI-compatible server (default):**
    ```json
    {
+     "llm_provider": "openai",
      "openai_host": "your_host_url",
      "openai_port": "your_host_port",
      "openai_model": "your_llm_model"
    }
    ```
+
+   **OpenCode Go subscription** (hosted open coding models, e.g. GLM, Kimi,
+   DeepSeek — get an API key from the OpenCode Zen console):
+   ```json
+   {
+     "llm_provider": "opencode_go",
+     "opencode_go_api_key": "your_api_key",
+     "opencode_go_model": "glm-5.2"
+   }
+   ```
+   Only models served via the `chat/completions` endpoint are supported
+   (GLM, Kimi, DeepSeek, MiMo, Grok, Hy3); optional sampling overrides are
+   `opencode_go_temperature` and `opencode_go_max_tokens`.
 4. Optional settings (add only if needed for your model):
    ```json
    {
@@ -51,6 +67,7 @@ cd [your-anki-addons-path]/addons21/anki-addon
      "openai_min_p": 0.05
    }
    ```
+   (these apply only to the self-hosted `openai` provider)
 5. Click `Save`
 
 ## 🔍 Usage

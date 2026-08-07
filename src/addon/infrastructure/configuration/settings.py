@@ -87,3 +87,41 @@ class OpenAIConfig:
         self.preserve_thinking = bool(
             raw.get("openai_preserve_thinking", False)
         )
+
+
+class OpenCodeGoConfig:
+    """Settings for the OpenCode Go subscription gateway.
+
+    OpenCode Go (opencode.ai/zen/go) serves open coding models through
+    hosted endpoints, authenticated with an API key from the OpenCode Zen
+    console.
+
+    Attributes:
+        api_key: OpenCode Go API key, sent as a Bearer token.
+        model: Model ID served via the chat/completions endpoint,
+            e.g. "glm-5.2" or "kimi-k2.7-code".
+        temperature: Sampling temperature for the language model (0.0-2.0).
+        max_tokens: Maximum number of tokens to generate. The default is
+            higher than the self-hosted one because curator agent steps
+            produce a full JSON action per turn.
+    """
+
+    def __init__(self, raw: dict) -> None:
+        api_key = raw.get("opencode_go_api_key")
+        model = raw.get("opencode_go_model")
+
+        missing = [
+            key
+            for key, value in (
+                ("opencode_go_api_key", api_key),
+                ("opencode_go_model", model),
+            )
+            if not value
+        ]
+        if missing:
+            raise ValueError(f"Missing required config: {', '.join(missing)}")
+
+        self.api_key = api_key
+        self.model = model
+        self.temperature = float(raw.get("opencode_go_temperature", 0.0))
+        self.max_tokens = int(raw.get("opencode_go_max_tokens", 8192))

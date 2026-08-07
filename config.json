@@ -1,7 +1,10 @@
 {
+  "llm_provider": "openai",
   "openai_host": "",
   "openai_port": "",
   "openai_model": "",
+  "opencode_go_api_key": "",
+  "opencode_go_model": "",
   "basic_notetype_name": "Basic",
   "cloze_notetype_name": "Cloze"
 }
