@@ -69,8 +69,7 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
     for record in records:
         by_task.setdefault(record["task_id"], []).append(record)
 
-    n_tasks_passed = 0
-    pass_rates = []
+    pass_k_rates = []
     mean_scores = []
     for task_id, trials in sorted(by_task.items()):
         k = len(trials)
@@ -78,8 +77,9 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
         task_scores = [
             t.get("score") for t in trials if t.get("score") is not None
         ]
-        n_tasks_passed += n_passed == k
-        pass_rates.append(n_passed / k)
+        # pass^k per task: estimated probability of k consecutive successes
+        # given the observed rate (n_passed/k)^k — continuous, not binary.
+        pass_k_rates.append((n_passed / k) ** k)
         if task_scores:
             mean_scores.append(sum(task_scores) / len(task_scores))
         _print_task(out, color, with_reasons, task_id, trials, n_passed)
@@ -89,8 +89,7 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
     if mean_scores:
         score_line = f", mean score {sum(mean_scores) / len(mean_scores):.0%}"
     print(
-        f"summary: {n_tasks_passed}/{len(by_task)} tasks pass^k, "
-        f"mean pass@1 {sum(pass_rates) / len(pass_rates):.0%}"
+        f"summary: mean pass^k {sum(pass_k_rates) / len(pass_k_rates):.0%}"
         f"{score_line}",
         file=out,
     )
@@ -115,10 +114,11 @@ def _print_task(
         mean_s = sum(task_scores) / len(task_scores)
         score_str = f"  score {mean_s:.0%}"
 
+    pass_k_pct = (n_passed / k) ** k
     print(
         f"{_marker(all_passed, color)} {task_id:<28} "
         f"pass@1 {n_passed / k:>4.0%}  "
-        f"pass^{k} {int(all_passed)}  ({n_passed}/{k} trials)"
+        f"pass^{k} {pass_k_pct:>4.0%}  ({n_passed}/{k} trials)"
         f"{score_str}",
         file=out,
     )
