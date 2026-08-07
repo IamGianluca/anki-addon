@@ -37,6 +37,7 @@ def main() -> None:
     positional = [a for a in sys.argv[1:] if a != "--write"]
     results_dir = Path(positional[0]) if positional else _latest_run()
     records = _load_records(results_dir)
+    model_name = _read_model_name(results_dir)
 
     print(f"results: {results_dir}\n")
     _emit(records, sys.stdout, with_reasons=True)
@@ -47,7 +48,7 @@ def main() -> None:
         SCORES_FILE.write_text(
             f"# Eval scores\n\n"
             f"run: {results_dir.name}\n"
-            f"model: {os.environ.get('OPENAI_MODEL', 'unknown')}\n\n"
+            f"model: {model_name}\n\n"
             + buffer.getvalue()
         )
         print(f"\nwrote {SCORES_FILE}")
@@ -248,6 +249,19 @@ def _latest_run() -> Path:
     if not runs:
         raise SystemExit(f"no results in {RESULTS_ROOT} — run make eval first")
     return runs[-1]
+
+
+def _read_model_name(results_dir: Path) -> str:
+    """Read the model name from the first trial record (written by
+    harness.py). Falls back to the environment, then 'unknown'."""
+    first = next(results_dir.glob("*.trial*.json"), None)
+    if first is not None:
+        record = json.loads(first.read_text())
+        model = record.get("model")
+        if model:
+            return model
+    # Fallback for old runs without model in records.
+    return os.environ.get("OPENAI_MODEL", "unknown")
 
 
 if __name__ == "__main__":

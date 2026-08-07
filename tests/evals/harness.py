@@ -186,6 +186,7 @@ def write_trial_record(
     trial_index: int,
     outcome: TrialOutcome,
     grade: GradeResult,
+    model: str | None = None,
 ) -> Path:
     """Persist one trial's full record as JSON. The record is the
     artifact to read when a failure looks unfair — never trust a score
@@ -212,6 +213,8 @@ def write_trial_record(
         ],
         "transcript": outcome.session.transcript,
     }
+    if model is not None:
+        record["model"] = model
     path = results_dir / f"{outcome.task.id}.trial{trial_index}.json"
     path.write_text(json.dumps(record, indent=2, ensure_ascii=False) + "\n")
     return path

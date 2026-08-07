@@ -43,9 +43,13 @@ def test_curator_task(
     task_path: Path,
     llm_client: CompletionProvider,
     eval_results_dir: Path,
+    eval_config: dict,
 ) -> None:
     # Given
     task = load_task(task_path)
+    model = eval_config.get("openai_model") or eval_config.get(
+        "opencode_go_model"
+    )
 
     # When
     failures_by_trial: list[list[str]] = []
@@ -53,7 +57,7 @@ def test_curator_task(
         outcome = run_trial(task, llm_client)
         grade = grade_trial(task, outcome, judge_client=llm_client)
         record = write_trial_record(
-            eval_results_dir, trial_index, outcome, grade
+            eval_results_dir, trial_index, outcome, grade, model=model
         )
         verdict = "PASS" if grade.passed else "FAIL"
         print(f"\n[{task.id} trial {trial_index}] {verdict} -> {record}")
