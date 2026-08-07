@@ -22,7 +22,7 @@ from tests.evals.harness import (
 )
 
 if TYPE_CHECKING:
-    from addon.infrastructure.external_services.openai import OpenAIClient
+    from addon.application.protocols import CompletionProvider
 
 _RUN = os.environ.get("RUN_EVALS") == "1"
 _STRICT = os.environ.get("EVAL_STRICT") == "1"
@@ -41,7 +41,7 @@ _TASK_IDS = [path.stem for path in _TASK_FILES]
 @pytest.mark.parametrize("task_path", _TASK_FILES, ids=_TASK_IDS)
 def test_curator_task(
     task_path: Path,
-    llm_client: OpenAIClient,
+    llm_client: CompletionProvider,
     eval_results_dir: Path,
 ) -> None:
     # Given

@@ -27,10 +27,23 @@ RUN_EVALS=1 uv run pytest tests/evals/ -k split   # run a subset
 ```
 
 The LLM is configured from the same env vars as the integration tests
-(`.envrc`): `OPENAI_HOST`, `OPENAI_PORT`, `OPENAI_MODEL`, plus the
-optional `OPENAI_*` sampling/reasoning overrides — an eval run measures
-the model and settings the addon actually ships with. Point the vars at
-a different server/model to compare candidates on the same suite.
+(`.envrc`). Select the provider with `LLM_PROVIDER` (`openai` default,
+`opencode_go`):
+
+- `openai`: `OPENAI_HOST`, `OPENAI_PORT`, `OPENAI_MODEL`, plus the
+  optional `OPENAI_*` sampling/reasoning overrides.
+- `opencode_go`: `OPENCODE_GO_API_KEY`, `OPENCODE_GO_MODEL`, plus the
+  optional `OPENCODE_GO_TEMPERATURE` / `OPENCODE_GO_MAX_TOKENS`
+  overrides.
+
+The client is built through the same `create_completion_provider`
+factory the addon uses, so an eval run measures the model, settings,
+and provider wiring the addon actually ships with. Point the vars at a
+different server/model to compare candidates on the same suite:
+
+```bash
+LLM_PROVIDER=opencode_go OPENCODE_GO_MODEL=glm-5.2 make eval
+```
 
 Every trial writes a full record (cluster, change set, transcript,
 judge verdicts, grade) to `tests/evals/results/<timestamp>/`
