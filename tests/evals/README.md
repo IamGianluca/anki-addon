@@ -63,10 +63,8 @@ diffing against the previous snapshot shows the effect line by line:
 make eval_snapshot   # write tests/evals/scores.md from the latest run
 ```
 
-The snapshot contains verdicts and deterministic failure details but
-no judge reasons and no transcripts — nothing beyond what the task
-files themselves contain. `results/` (full transcripts, note content)
-stays git-ignored.
+The snapshot contains verdicts, failure details, and judge reasons.
+Full transcripts and note content live in `results/` (git-ignored).
 
 **Read the transcripts when a task fails.** A failure should look fair:
 it should be obvious what went wrong and why. If the agent found a

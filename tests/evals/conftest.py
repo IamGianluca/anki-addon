@@ -15,7 +15,9 @@ provider wiring the addon ships with.
 
 from __future__ import annotations
 
+import json
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -68,6 +70,7 @@ def _read_env_config(
 
 @pytest.fixture(scope="session")
 def eval_config() -> dict:
+    global _eval_model
     provider = os.environ.get("LLM_PROVIDER", "openai")
     if provider == "opencode_go":
         raw = _read_env_config(
@@ -79,6 +82,7 @@ def eval_config() -> dict:
     # models; evals need room for a full JSON action per turn.
     raw.setdefault(f"{provider}_max_tokens", "8192")
     raw["llm_provider"] = provider
+    _eval_model = raw.get(f"{provider}_model")
     return raw
 
 
@@ -89,7 +93,37 @@ def llm_client(eval_config: dict) -> CompletionProvider:
 
 @pytest.fixture(scope="session")
 def eval_results_dir() -> Path:
+    global _eval_results_dir
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     path = RESULTS_DIR / stamp
     path.mkdir(parents=True, exist_ok=True)
+    _eval_results_dir = path
     return path
+
+
+# Module-level state for the session hooks (can't access fixtures from hooks).
+_eval_start: float = 0
+_eval_results_dir: Path | None = None
+_eval_model: str | None = None
+
+
+def pytest_sessionstart(session: pytest.Session) -> None:
+    global _eval_start
+    _eval_start = time.monotonic()
+
+
+def pytest_sessionfinish(session: pytest.Session) -> None:
+    elapsed = time.monotonic() - _eval_start
+    target = _eval_results_dir
+    if target is None:
+        # Fallback: most recent results directory.
+        runs = sorted(p for p in RESULTS_DIR.iterdir() if p.is_dir())
+        if runs:
+            target = runs[-1]
+    if target is not None:
+        meta = {
+            "elapsed_seconds": round(elapsed, 1),
+            "model": _eval_model or "unknown",
+            "tasks_collected": session.testscollected,
+        }
+        (target / "meta.json").write_text(json.dumps(meta, indent=2) + "\n")

@@ -4,9 +4,9 @@ Usage: uv run python tests/evals/summarize.py [results_dir] [--write]
 
 With no results_dir, summarizes the most recent run in
 tests/evals/results/ — the usual thing to do after `make eval`.
---write also snapshots the summary (without colors or judge reasons)
-to tests/evals/scores.md, a tracked, diff-friendly file: commit it
-together with a prompt or model change to record its measured effect.
+--write also snapshots the summary (without colors) to
+scores.md, a tracked file: commit it together with a prompt or
+model change to record its measured effect.
 
 Per task, prints pass@1 (mean per-trial success), mean score (partial
 credit across graded dimensions), and pass^k (all trials passed).
@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import io
 import json
-import os
 import sys
 import textwrap
 from pathlib import Path
@@ -37,18 +36,28 @@ def main() -> None:
     positional = [a for a in sys.argv[1:] if a != "--write"]
     results_dir = Path(positional[0]) if positional else _latest_run()
     records = _load_records(results_dir)
-    model_name = _read_model_name(results_dir)
+    meta = _read_meta(results_dir)
+    model_name = meta.get("model", "unknown") if meta else "unknown"
+    elapsed = meta.get("elapsed_seconds") if meta else None
 
+    elapsed_str = _format_duration(elapsed) if elapsed else None
     print(f"results: {results_dir}\n")
+    if elapsed_str:
+        print(f"elapsed: {elapsed_str}\n")
     _emit(records, sys.stdout, with_reasons=True)
 
     if write:
         buffer = io.StringIO()
-        _emit(records, buffer, with_reasons=False)
+        _emit(records, buffer, with_reasons=True)
+        elapsed_line = (
+            f"elapsed: {_format_duration(elapsed)}\n" if elapsed else ""
+        )
         SCORES_FILE.write_text(
             f"# Eval scores\n\n"
             f"run: {results_dir.name}\n"
-            f"model: {model_name}\n\n"
+            f"model: {model_name}\n"
+            f"{elapsed_line}"
+            "\n"
             + buffer.getvalue()
         )
         print(f"\nwrote {SCORES_FILE}")
@@ -251,17 +260,27 @@ def _latest_run() -> Path:
     return runs[-1]
 
 
-def _read_model_name(results_dir: Path) -> str:
-    """Read the model name from the first trial record (written by
-    harness.py). Falls back to the environment, then 'unknown'."""
-    first = next(results_dir.glob("*.trial*.json"), None)
-    if first is not None:
-        record = json.loads(first.read_text())
-        model = record.get("model")
-        if model:
-            return model
-    # Fallback for old runs without model in records.
-    return os.environ.get("OPENAI_MODEL", "unknown")
+def _read_meta(results_dir: Path) -> dict | None:
+    """Read meta.json (written by conftest.py hooks). Returns None for
+    old runs that don't have it."""
+    meta_path = results_dir / "meta.json"
+    if not meta_path.exists():
+        return None
+    try:
+        return json.loads(meta_path.read_text())
+    except json.JSONDecodeError:
+        return None
+
+
+def _format_duration(seconds: float) -> str:
+    """Format seconds as a human-readable duration."""
+    if seconds < 60:
+        return f"{seconds:.0f}s"
+    minutes, secs = divmod(seconds, 60)
+    if minutes < 60:
+        return f"{minutes:.0f}m {secs:.0f}s"
+    hours, mins = divmod(minutes, 60)
+    return f"{hours:.0f}h {mins:.0f}m"
 
 
 if __name__ == "__main__":
