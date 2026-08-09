@@ -25,6 +25,7 @@ dev = [
     "ty>=0.0.1a17",
     "jupyterlab-widgets>=3.0.15",
     "ipywidgets>=8.1.7",
+    "python-fasthtml>=0.14.11; python_version >= '3.10'",
 ]
 
 [tool.ruff]

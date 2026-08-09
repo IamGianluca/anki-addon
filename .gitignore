@@ -34,3 +34,6 @@ vendor/
 
 # Jupyter Notebook cache
 .ipynb_checkpoints/
+
+# FastHTML session key (auto-generated)
+.sesskey

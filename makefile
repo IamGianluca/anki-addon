@@ -1,4 +1,4 @@
-.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_summary eval_snapshot
+.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_summary eval_snapshot eval_viewer
 
 install:
 	uv sync --all-extras && \
@@ -60,6 +60,10 @@ eval_summary:
 # tests/evals/scores.md — commit it with the change it measures.
 eval_snapshot:
 	uv run python tests/evals/summarize.py --write
+
+# Web viewer for eval results: http://127.0.0.1:5000
+eval_viewer:
+	uv run python -m tests.evals.viewer
 
 format:
 	uv run ruff check --fix && uv run ruff format
