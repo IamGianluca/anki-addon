@@ -1,18 +1,23 @@
-"""FastHTML viewer for curator eval results.
+"""FastHTML viewer for curator eval results and production traces.
 
-Load trial JSON files from tests/evals/results/ and render:
-- Dashboard: all runs with aggregate pass rates
+Loads record JSON files from a run directory and renders:
+- Dashboard: all runs with aggregate pass rates (plus production
+  trace sessions with their outcomes)
 - Run detail: per-task breakdown with trial grid
 - Trial detail: seed notes, transcript, checks, judge verdicts,
-  change set
+  change set, production outcome, and annotations
 
-Run:  uv run python -m tests.evals.viewer
+Run:  uv run python -m tests.evals.viewer [--dir PATH]
+The --dir flag points at the addon's traces/ folder to review
+production sessions instead of eval results.
 """
 
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -23,13 +28,19 @@ from fasthtml.common import (  # noqa: F401
     H4,
     A,
     Button,
+    Datalist,
     Div,
     FastHTML,
+    Form,
     Header,
+    Input,
+    Label,
     Li,
     Main,
+    Option,
     P,
     Pre,
+    RedirectResponse,
     Script,
     Section,
     Span,
@@ -37,6 +48,7 @@ from fasthtml.common import (  # noqa: F401
     Table,
     Tbody,
     Td,
+    Textarea,
     Th,
     Thead,
     Title,
@@ -44,7 +56,20 @@ from fasthtml.common import (  # noqa: F401
     Ul,
 )
 
-RESULTS_DIR = Path(__file__).parent.parent / "results"
+
+def _results_dir() -> Path:
+    """Directory of run folders to view.
+
+    The `--dir` flag sets EVAL_VIEWER_DIR in __main__.py before the
+    server starts. It is resolved per request rather than at import
+    time because `python -m tests.evals.viewer` imports this package
+    (running this module top to bottom) before __main__.py executes.
+    """
+    return Path(
+        os.environ.get(
+            "EVAL_VIEWER_DIR", Path(__file__).parent.parent / "results"
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +79,12 @@ RESULTS_DIR = Path(__file__).parent.parent / "results"
 
 @dataclass
 class RunSummary:
-    """Aggregated stats for one eval run (one timestamped directory)."""
+    """Aggregated stats for one run (one timestamped directory).
+
+    Eval runs aggregate trials per task; production runs are one
+    session per directory. Annotations are per-record, keyed by record
+    file name.
+    """
 
     stamp: str
     model: str = "unknown"
@@ -62,6 +92,8 @@ class RunSummary:
     total_trials: int = 0
     passed_trials: int = 0
     tasks: dict[str, list[TrialRecord]] = field(default_factory=dict)
+    annotations: dict[str, dict[str, str]] = field(default_factory=dict)
+    is_production: bool = False
 
     @property
     def pass_rate(self) -> float:
@@ -69,10 +101,18 @@ class RunSummary:
             return 0.0
         return self.passed_trials / self.total_trials
 
+    @property
+    def session(self) -> TrialRecord | None:
+        """The single trial of a production run, if any."""
+        for trials in self.tasks.values():
+            for trial in trials:
+                return trial
+        return None
+
 
 @dataclass
 class TrialRecord:
-    """One trial result loaded from JSON."""
+    """One trial (eval) or session (production) loaded from JSON."""
 
     task_id: str
     trial_index: int
@@ -86,15 +126,20 @@ class TrialRecord:
     change_set: list[dict[str, Any]]
     transcript: list[dict[str, str]]
     model: str | None
+    source: str = "eval"
+    outcome: dict[str, Any] | None = None
+    instruction: str | None = None
+    file_name: str = ""
 
 
 def load_runs() -> list[RunSummary]:
-    """Load all eval runs from the results directory, newest first."""
-    if not RESULTS_DIR.exists():
+    """Load all runs from the results directory, newest first."""
+    results_dir = _results_dir()
+    if not results_dir.exists():
         return []
 
     run_dirs = sorted(
-        [p for p in RESULTS_DIR.iterdir() if p.is_dir()],
+        [p for p in results_dir.iterdir() if p.is_dir()],
         reverse=True,
     )
 
@@ -107,6 +152,10 @@ def load_runs() -> list[RunSummary]:
             meta = json.loads(meta_path.read_text())
             summary.model = meta.get("model", "unknown")
             summary.elapsed = meta.get("elapsed_seconds", 0.0)
+
+        ann_path = run_dir / "annotations.json"
+        if ann_path.exists():
+            summary.annotations = json.loads(ann_path.read_text())
 
         for trial_file in sorted(run_dir.glob("*.trial*.json")):
             data = json.loads(trial_file.read_text())
@@ -126,10 +175,18 @@ def load_runs() -> list[RunSummary]:
                 change_set=data.get("change_set", []),
                 transcript=data.get("transcript", []),
                 model=data.get("model"),
+                source=data.get("source", "eval"),
+                outcome=data.get("outcome"),
+                instruction=data.get("instruction"),
+                file_name=trial_file.name,
             )
             summary.total_trials += 1
             if trial.passed:
                 summary.passed_trials += 1
+            if trial.source == "production":
+                summary.is_production = True
+                if summary.model == "unknown" and trial.model:
+                    summary.model = trial.model
 
             summary.tasks.setdefault(trial.task_id, []).append(trial)
 
@@ -293,12 +350,96 @@ def _badge(text: str, cls: str) -> Span:
     return Span(text, cls=f"badge badge-{cls}")
 
 
+_OUTCOME_BADGE_CLS = {
+    "applied": "pass",
+    "rejected": "fail",
+    "cancelled": "unknown",
+    "no_changes": "unknown",
+    "failed": "fail",
+}
+
+
+def _outcome_badge(status: str) -> Span:
+    cls = _OUTCOME_BADGE_CLS.get(status, "unknown")
+    return _badge(status.replace("_", " ").upper(), cls)
+
+
+def _proposal_block(p: dict, show_rationale: bool = True) -> Div:
+    """Render one change-set proposal (edit/create/delete).
+
+    `show_rationale=False` drops the rationale line — used in the
+    outcome card, where the rationale is the agent's, not the user's:
+    the user never explains why they approved or rejected.
+    """
+    ptype = p.get("type", "edit").upper()
+    if ptype == "EDIT":
+        return Div(
+            H4(f"EDIT note {p.get('note_id')}"),
+            P(f"Rationale: {p.get('rationale', '')}")
+            if show_rationale
+            else "",
+            Div(
+                P("Before:"),
+                Pre(
+                    json.dumps(p.get("before", {}), indent=2),
+                    style="font-size: 0.8rem; margin: 0.25rem 0;",
+                ),
+                P("After:"),
+                Pre(
+                    json.dumps(p.get("after", {}), indent=2),
+                    style="font-size: 0.8rem; margin: 0.25rem 0;",
+                ),
+            ),
+            cls="proposal-block",
+        )
+    if ptype == "CREATE":
+        return Div(
+            H4("CREATE"),
+            P(f"Rationale: {p.get('rationale', '')}")
+            if show_rationale
+            else "",
+            Pre(
+                json.dumps(p.get("note", {}), indent=2),
+                style="font-size: 0.8rem;",
+            ),
+            cls="proposal-block",
+        )
+    return Div(
+        H4(f"DELETE note {p.get('note_id')}"),
+        P(f"Rationale: {p.get('rationale', '')}") if show_rationale else "",
+        Pre(
+            json.dumps(p.get("before", {}), indent=2),
+            style="font-size: 0.8rem;",
+        ),
+        cls="proposal-block",
+    )
+
+
+def _labels_used(runs: list[RunSummary]) -> list[str]:
+    """Distinct annotation labels across all runs, for the datalist."""
+    labels = {
+        ann.get("label", "")
+        for run in runs
+        for ann in run.annotations.values()
+        if ann.get("label")
+    }
+    return sorted(labels)
+
+
+def _annotation_badge(run: RunSummary, trial: TrialRecord) -> str | Span:
+    """The annotation label for a record, or a dash if unannotated."""
+    ann = run.annotations.get(trial.file_name)
+    if not ann or not ann.get("label"):
+        return "—"
+    return _badge(ann["label"], "unknown")
+
+
 def _nav() -> Header:
     return Header(
         A("Dashboard", href="/"),
         Span("  |  ", style="margin: 0 0.5rem;"),
         Span(
-            f"Results: {RESULTS_DIR.name}",
+            f"Results: {_results_dir().name}",
             style="font-size: 0.75rem; color: var(--text-muted);",
         ),
         style="margin-bottom: 1.5rem;",
@@ -313,36 +454,96 @@ def _run_link(run: RunSummary) -> A:
 async def get():  # noqa: F811
     runs = load_runs()
     if not runs:
-        return Main(_nav(), H1("Eval Viewer"), P("No eval results found."))
+        return Main(_nav(), H1("Eval Viewer"), P("No results found."))
 
-    rows = []
-    for run in runs:
-        rows.append(
-            Tr(
-                Td(_run_link(run)),
-                Td(f"{run.pass_rate:.0%}"),
-                Td(f"{run.passed_trials}/{run.total_trials}"),
-                Td(f"{run.elapsed:.0f}s"),
-                Td(str(len(run.tasks))),
+    eval_runs = [r for r in runs if not r.is_production]
+    prod_runs = [r for r in runs if r.is_production]
+
+    sections = []
+    if eval_runs:
+        rows = []
+        for run in eval_runs:
+            rows.append(
+                Tr(
+                    Td(_run_link(run)),
+                    Td(f"{run.pass_rate:.0%}"),
+                    Td(f"{run.passed_trials}/{run.total_trials}"),
+                    Td(f"{run.elapsed:.0f}s"),
+                    Td(str(len(run.tasks))),
+                )
             )
+        sections.extend(
+            [
+                H2("Eval runs"),
+                Table(
+                    Thead(
+                        Tr(
+                            Th("Run"),
+                            Th("Pass Rate"),
+                            Th("Trials"),
+                            Th("Elapsed"),
+                            Th("Tasks"),
+                        )
+                    ),
+                    Tbody(*rows),
+                ),
+            ]
         )
 
-    return Main(
-        _nav(),
-        H1("Eval Dashboard"),
-        Table(
-            Thead(
+    if prod_runs:
+        rows = []
+        for run in prod_runs:
+            trial = run.session
+            if trial is None:
+                continue
+            outcome = trial.outcome or {}
+            status = outcome.get("status", "unknown")
+            steps = trial.stats.get("steps", "")
+            summary = (trial.summary or "").replace("\n", " ")[:120]
+            rows.append(
                 Tr(
-                    Th("Run"),
-                    Th("Pass Rate"),
-                    Th("Trials"),
-                    Th("Elapsed"),
-                    Th("Tasks"),
+                    Td(
+                        A(
+                            f"{run.stamp}  ({trial.task_id})",
+                            href=(
+                                f"/trial/{run.stamp}/{trial.task_id}/"
+                                f"{trial.trial_index}"
+                            ),
+                        )
+                    ),
+                    Td(run.model),
+                    Td(_outcome_badge(status)),
+                    Td(steps),
+                    Td(summary or ""),
+                    Td(_annotation_badge(run, trial)),
                 )
-            ),
-            Tbody(*rows),
-        ),
-    )
+            )
+        sections.extend(
+            [
+                H2("Production traces"),
+                P(
+                    "Sessions recorded by the addon. The outcome is "
+                    "what you decided in the review dialog — that "
+                    "decision is the production grade.",
+                    style=("color: var(--text-muted); font-size: 0.85rem;"),
+                ),
+                Table(
+                    Thead(
+                        Tr(
+                            Th("Session"),
+                            Th("Model"),
+                            Th("Outcome"),
+                            Th("Steps"),
+                            Th("Summary"),
+                            Th("Annotation"),
+                        )
+                    ),
+                    Tbody(*rows),
+                ),
+            ]
+        )
+
+    return Main(_nav(), H1("Eval Viewer"), *sections)
 
 
 @rt("/run/{stamp}")
@@ -351,6 +552,31 @@ async def get(stamp: str):  # noqa: F811
     run = next((r for r in runs if r.stamp == stamp), None)
     if run is None:
         return Main(_nav(), H1("Run not found"))
+
+    if run.is_production:
+        trial = run.session
+        if trial is None:
+            return Main(_nav(), H1("Run not found"))
+        outcome = trial.outcome or {}
+        return Main(
+            _nav(),
+            H2(f"Session: {run.stamp}"),
+            Div(
+                _outcome_badge(outcome.get("status", "unknown")),
+                Span(f"  {trial.task_id}"),
+                Span(f"  |  Model: {run.model}"),
+                style="margin-bottom: 1rem;",
+            ),
+            Section(
+                H3("Summary"),
+                P(trial.summary or "(none)"),
+                cls="card",
+            ),
+            A(
+                "Open session →",
+                href=f"/trial/{stamp}/{trial.task_id}/{trial.trial_index}",
+            ),
+        )
 
     max_trials = max((len(t) for t in run.tasks.values()), default=0)
 
@@ -523,53 +749,101 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
         )
 
     # Change set
-    proposal_blocks = []
-    for p in trial.change_set:
-        ptype = p.get("type", "edit").upper()
-        if ptype == "EDIT":
-            proposal_blocks.append(
+    proposal_blocks = [_proposal_block(p) for p in trial.change_set]
+
+    # Outcome — production only: what the user decided in review.
+    outcome_card = ""
+    if trial.outcome:
+        outcome = trial.outcome
+        status = outcome.get("status", "unknown")
+        blocks = []
+        if outcome.get("approved"):
+            blocks.append(
                 Div(
-                    H4(f"EDIT note {p.get('note_id')}"),
-                    P(f"Rationale: {p.get('rationale', '')}"),
-                    Div(
-                        P("Before:"),
-                        Pre(
-                            json.dumps(p.get("before", {}), indent=2),
-                            style="font-size: 0.8rem; margin: 0.25rem 0;",
-                        ),
-                        P("After:"),
-                        Pre(
-                            json.dumps(p.get("after", {}), indent=2),
-                            style="font-size: 0.8rem; margin: 0.25rem 0;",
-                        ),
-                    ),
-                    cls="proposal-block",
+                    H4("Approved by user"),
+                    *[
+                        _proposal_block(p, show_rationale=False)
+                        for p in outcome["approved"]
+                    ],
+                    style="margin-bottom: 1rem;",
                 )
             )
-        elif ptype == "CREATE":
-            proposal_blocks.append(
+        if outcome.get("rejected"):
+            blocks.append(
                 Div(
-                    H4("CREATE"),
-                    P(f"Rationale: {p.get('rationale', '')}"),
-                    Pre(
-                        json.dumps(p.get("note", {}), indent=2),
-                        style="font-size: 0.8rem;",
-                    ),
-                    cls="proposal-block",
+                    H4("Rejected by user"),
+                    *[
+                        _proposal_block(p, show_rationale=False)
+                        for p in outcome["rejected"]
+                    ],
+                    style="margin-bottom: 1rem;",
                 )
             )
-        else:
-            proposal_blocks.append(
-                Div(
-                    H4(f"DELETE note {p.get('note_id')}"),
-                    P(f"Rationale: {p.get('rationale', '')}"),
-                    Pre(
-                        json.dumps(p.get("before", {}), indent=2),
-                        style="font-size: 0.8rem;",
-                    ),
-                    cls="proposal-block",
-                )
-            )
+        outcome_card = Section(
+            H3("Outcome"),
+            Div(
+                _outcome_badge(status),
+                Span(f"  {status}"),
+                style="margin-bottom: 0.75rem;",
+            ),
+            P(f"Error: {outcome.get('error')}")
+            if outcome.get("error")
+            else "",
+            *blocks
+            if blocks
+            else P("The session ended before any proposals were made."),
+            cls="card",
+        )
+
+    # Annotation — free-text label + notes, saved to annotations.json.
+    ann = run.annotations.get(trial.file_name, {})
+    ann_label = ann.get("label", "")
+    ann_note = ann.get("note", "")
+    ann_updated = ann.get("updated", "")
+    annotation_card = Section(
+        H3("Annotation"),
+        P(
+            "Use this to record the failure mode this session shows "
+            "(e.g. dropped_fact, wrong_split, overreach). Labels are "
+            "free text; the same label on many sessions is a pattern "
+            "worth turning into an eval task.",
+            style="color: var(--text-muted); font-size: 0.85rem;",
+        ),
+        P(
+            f"Saved: {ann_label}"
+            + (f"  ({ann_updated})" if ann_updated else ""),
+            style="font-weight: 600; margin: 0.5rem 0;",
+        )
+        if ann
+        else P("Not annotated yet.", style="color: var(--text-muted);"),
+        Form(
+            Div(
+                Label("Label", _for="label"),
+                Input(
+                    name="label",
+                    value=ann_label,
+                    placeholder="e.g. dropped_fact, wrong_split, overreach",
+                    list="label-options",
+                    style="width: 100%; margin-bottom: 0.5rem;",
+                ),
+                Datalist(
+                    *[Option(label) for label in _labels_used(runs)],
+                    id="label-options",
+                ),
+                Label("Notes", _for="note"),
+                Textarea(
+                    ann_note,
+                    name="note",
+                    rows=4,
+                    style="width: 100%; margin-bottom: 0.5rem;",
+                ),
+                Button("Save annotation", type="submit"),
+            ),
+            method="post",
+            action=f"/annotate/{stamp}/{task_id}/{trial_idx}",
+        ),
+        cls="card",
+    )
 
     # Seed notes (the collection the agent started from)
     seed_blocks = []
@@ -659,9 +933,7 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
                             style="font-size: 0.85rem;",
                         ),
                         Pre(
-                            json.dumps(
-                                action, indent=2, ensure_ascii=False
-                            ),
+                            json.dumps(action, indent=2, ensure_ascii=False),
                             style=_PRE_STYLE,
                         ),
                         cls="transcript-entry assistant",
@@ -709,10 +981,13 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
         Div(*stats_items, cls="stats-grid"),
         Section(
             H3("Summary"),
+            P(f"Instruction: {trial.instruction}")
+            if trial.instruction
+            else "",
             P(trial.summary or "(none)"),
             cls="card",
         )
-        if trial.summary
+        if trial.summary or trial.instruction
         else "",
         Section(
             H3("Seed Notes"),
@@ -739,7 +1014,29 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
             *proposal_blocks if proposal_blocks else P("No changes proposed."),
             cls="card",
         ),
+        outcome_card,
+        annotation_card,
         Section(H3("Transcript"), *transcript_entries),
+    )
+
+
+@rt("/annotate/{stamp}/{task_id}/{trial_idx}", methods=["post"])
+async def post(  # noqa: F811
+    stamp: str, task_id: str, trial_idx: int, label: str = "", note: str = ""
+) -> RedirectResponse:
+    """Save an annotation for one record; redirect back to its page."""
+    ann_path = _results_dir() / stamp / "annotations.json"
+    annotations = json.loads(ann_path.read_text()) if ann_path.exists() else {}
+    annotations[f"{task_id}.trial{trial_idx}.json"] = {
+        "label": label.strip(),
+        "note": note.strip(),
+        "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
+    }
+    ann_path.write_text(
+        json.dumps(annotations, indent=2, ensure_ascii=False) + "\n"
+    )
+    return RedirectResponse(
+        f"/trial/{stamp}/{task_id}/{trial_idx}", status_code=303
     )
 
 

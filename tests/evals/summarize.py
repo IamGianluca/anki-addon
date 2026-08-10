@@ -57,8 +57,7 @@ def main() -> None:
             f"run: {results_dir.name}\n"
             f"model: {model_name}\n"
             f"{elapsed_line}"
-            "\n"
-            + buffer.getvalue()
+            "\n" + buffer.getvalue()
         )
         print(f"\nwrote {SCORES_FILE}")
 

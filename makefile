@@ -65,6 +65,10 @@ eval_snapshot:
 eval_viewer:
 	uv run python -m tests.evals.viewer
 
+# Web viewer for production traces (addon's traces/ folder)
+trace_viewer:
+	uv run python -m tests.evals.viewer --dir traces
+
 format:
 	uv run ruff check --fix && uv run ruff format
 

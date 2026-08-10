@@ -149,6 +149,42 @@ It proves the task is solvable and the graders are wired correctly; a
 0% pass rate on a task whose reference validates usually means a hard
 task, but re-read the spec before blaming the model.
 
+## Production traces: the human as grader
+
+The addon writes one JSON trace per curation session to
+`<addon root>/traces/<timestamp>/note_<seed_id>.trial0.json` — the
+same record shape the eval harness writes, so the viewer renders
+both. The difference is the `outcome` field: in evals the graders
+decide, in production the user decides in the review dialog
+(`applied` / `rejected` / `cancelled` / `no_changes` / `failed`,
+plus which proposals were approved vs rejected).
+
+**A rejected or cancelled trace is a real failure** — a session where
+the agent's proposals were not good enough. That makes production
+traces the best source for new eval tasks: mine rejected sessions,
+find the common failure mode, encode it as a task with a reference
+solution, and you have a regression test for exactly what went wrong
+in the field.
+
+Reviewing traces (the addon writes them wherever Anki runs the
+addon; copy them to the dev machine if needed):
+
+```bash
+make trace_viewer                    # or:
+uv run python -m tests.evals.viewer --dir <addon-root>/traces
+```
+
+The production section of the dashboard lists sessions with their
+outcome, model, and step count; each session page shows the
+outcome (approved vs rejected proposals), the full transcript, and
+an **annotation form** (label + notes) saved to `annotations.json`
+next to the traces. The label field suggests labels already used,
+so a consistent failure-mode taxonomy builds itself — when the same
+label shows up on many sessions, turn it into an eval task.
+
+Eval trial pages have the same annotation form, useful for marking
+unfair failures while reading transcripts.
+
 ## Writing good tasks
 
 - **Mine real failures**: proposals you rejected in review, notes the

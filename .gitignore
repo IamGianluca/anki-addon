@@ -15,6 +15,9 @@ wheels/
 # LLM eval transcripts and grades
 tests/evals/results/
 
+# Production curator session traces
+traces/
+
 # Training data
 data/
 

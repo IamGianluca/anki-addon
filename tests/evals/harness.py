@@ -21,6 +21,10 @@ from typing import TYPE_CHECKING, Literal, Optional
 from pydantic import BaseModel, Field, model_validator
 from tests.fakes.note_fakes import FakeNoteRepository
 
+from addon.application.services.curation_trace import (
+    render_note,
+    render_proposal,
+)
 from addon.application.services.curator_agent import (
     CurationSession,
     CuratorAgent,
@@ -205,12 +209,10 @@ def write_trial_record(
         "stats": grade.stats,
         "summary": outcome.session.summary,
         "cluster": [
-            {"id": note_id, **_render_note(note)}
+            {"id": note_id, **render_note(note)}
             for note_id, note in outcome.seeded_notes.items()
         ],
-        "change_set": [
-            _render_proposal(p) for p in outcome.session.change_set
-        ],
+        "change_set": [render_proposal(p) for p in outcome.session.change_set],
         "transcript": outcome.session.transcript,
     }
     if model is not None:
@@ -228,36 +230,3 @@ def _to_domain(note: TaskNote) -> AddonNote:
         notetype=AddonNoteType(note.notetype),
         extra_fields=dict(note.extra_fields),
     )
-
-
-def _render_note(note: AddonNote) -> dict:
-    return {
-        "front": note.front,
-        "back": note.back,
-        "tags": note.tags or [],
-        "notetype": note.notetype.value,
-        "extra_fields": note.extra_fields,
-    }
-
-
-def _render_proposal(proposal: Proposal) -> dict:
-    if isinstance(proposal, EditProposal):
-        return {
-            "type": "edit",
-            "note_id": proposal.note_id,
-            "rationale": proposal.rationale,
-            "before": _render_note(proposal.before),
-            "after": _render_note(proposal.after),
-        }
-    if isinstance(proposal, CreateProposal):
-        return {
-            "type": "create",
-            "rationale": proposal.rationale,
-            "note": _render_note(proposal.note),
-        }
-    return {
-        "type": "delete",
-        "note_id": proposal.note_id,
-        "rationale": proposal.rationale,
-        "before": _render_note(proposal.before),
-    }
