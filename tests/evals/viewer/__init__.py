@@ -3,7 +3,8 @@
 Load trial JSON files from tests/evals/results/ and render:
 - Dashboard: all runs with aggregate pass rates
 - Run detail: per-task breakdown with trial grid
-- Trial detail: transcript, checks, change set
+- Trial detail: seed notes, transcript, checks, judge verdicts,
+  change set
 
 Run:  uv run python -m tests.evals.viewer
 """
@@ -78,6 +79,7 @@ class TrialRecord:
     passed: bool
     score: float
     checks: list[dict[str, str]]
+    judge_verdicts: list[dict[str, Any]]
     stats: dict[str, Any]
     summary: str | None
     cluster: list[dict[str, Any]]
@@ -117,6 +119,7 @@ def load_runs() -> list[RunSummary]:
                 passed=data["passed"],
                 score=score,
                 checks=checks,
+                judge_verdicts=data.get("judge_verdicts", []),
                 stats=data.get("stats", {}),
                 summary=data.get("summary"),
                 cluster=data.get("cluster", []),
@@ -568,6 +571,49 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
                 )
             )
 
+    # Seed notes (the collection the agent started from)
+    seed_blocks = []
+    for note in trial.cluster:
+        extra = (
+            P(f"Extra fields: {json.dumps(note.get('extra_fields'))}")
+            if note.get("extra_fields")
+            else ""
+        )
+        seed_blocks.append(
+            Div(
+                H4(f"Note {note.get('id')}"),
+                P(f"Front: {note.get('front', '')}"),
+                P(f"Back: {note.get('back', '')}"),
+                P(
+                    "Tags: "
+                    + (", ".join(note.get("tags", [])) or "(none)")
+                    + f"  |  Type: {note.get('notetype', '')}"
+                ),
+                extra,
+                cls="proposal-block",
+            )
+        )
+
+    # Judge verdicts (raw LLM-judge output; older runs lack 'checks')
+    judge_items = []
+    for verdict in trial.judge_verdicts:
+        vcls = verdict.get("verdict", "unknown")
+        reason = (
+            Span(
+                f"— {verdict.get('reason', '')}",
+                style="color: var(--text-muted);",
+            )
+            if verdict.get("reason")
+            else ""
+        )
+        judge_items.append(
+            Li(
+                _badge(vcls.upper(), vcls),
+                Span(verdict.get("assertion", "")),
+                reason,
+            )
+        )
+
     # Transcript
     # After an assistant tool call, the next "user" message is the tool
     # response, not the human. Track this to label entries correctly.
@@ -668,7 +714,26 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
         )
         if trial.summary
         else "",
+        Section(
+            H3("Seed Notes"),
+            Button(
+                "Show seed notes",
+                onclick="toggle('seed_notes')",
+                style=_BUTTON_STYLE,
+            ),
+            Div(*seed_blocks, id="seed_notes", style="display: none;"),
+            cls="card",
+        ),
         Section(H3("Checks"), Ul(*check_items, cls="check-list"), cls="card"),
+        (
+            Section(
+                H3("Judge Verdicts"),
+                Ul(*judge_items, cls="check-list"),
+                cls="card",
+            )
+            if trial.judge_verdicts
+            else ""
+        ),
         Section(
             H3("Change Set"),
             *proposal_blocks if proposal_blocks else P("No changes proposed."),
