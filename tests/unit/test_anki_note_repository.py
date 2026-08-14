@@ -72,7 +72,6 @@ def test_update_changes_fields_and_tags(
     assert note["Front"] == "New question"
     assert note["Back"] == "New answer"
     assert note.tags == ["ml"]
-    assert note.was_flushed()
 
 
 def test_update_unknown_note_raises(

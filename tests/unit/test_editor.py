@@ -1,6 +1,15 @@
+import dataclasses
+
 import pytest
 from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
+from addon.application.services.formatter_service import AnkiNoteMapper
+from addon.application.use_cases.apply_curation import apply_proposals
+from addon.domain.entities.note import NoteId
+from addon.domain.entities.proposals import EditProposal
+from addon.infrastructure.persistence.anki_note_repository import (
+    AnkiNoteRepository,
+)
 from addon.infrastructure.ui.editor import EditorDialog
 
 
@@ -256,6 +265,80 @@ def test_fake_collection_find_notes_filters_by_deck_id() -> None:
 
     # When / Then — query without did: returns empty
     assert collection.find_notes("tag:foo") == []
+
+
+def test_navigating_to_note_shows_changes_applied_while_dialog_open(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
+    """Changes the curator applies to a later review note while the
+    dialog is open are visible when navigating to it.
+    """
+    # Given
+    editor_dialog = EditorDialog(collection)
+    assert editor_dialog.current_note().id == 1
+
+    # When — the curator applies an edit to note 3 (the next review
+    # note) while the dialog is still showing note 1
+    curated = FakeNote(3, {"Front": "Curated Front", "Back": "Curated Back"})
+    collection.update_note(curated)
+
+    # When — the user saves and navigates to the next note
+    next_note = editor_dialog.move_to_next_note()
+
+    # Then — the curated content is shown, not the stale pre-curation copy
+    assert next_note is not None
+    assert next_note["Front"] == "Curated Front"
+    assert next_note["Back"] == "Curated Back"
+
+
+def test_curated_changes_survive_full_review_flow(
+    mw: FakeMainWindow, collection: FakeCollection
+) -> None:
+    """Full 'Improve note with AI' flow: the curator applies an approved
+    edit to the next review note (B) while the dialog is on note A. The
+    user saves A, navigates to B, saves B and exits, then reopens the
+    editor — B must still have the curated content in the collection.
+    """
+    # Given — the review editor is open on note 1 (A), with note 3 (B)
+    # flagged as the next note to review
+    editor_dialog = EditorDialog(collection)
+    assert editor_dialog.current_note().id == 1
+
+    # When — the curator applies an approved edit to B through the real
+    # apply path (AnkiNoteRepository + apply_proposals)
+    repository = AnkiNoteRepository(collection)
+    before = AnkiNoteMapper.to_addon_note(collection.get_note(3))
+    after = dataclasses.replace(
+        before, front="Curated Front", back="Curated Back"
+    )
+    apply_proposals(
+        repository,
+        [EditProposal(NoteId(3), before, after, "curate the note")],
+        deck_name="Default",
+    )
+
+    # When — the user saves A and navigates to B
+    note_a = editor_dialog.current_note()
+    editor_dialog.strip_orange_flag(note_a)
+    note_a.flush()
+    note_b = editor_dialog.move_to_next_note()
+    assert note_b is not None
+
+    # Then — B shows the curated content
+    assert note_b["Front"] == "Curated Front"
+    assert note_b["Back"] == "Curated Back"
+
+    # When — the user saves B, exits the editor (cancel restores the
+    # current note from backup) and reopens it
+    note_b.flush()
+    editor_dialog.restore_current_note()
+    reopened = EditorDialog(collection)
+    reopened_b = reopened.current_note()
+
+    # Then — the curated changes are still in the collection
+    assert reopened_b.id == 3
+    assert reopened_b["Front"] == "Curated Front"
+    assert reopened_b["Back"] == "Curated Back"
 
 
 def test_skip_multiple_notes_preserves_original_content(

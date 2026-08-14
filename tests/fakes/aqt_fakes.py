@@ -24,7 +24,18 @@ class FakeCollection:
         self.models = FakeModelsManager()
 
     def get_note(self, note_id):
-        return self.notes.get(note_id)
+        # Like real Anki, returns a fresh object: fields come from the
+        # collection and flush() writes them back. Mutating the returned
+        # note does not change the collection until it is flushed.
+        note = self.notes.get(note_id)
+        if note is None:
+            return None
+        fresh = FakeNote(
+            note.id, dict(note._fields), model_type=note._model_type
+        )
+        fresh.tags = list(note.tags)
+        fresh._collection = self
+        return fresh
 
     def get_card(self, card_id):
         # Return the card with the given ID
@@ -54,18 +65,26 @@ class FakeCollection:
 
     def new_note(self, notetype):
         fields = {f["name"]: "" for f in notetype["flds"]}
-        return FakeNote(
+        note = FakeNote(
             max(self.notes, default=0) + 1,
             fields,
             model_type=notetype.get("type", 0),
         )
+        note._collection = self
+        return note
 
     def add_note(self, note, deck_id):
+        note._collection = self
         self.notes[note.id] = note
 
     def update_note(self, note):
         self.notes[note.id] = note
         note.flush()
+
+    def _write_note(self, note):
+        """Write a note's fields back into the collection on flush()."""
+        if note.id in self.notes:
+            self.notes[note.id] = note
 
     def remove_notes(self, note_ids):
         for note_id in note_ids:
@@ -151,6 +170,10 @@ class FakeNote:
         }
         self.tags = []
         self._was_flushed = False
+        # Wired by FakeCollection.get_note/add_note/new_note; lets
+        # flush() write the note's fields back to its collection, like
+        # real Anki's Note.flush().
+        self._collection = None
 
     def note_type(self) -> dict:
         return dict(type=self._model_type)
@@ -166,6 +189,8 @@ class FakeNote:
 
     def flush(self) -> None:
         self._was_flushed = True
+        if self._collection is not None:
+            self._collection._write_note(self)
 
     # Helper method for testing
     def was_flushed(self) -> bool:

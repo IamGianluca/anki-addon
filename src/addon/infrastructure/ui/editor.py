@@ -87,7 +87,20 @@ class EditorDialog:
         return fields
 
     def current_note(self) -> Note:
-        note = self.review_notes[self._current_index]
+        """Return the current note, freshly loaded from the collection.
+
+        The dialog can stay open while the curator applies approved
+        changes to notes in the review list. Anki Note objects cache
+        their fields in memory, so the copies in `review_notes` (loaded
+        when the dialog opened) would otherwise be stale: the editor
+        would show pre-curation content, and saving it would silently
+        revert the applied edits. Re-fetching here keeps the note in
+        sync with the collection and captures the backup from the
+        up-to-date state.
+        """
+        note_id = self.review_notes[self._current_index].id
+        note = self.col.get_note(note_id)
+        self.review_notes[self._current_index] = note
         # Store fields and content for possible backup needs
         self._original_fields = self.get_note_fields_with_tags(note)
         return note
