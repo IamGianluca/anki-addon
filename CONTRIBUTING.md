@@ -4,7 +4,7 @@ This is an open-source project and contributors are welcome!
 
 ## Prerequisites
 
-- Python 3.9+
+- Python 3.13+
 - [uv](https://github.com/astral-sh/uv) (recommended package manager)
 
 ## Setup

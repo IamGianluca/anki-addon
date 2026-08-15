@@ -25,7 +25,7 @@ Clone this repository into your Anki add-ons folder and build the dependencies:
 ```bash
 git clone https://github.com/iamgianluca/anki-addon.git [your-anki-addons-path]/addons21/anki-addon
 cd [your-anki-addons-path]/addons21/anki-addon
-./bundle_dependencies.sh  # installs Python 3.9 via uv and vendors pydantic, qdrant-client, and their dependencies
+./bundle_dependencies.sh  # installs Python 3.13 via uv and vendors pydantic, qdrant-client, and their dependencies
 ```
 
 ## ⚙️ Configuration

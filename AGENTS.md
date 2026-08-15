@@ -157,13 +157,13 @@ Fakes are production-like classes that behave predictably without real I/O. They
 
 ## Bundling Dependencies
 
-Anki loads add-ons but does not install them as Python packages. External dependencies must be bundled and compiled for Python 3.9 (Anki's embedded interpreter), even if development uses a newer version:
+Anki loads add-ons but does not install them as Python packages. External dependencies must be bundled and compiled for Python 3.13 (Anki 26.x's embedded interpreter), even if development uses a newer version:
 
 ```bash
 ./bundle_dependencies.sh  # creates ./vendor/ with pydantic, qdrant-client, and dependencies
 ```
 
-This script creates a Python 3.9 virtual environment, installs the required packages, and copies them to `./vendor/`.
+This script creates a Python 3.13 virtual environment, installs the required packages, and copies them to `./vendor/`.
 
 ## Core Principles
 

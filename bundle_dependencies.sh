@@ -5,24 +5,23 @@
 set -e
 
 echo "=== Bundling dependencies for Anki addon ==="
-echo "This script will create a Python 3.9 venv and bundle pydantic and qdrant for Anki"
+echo "This script will create a Python 3.13 venv and bundle pydantic and qdrant for Anki"
 
-# Ensure Python 3.9 is available via uv
-echo "Ensuring Python 3.9 is available..."
-uv python install 3.9
+# Ensure Python 3.13 is available via uv
+echo "Ensuring Python 3.13 is available..."
+uv python install 3.13
 
-# Create a temporary virtual environment with Python 3.9
+# Create a temporary virtual environment with Python 3.13
 BUNDLE_VENV=".venv_bundle"
-echo "Creating temporary virtual environment with Python 3.9..."
-uv venv "$BUNDLE_VENV" --python 3.9
+echo "Creating temporary virtual environment with Python 3.13..."
+uv venv "$BUNDLE_VENV" --python 3.13
 
-# Install pydantic into the virtual environment
+# Install pydantic and qdrant into the virtual environment
 echo "Installing pydantic and qdrant..."
-# pydantic>=2.10 requires typing_extensions>=4.6.0 (for Sentinel). Anki ships an
-# older typing_extensions that is already loaded into sys.modules before the addon
-# runs, so the vendored version cannot override it. pydantic<2.10 uses
-# pydantic-core<2.27 which avoids this dependency.
-uv pip install --python "$BUNDLE_VENV/bin/python" "pydantic<2.10" qdrant-client
+# No version pin is needed: Anki 26.x ships typing_extensions >= 4.16, so the
+# vendored pydantic no longer needs to avoid the typing_extensions dependency
+# (older Anki versions bundled a typing_extensions that could not be overridden).
+uv pip install --python "$BUNDLE_VENV/bin/python" pydantic qdrant-client
 
 # Create or clean vendor directory
 echo "Preparing vendor directory..."
@@ -31,7 +30,8 @@ rm -rf vendor/*
 
 # Copy the site-packages from the venv to vendor directory
 echo "Copying dependencies to vendor directory..."
-cp -r "$BUNDLE_VENV/lib/python3.9/site-packages/"* vendor/
+SITE_PACKAGES="$("$BUNDLE_VENV/bin/python" -c 'import site; print(site.getsitepackages()[0])')"
+cp -r "$SITE_PACKAGES/"* vendor/
 
 # Clean up the temporary venv
 echo "Cleaning up..."
