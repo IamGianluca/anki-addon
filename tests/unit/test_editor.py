@@ -216,7 +216,7 @@ def test_save_note_keep_flag_vs_strip_orange_flag_behavior(
     for card_id in card_ids:
         card = mw.col.get_card(card_id)
         card.flags = 2  # Reset to orange
-        card.flush()
+        mw.col.update_card(card)
 
     # Test save_note_keep_flag behavior
     editor_dialog.save_note_keep_flag(current_note)
@@ -320,7 +320,7 @@ def test_curated_changes_survive_full_review_flow(
     # When — the user saves A and navigates to B
     note_a = editor_dialog.current_note()
     editor_dialog.strip_orange_flag(note_a)
-    note_a.flush()
+    collection.update_note(note_a)
     note_b = editor_dialog.move_to_next_note()
     assert note_b is not None
 
@@ -330,7 +330,7 @@ def test_curated_changes_survive_full_review_flow(
 
     # When — the user saves B, exits the editor (cancel restores the
     # current note from backup) and reopens it
-    note_b.flush()
+    collection.update_note(note_b)
     editor_dialog.restore_current_note()
     reopened = EditorDialog(collection)
     reopened_b = reopened.current_note()

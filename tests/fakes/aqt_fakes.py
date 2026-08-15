@@ -25,8 +25,8 @@ class FakeCollection:
 
     def get_note(self, note_id):
         # Like real Anki, returns a fresh object: fields come from the
-        # collection and flush() writes them back. Mutating the returned
-        # note does not change the collection until it is flushed.
+        # collection and update_note() writes them back. Mutating the
+        # returned note does not change the collection until it is saved.
         note = self.notes.get(note_id)
         if note is None:
             return None
@@ -81,8 +81,12 @@ class FakeCollection:
         self.notes[note.id] = note
         note.flush()
 
+    def update_card(self, card):
+        self.cards[card.id] = card
+        card.flush()
+
     def _write_note(self, note):
-        """Write a note's fields back into the collection on flush()."""
+        """Write a note's fields back into the collection on save."""
         if note.id in self.notes:
             self.notes[note.id] = note
 
@@ -171,8 +175,8 @@ class FakeNote:
         self.tags = []
         self._was_flushed = False
         # Wired by FakeCollection.get_note/add_note/new_note; lets
-        # flush() write the note's fields back to its collection, like
-        # real Anki's Note.flush().
+        # update_note() write the note's fields back to its collection,
+        # like real Anki's col.update_note().
         self._collection = None
 
     def note_type(self) -> dict:

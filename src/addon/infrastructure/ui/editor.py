@@ -119,7 +119,7 @@ class EditorDialog:
 
     def restore_current_note(self) -> None:
         reloaded_note = self.backup_current_note()
-        reloaded_note.flush()
+        self.col.update_note(reloaded_note)
 
     def has_next_note(self) -> bool:
         return self._current_index < len(self.review_notes) - 1
@@ -139,11 +139,10 @@ class EditorDialog:
             card = self.col.get_card(card_id)
             if card.flags == 2:
                 card.flags = 0
-                card.flush()
+                self.col.update_card(card)
         return current_note
 
     def save_note_keep_flag(self, current_note: Note) -> Note:
         """Save note without removing the orange flag."""
-        # Just flush the note, keeping flags intact
-        current_note.flush()
+        self.col.update_note(current_note)
         return current_note

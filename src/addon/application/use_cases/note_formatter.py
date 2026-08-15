@@ -84,7 +84,7 @@ def open_review_editor() -> None:
         # First save the current note
         current_note = editor_state.current_note()
 
-        # Store training example: capture updated fields before flushing
+        # Store training example: capture updated fields before saving
         updated_fields = editor_state.get_note_fields_with_tags(current_note)
         training_dataset.save_example(
             note_id=current_note.id,
@@ -93,7 +93,7 @@ def open_review_editor() -> None:
         )
 
         current_note = editor_state.strip_orange_flag(current_note)
-        current_note.flush()
+        col.update_note(current_note)
 
         # Then handle navigation to next note
         if editor_state.has_next_note():

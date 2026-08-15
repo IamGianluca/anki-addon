@@ -51,7 +51,7 @@ def test_complete_format_workflow_for_basic_note(
 
     # Save and remove flag
     editor_dialog.strip_orange_flag(formatted_note)
-    formatted_note.flush()
+    collection.update_note(formatted_note)
 
     # Then: Verify end-to-end behavior
     # Note content was updated
@@ -107,7 +107,7 @@ def test_complete_format_workflow_for_cloze_note(
         current_note, formatted_addon_note
     )
     editor_dialog.strip_orange_flag(formatted_note)
-    formatted_note.flush()
+    collection.update_note(formatted_note)
 
     # Then: Verify cloze-specific behavior
     assert "Montreal Canadiens" in formatted_note["Text"]
