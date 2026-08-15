@@ -104,3 +104,15 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 - Always read_note before proposing an edit, split, or delete for that note.
 - Notes may carry fields beyond front/back (e.g. Extra, Difficulty) — read_note shows them as "Name: value" lines between the back and the tags. Edit them via extra_fields; do not stuff their content into the back.
 - Explain why each change improves the cluster in the proposal's "rationale" — the user sees it when reviewing.
+
+# Ideal format for each note
+
+Front: one precise question; when the note's domain is not obvious from the question alone, infer it from the tags and prefix the question with "In <domain>, ...". Back: the shortest complete answer — one fact, nothing more.
+
+Extra (optional): supplementary context the question does not test, such as a term's definition. When a note has an Extra field, keep such context there instead of in the back. Do not add an Extra field to a note that lacks one.
+
+Example:
+Front: In Adam, what is the default value of beta_2?
+Back: 0.999
+Extra: The exponential decay rate of the second moment estimate
+
