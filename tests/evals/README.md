@@ -109,8 +109,9 @@ One JSON file per task in `tasks/`. See the existing files for examples.
 - `must_touch` / `must_not_touch` — note ids that must / must not
   appear in an edit or delete proposal.
 - `facts` — strings that must appear somewhere in the notes **after
-  applying the change set** (HTML stripped, case-insensitive). Guards
-  against rewrites that silently drop content.
+  applying the change set** (HTML stripped, case-insensitive, matched on
+  word boundaries: `0.9` does not match `0.999`). Guards against
+  rewrites that silently drop content.
 - `read_before_propose` (default true) — every edit/split/delete of a
   note other than the seed must be preceded by reading it. Enforces a
   rule from the agent's own system prompt; the seed is exempt because

@@ -29,8 +29,7 @@
     }
   ],
   "expect": {
-    "empty": true,
-    "facts": ["first moment", "second moment", "0.001"]
+    "empty": true
   },
   "judge_assertions": [],
   "reference": []

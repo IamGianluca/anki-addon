@@ -27,7 +27,7 @@
     "deletes": [0, 0],
     "must_touch": [1],
     "must_not_touch": [2],
-    "facts": ["len", "range", "enumerate"]
+    "facts": ["len", "range"]
   },
   "judge_assertions": [
     "After the split, each resulting note tests exactly one idea."

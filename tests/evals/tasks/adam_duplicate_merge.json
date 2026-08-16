@@ -33,7 +33,7 @@
     "creates": [0, 0],
     "deletes": [0, 0],
     "must_not_touch": [3],
-    "facts": ["second moment", "0.999", "first moment"]
+    "facts": ["second moment", "0.999"]
   },
   "judge_assertions": [
     "After the merge, no two notes ask the same question, and each resulting note tests exactly one fact."

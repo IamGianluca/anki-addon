@@ -187,7 +187,7 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
 
     final_text = _final_state_text(task, proposals)
     for fact in expect.facts:
-        if fact.lower() not in final_text:
+        if not _contains_fact(final_text, fact):
             result.add_check(
                 name=f"fact_{fact}",
                 verdict="fail",
@@ -349,6 +349,20 @@ def _judge_assertion(
     if verdict not in ("pass", "fail", "unknown"):
         return "unknown", f"unexpected verdict {verdict!r}"
     return verdict, reason
+
+
+def _contains_fact(text: str, fact: str) -> bool:
+    """True if `fact` occurs in `text` unglued from other word characters.
+
+    Plain substring matching counts "0.9" as present in "0.999", letting
+    a dropped fact pass silently. Boundary matching keeps overlapping
+    numeric and prefix facts honest while still matching across
+    punctuation ("len()" contains "len").
+    """
+    return (
+        re.search(rf"(?<!\w){re.escape(fact)}(?!\w)", text, re.IGNORECASE)
+        is not None
+    )
 
 
 def _check_count(

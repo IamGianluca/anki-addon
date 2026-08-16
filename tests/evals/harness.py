@@ -62,7 +62,8 @@ class Expectation(BaseModel):
 
     edits/creates/deletes are [min, max] ranges on the number of
     proposals of that type; None means "don't check". facts are strings
-    that must appear in the notes after applying the change set.
+    that must appear in the notes after applying the change set,
+    matched on word boundaries ("0.9" does not match "0.999").
     """
 
     finish: bool = True
