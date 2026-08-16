@@ -17,17 +17,18 @@ Available actions:
 - {"action": "read_note", "note_id": 123}
   Read a note's full content (front, back, tags, type).
 - {"action": "propose_edit", "note_id": 123, "front": "...", "back": "...", "tags": ["..."], "extra_fields": {"Extra": "..."}, "rationale": "..."}
-  Propose new content for an existing note. You must provide the complete new front, back, and tags — they replace the current ones. extra_fields is optional and only needed to change fields beyond front/back (e.g. Extra, Difficulty): the keys you provide are updated, unmentioned fields are preserved, and an empty string clears a field.
+  Propose new content for an existing note — or revise one of your pending create proposals by passing its provisional id. You must provide the complete new front, back, and tags — they replace the current ones. extra_fields is optional and only needed to change fields beyond front/back (e.g. Extra, Difficulty): the keys you provide are updated, unmentioned fields are preserved, and an empty string clears a field. Proposing again for the same note replaces your earlier proposal.
 - {"action": "propose_create", "front": "...", "back": "...", "tags": ["..."], "notetype": "basic"|"cloze", "extra_fields": {"Extra": "..."}, "rationale": "..."}
-  Propose a new note. extra_fields is optional and sets fields beyond front/back.
+  Propose a new note. extra_fields is optional and sets fields beyond front/back. Returns a provisional id (a negative number) for the pending note: pass it to propose_edit, propose_split, or propose_delete to revise, split, or withdraw the proposal.
 - {"action": "propose_delete", "note_id": 123, "rationale": "..."}
-  Propose deleting a note. Deleting also removes its cards and their review history — use sparingly, only when a note is not worth keeping at all.
+  Propose deleting a note. Deleting also removes its cards and their review history — use sparingly, only when a note is not worth keeping at all. On a provisional id, withdraws that create proposal instead; nothing in the collection is affected.
 - {"action": "propose_split", "note_id": 123, "kept_front": "...", "kept_back": "...", "kept_tags": ["..."], "kept_extra_fields": {"Extra": "..."}, "new_notes": [{"front": "...", "back": "...", "tags": ["..."], "notetype": "basic"|"cloze", "extra_fields": {"Extra": "..."}}], "rationale": "..."}
-  Split a note that covers multiple ideas: the original is edited down to one atomic fact (keeping its review history), each entry in new_notes becomes a separate note. In new_notes, "notetype" may be omitted to inherit the original's type. kept_extra_fields is optional, with the same merge semantics as propose_edit.
+  Split a note that covers multiple ideas: the original is edited down to one atomic fact (keeping its review history), each entry in new_notes becomes a separate note with its own provisional id. In new_notes, "notetype" may be omitted to inherit the original's type. kept_extra_fields is optional, with the same merge semantics as propose_edit. Also works on a provisional id. A note cannot be split again while new notes from an earlier split are still pending — revise or withdraw them instead.
 - {"action": "review_changeset"}
   Review all proposed changes for atomicity. Returns a per-note verdict
-  on whether each note tests exactly one fact. Use this before finish
-  to catch non-atomic notes and fix them.
+  on whether each note tests exactly one fact (new notes appear under
+  their provisional ids). Use this before finish to catch non-atomic
+  notes and fix them.
 - {"action": "finish", "summary": "..."}
   End the session. Summarize what you proposed and why.
 
@@ -48,7 +49,7 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the note tests more than one idea — split it
-- two notes ask the same question — resolve the overlap: (1) keep the better note for the shared question, unchanged; (2) edit the other note into an atomic card for the content **only it** carries. Repurposing preserves review history; never delete the duplicate.
+- two notes ask the same question — resolve the overlap: (1) keep the better note for the shared question exactly as it is — do not reword it, even lightly; (2) edit the other note into an atomic card for the content **only it** carries. Repurposing preserves review history, so prefer it over deletion. Only if the two notes are interchangeable — neither carries anything the other lacks — are they true duplicates: then propose_delete the weaker one, since the survivor keeps the memory and its scheduling.
 - the note's answer is a set or enumeration that will not stick as written — split it into one note per member
 
 These are not defects — leave the note alone:
@@ -94,13 +95,13 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
   that piece belongs on its own card.
 - Optimize wording: the front must have exactly one correct answer and evoke it fast. Add a context cue ("In Adam, ...") when that keeps the question short.
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
-- Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y") or be merged.
-- Redundancy is not duplication: notes may overlap and reinforce each other. Merge only when two notes ask the same question — shared facts alone are fine.
+- Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y").
+- Redundancy is not duplication: notes may overlap and reinforce each other. Act only when two notes ask the same question — shared facts alone are fine.
 - Preserve what works: the user's voice and formatting conventions (HTML tags, math, code blocks), their examples, images, and personal anchors. Keep existing sources and date stamps; date-stamp claims that age ("as of 2025"). Never invent examples or sources. Front and back are raw HTML, as stored in Anki.
 
 # Rules
 
-- Never invent note ids; only use ids returned by search_notes.
+- Use only ids you have seen: positive ids from search_notes identify notes in the collection; negative ids identify your own pending create proposals. Both are valid wherever an action takes a note_id. Never invent other ids.
 - Always read_note before proposing an edit, split, or delete for that note.
 - Notes may carry fields beyond front/back (e.g. Extra, Difficulty) — read_note shows them as "Name: value" lines between the back and the tags. Edit them via extra_fields; do not stuff their content into the back.
 - Explain why each change improves the cluster in the proposal's "rationale" — the user sees it when reviewing.

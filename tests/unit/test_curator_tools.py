@@ -198,7 +198,7 @@ def test_propose_create_records_new_note(tools: CuratorTools) -> None:
     )
 
     # Then
-    assert result == "Create proposal recorded."
+    assert "Create proposal recorded (id -1)" in result
     (create,) = _creates(tools)
     assert create.note.back == "1e-8"
     assert create.note.notetype.value == "basic"
@@ -423,7 +423,7 @@ def test_propose_create_with_extra_fields(tools: CuratorTools) -> None:
     )
 
     # Then
-    assert result == "Create proposal recorded."
+    assert "Create proposal recorded" in result
     (create,) = _creates(tools)
     assert create.note.extra_fields == {"Extra": "E"}
 
@@ -469,3 +469,242 @@ def test_review_changeset_renders_edits_and_creates(
     tools.propose_delete(NoteId(4), "off-topic")
     result = tools.review_changeset()
     assert "capital of France" not in result
+
+
+def test_propose_edit_on_provisional_id_revises_the_pending_create(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_create(
+        "compound question", "long answer", ["ml"], "cloze", "r"
+    )
+
+    # When
+    result = tools.propose_edit(
+        NoteId(-1),
+        front="better front",
+        back="short answer",
+        tags=["ml", "optimizers"],
+        rationale="tighter wording",
+        extra_fields={"Extra": "E"},
+    )
+
+    # Then
+    assert result == "Create proposal -1 updated."
+    (create,) = _creates(tools)
+    assert create.note.front == "better front"
+    assert create.note.tags == ["ml", "optimizers"]
+    assert create.note.extra_fields == {"Extra": "E"}
+    assert create.note.notetype.value == "cloze"
+    assert create.rationale == "tighter wording"
+
+
+def test_revising_a_create_merges_extra_fields_with_pending_note(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_create(
+        "f", "b", [], "basic", "r", extra_fields={"Extra": "old"}
+    )
+
+    # When
+    tools.propose_edit(
+        NoteId(-1), "f", "b", [], "r", extra_fields={"Difficulty": "2"}
+    )
+
+    # Then
+    (create,) = _creates(tools)
+    assert create.note.extra_fields == {"Extra": "old", "Difficulty": "2"}
+
+
+def test_propose_delete_on_provisional_id_withdraws_the_create(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_create("f", "b", [], "basic", "r")
+
+    # When
+    result = tools.propose_delete(NoteId(-1), "not worth adding")
+
+    # Then
+    assert "withdrawn" in result
+    assert len(tools.change_set) == 0
+    assert _deletes(tools) == []
+
+
+def test_read_note_on_provisional_id_shows_the_pending_note(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_create("pending front", "pending back", ["ml"], "basic", "r")
+
+    # When
+    result = tools.read_note(NoteId(-1))
+
+    # Then
+    assert "not yet in the collection" in result
+    assert "Front: pending front" in result
+    assert "Tags: ml" in result
+
+
+def test_unknown_provisional_id_reports_no_pending_create(
+    tools: CuratorTools,
+) -> None:
+    # When
+    result = tools.propose_edit(NoteId(-7), "f", "b", [], "r")
+
+    # Then
+    assert result.startswith("error: no pending create proposal with id -7")
+
+
+def test_split_reports_provisional_ids_of_its_new_notes(
+    tools: CuratorTools,
+) -> None:
+    # When
+    result = tools.propose_split(
+        NoteId(3),
+        kept_front="What does beta_1 do in Adam?",
+        kept_back="Smooths the gradient signal.",
+        kept_tags=["ml"],
+        new_notes=[
+            {"front": "What does beta_2 do in Adam?", "back": "Scales steps."}
+        ],
+        rationale="two ideas",
+    )
+
+    # Then
+    assert "ids -1" in result
+
+
+def test_split_on_provisional_id_revises_parent_and_creates_children(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_create(
+        "What are beta_1 and beta_2 in Adam?",
+        "Decay rates of the first and second moment estimates.",
+        ["ml"],
+        "basic",
+        "cluster lacks beta coverage",
+    )
+
+    # When
+    result = tools.propose_split(
+        NoteId(-1),
+        kept_front="What does beta_1 control in Adam?",
+        kept_back="The decay rate of the first moment estimate.",
+        kept_tags=["ml"],
+        new_notes=[
+            {
+                "front": "What does beta_2 control in Adam?",
+                "back": "The decay rate of the second moment estimate.",
+                "tags": ["ml"],
+            }
+        ],
+        rationale="proposed note is not atomic",
+    )
+
+    # Then
+    assert "ids -2" in result
+    creates = _creates(tools)
+    assert len(creates) == 2
+    assert creates[0].note.front == "What does beta_1 control in Adam?"
+    assert creates[1].note.front == "What does beta_2 control in Adam?"
+    assert _edits(tools) == []
+
+
+def test_second_split_is_rejected_while_split_children_are_pending(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_split(
+        NoteId(3),
+        kept_front="kept",
+        kept_back="kept",
+        kept_tags=[],
+        new_notes=[{"front": "child", "back": "child"}],
+        rationale="two ideas",
+    )
+
+    # When
+    result = tools.propose_split(
+        NoteId(3),
+        kept_front="kept again",
+        kept_back="kept again",
+        kept_tags=[],
+        new_notes=[{"front": "another child", "back": "another child"}],
+        rationale="still not atomic",
+    )
+
+    # Then
+    assert "error" in result
+    assert "pending new notes [-1]" in result
+    assert len(_creates(tools)) == 1
+
+
+def test_note_can_be_split_again_after_withdrawing_its_split_children(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_split(
+        NoteId(3),
+        kept_front="kept",
+        kept_back="kept",
+        kept_tags=[],
+        new_notes=[{"front": "child", "back": "child"}],
+        rationale="two ideas",
+    )
+    tools.propose_delete(NoteId(-1), "withdrawing the first attempt")
+
+    # When
+    result = tools.propose_split(
+        NoteId(3),
+        kept_front="kept again",
+        kept_back="kept again",
+        kept_tags=[],
+        new_notes=[{"front": "better child", "back": "better child"}],
+        rationale="fresh attempt",
+    )
+
+    # Then
+    assert "Split proposal recorded" in result
+    (create,) = _creates(tools)
+    assert create.note.front == "better child"
+
+
+def test_delete_is_rejected_while_split_children_are_pending(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_split(
+        NoteId(3),
+        kept_front="kept",
+        kept_back="kept",
+        kept_tags=[],
+        new_notes=[{"front": "child", "back": "child"}],
+        rationale="two ideas",
+    )
+
+    # When
+    result = tools.propose_delete(NoteId(3), "actually not worth keeping")
+
+    # Then
+    assert "error" in result
+    assert _deletes(tools) == []
+
+
+def test_review_changeset_shows_new_notes_under_stable_provisional_ids(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_create("f1", "b1", ["ml"], "basic", "r1")
+    tools.propose_create("f2", "b2", ["ml"], "basic", "r2")
+
+    # When
+    first = tools.review_changeset()
+    second = tools.review_changeset()
+
+    # Then
+    assert "Note -1 (new)" in first
+    assert "Note -2 (new)" in first
+    assert first == second

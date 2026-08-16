@@ -36,7 +36,8 @@
     "facts": ["second moment", "0.999"]
   },
   "judge_assertions": [
-    "After the merge, no two notes ask the same question, and each resulting note tests exactly one fact."
+    "After the merge, no two notes ask the same question, and each resulting note tests exactly one fact.",
+    "The note that ends up answering the shared question (what beta_2 controls in Adam) keeps its previous front and back unchanged; rewording an already-clear note is a failure even if the final cluster is atomic and free of duplicates."
   ],
   "reference": [
     {

@@ -54,6 +54,8 @@ class ProposedChangeSet:
     - a delete proposal supersedes pending edits for that note
     - editing or re-deleting a note already proposed for deletion is
       rejected with ConflictingProposalError
+    - a pending create can be revised (replace_create) or withdrawn
+      (remove_create) by whoever holds the proposal instance
 
     Proposals carry no effect on the collection until the user approves
     them and they are applied through a NoteRepository.
@@ -69,6 +71,17 @@ class ProposedChangeSet:
 
     def add_create(self, proposal: CreateProposal) -> None:
         self._proposals.append(proposal)
+
+    def replace_create(
+        self, old: CreateProposal, new: CreateProposal
+    ) -> None:
+        """Replace a pending create proposal with a revised one,
+        keeping its position in the change set."""
+        self._proposals = [new if p is old else p for p in self._proposals]
+
+    def remove_create(self, proposal: CreateProposal) -> None:
+        """Withdraw a pending create proposal."""
+        self._proposals = [p for p in self._proposals if p is not proposal]
 
     def add_delete(self, proposal: DeleteProposal) -> None:
         self._ensure_not_deleted(proposal.note_id)
