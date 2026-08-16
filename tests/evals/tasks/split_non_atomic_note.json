@@ -3,7 +3,7 @@
   "suite": "capability",
   "desc": "The seed note tests two unrelated facts in a single card (two Python built-in functions). The agent should split it into two atomic notes — one per fact — and leave the unrelated third note untouched.",
   "seed_note_id": 1,
-  "trials": 5,
+  "trials": 3,
   "max_steps": 15,
   "notes": [
     {

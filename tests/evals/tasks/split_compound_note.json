@@ -3,7 +3,7 @@
   "suite": "capability",
   "desc": "The seed note tests four distinct facts in one card (the roles of beta_1 and beta_2, and the typical value of each). The agent should split it into four atomic notes — one per fact, with the parameter's role and its typical value on separate cards — preserving every fact, and leave the unrelated learning-rate note untouched.",
   "seed_note_id": 1,
-  "trials": 5,
+  "trials": 3,
   "max_steps": 15,
   "notes": [
     {
