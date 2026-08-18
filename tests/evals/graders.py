@@ -218,6 +218,9 @@ def grade_transcript(task: EvalTask, session: CurationSession) -> GradeResult:
     read_before_propose enforces a rule stated in the agent's system
     prompt; the seed note is exempt because its content is already in
     the first user message, so reading it first would be ceremony.
+    Provisional ids (negative) identify notes the agent itself created
+    this session — their content came from the agent's own tool output,
+    so reading them first would also be ceremony.
     """
     result = GradeResult()
     if task.expect.finish and session.summary is None:
@@ -251,6 +254,7 @@ def grade_transcript(task: EvalTask, session: CurationSession) -> GradeResult:
         elif (
             kind in ("propose_edit", "propose_delete", "propose_split")
             and note_id is not None
+            and note_id > 0  # provisional (created-by-agent) ids need no read
             and note_id != task.seed_note_id
             and note_id not in read_ids
             and task.expect.read_before_propose

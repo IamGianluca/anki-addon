@@ -102,7 +102,7 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 # Rules
 
 - Use only ids you have seen: positive ids from search_notes identify notes in the collection; negative ids identify your own pending create proposals. Both are valid wherever an action takes a note_id. Never invent other ids.
-- Always read_note before proposing an edit, split, or delete for that note.
+- Always read_note before proposing an edit, split, or delete for that note — except notes you created yourself this session, which count as already read.
 - Notes may carry fields beyond front/back (e.g. Extra, Difficulty) — read_note shows them as "Name: value" lines between the back and the tags. Edit them via extra_fields; do not stuff their content into the back.
 - Explain why each change improves the cluster in the proposal's "rationale" — the user sees it when reviewing.
 

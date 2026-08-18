@@ -1,12 +1,18 @@
 """Unit tests for the deterministic outcome graders.
 
 LLM-free, like test_task_files: tasks are constructed in code and
-graded without proposals, so the final cluster state is the seeded
-state. Runs in make test_slow.
+without a judge, so no model calls are made. Includes the transcript
+rule checks (read-before-propose), which are pure string/int logic.
+Runs in make test_slow.
 """
 
-from tests.evals.graders import GradeResult, grade_outcome
+import json
+
+from tests.evals.graders import GradeResult, grade_outcome, grade_transcript
 from tests.evals.harness import EvalTask, Expectation, TaskNote
+
+from addon.application.services.curator_agent import CurationSession
+from addon.domain.entities.proposals import ProposedChangeSet
 
 
 def _grade_facts(backs: list[str], facts: list[str]) -> GradeResult:
@@ -76,3 +82,75 @@ def test_fact_matches_across_punctuation():
 
     # Then the check passes — boundaries are word characters, not spaces
     assert _verdict(result, "len") == "pass"
+
+
+def _grade_transcript(
+    actions: list[dict], seed_note_id: int = 1,
+) -> GradeResult:
+    """Grade an agent transcript built from the given raw action
+    payloads (each wrapped with a thought, as the agent emits)."""
+    task = EvalTask(
+        id="read_rule",
+        desc="read-before-propose rule",
+        seed_note_id=seed_note_id,
+        notes=[TaskNote(id=1, front="Q", back="A")],
+        expect=Expectation(finish=True),
+    )
+    transcript = [
+        {
+            "role": "assistant",
+            "content": json.dumps({"thought": "t", "action": action}),
+        }
+        for action in actions
+    ]
+    session = CurationSession(
+        change_set=ProposedChangeSet(),
+        transcript=transcript,
+        summary="done",
+    )
+    return grade_transcript(task, session)
+
+
+def test_editing_a_collection_note_without_reading_it_fails():
+    # When the agent edits a note it never read
+    result = _grade_transcript(
+        [{"action": "propose_edit", "note_id": 5}]
+    )
+
+    # Then a read-before-edit violation is recorded
+    assert not result.passed
+    assert any(
+        c.name == "read_before_propose_edit_5" for c in result.checks
+    )
+
+
+def test_editing_a_note_after_reading_it_passes():
+    # Given the agent reads note 5 first
+    # When it then edits the note
+    result = _grade_transcript(
+        [
+            {"action": "read_note", "note_id": 5},
+            {"action": "propose_edit", "note_id": 5},
+        ]
+    )
+
+    # Then no read-before violation is recorded
+    assert result.passed
+
+
+def test_editing_a_self_created_note_without_reading_it_passes():
+    # When the agent edits a provisional id (a note it created itself)
+    result = _grade_transcript([{"action": "propose_edit", "note_id": -2}])
+
+    # Then no read-before violation is recorded — the agent authored
+    # the pending note, so re-reading it would be ceremony
+    assert result.passed
+
+
+def test_seed_note_is_exempt_from_read_before_edit():
+    # When the agent edits the seed note without reading it
+    result = _grade_transcript([{"action": "propose_edit", "note_id": 1}])
+
+    # Then no read-before violation is recorded — the seed's content
+    # is already in the first user message
+    assert result.passed
