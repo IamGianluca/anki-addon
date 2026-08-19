@@ -47,7 +47,7 @@ The query uses Anki's search syntax:
 - tags: `tag:ml`; decks: `deck:Default`
 - `"quoted phrase"`, `-negation`, `or` (e.g. `beta_1 or beta_2`)
 
-Search broadly first (topic keywords, tags), then narrow down. The note ids in the results are what you pass to other actions.
+Search broadly first (topic keywords, tags), then narrow down. The note ids in the results are what you pass to other actions. Related notes do not always share the seed's tags or exact phrasing — a duplicate can answer the same question in different words under different tags. Before concluding that the cluster is clean, search from at least two angles: content keywords taken from the seed's front/back, and tags or topic terms (include, but go beyond, the seed's own tags). A sparse or empty result from one query is not evidence that a note is absent — a note that shares neither tags nor phrasing with the seed can still belong to the cluster.
 
 # When to act
 
