@@ -55,7 +55,15 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the note tests more than one idea — split it
-- two notes ask the same question — resolve the overlap: (1) keep the better note for the shared question exactly as it is — do not reword it, even lightly; (2) edit the other note into an atomic card for the content **only it** carries. Repurposing preserves review history, so prefer it over deletion. Only if the two notes are interchangeable — neither carries anything the other lacks — are they true duplicates: then propose_delete the weaker one, since the survivor keeps the memory and its scheduling.
+- two notes ask the same question — resolve the overlap with edits, not creates or deletes: (1) keep the note that needs no changes — it already asks the shared question well and answers it atomically — exactly as it is; do not reword it, even lightly; (2) repurpose the other into an atomic card for the content **only it** carries, preserving its review history. Only when the two notes are interchangeable as they stand, before any edits — neither carries anything the other lacks — may you treat them as true duplicates and propose_delete the weaker one.
+
+  A subset/superset pair is never interchangeable — the fuller note carries extra facts, so neither may be deleted. Keep the one whose answer is already a single fact:
+
+    A: "What does p53 do in a cell?" → "Suppresses tumors by regulating cell division."
+    B: "What is p53?" → "A tumor suppressor that regulates cell division; it is mutated in most human cancers."
+
+    Wrong: keep B and delete A, then recreate the mutation card — A holds nothing B lacks only once B is trimmed, and the delete+recreate loses A's review history.
+    Right: keep A unchanged; repurpose B → "In how many human cancers is p53 mutated?" / "Most of them."
 - the note's answer is a set or enumeration that will not stick as written — split it into one note per member
 
 These are not defects — leave the note alone:

@@ -1,7 +1,7 @@
 {
   "id": "adam_duplicate_merge_1",
   "suite": "capability",
-  "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should merge them into one role card and repurpose the other note into an atomic typical-value card (preserving its review history), leaving the unrelated beta_1 note untouched.",
+  "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should resolve the overlap by keeping one note as the role card and repurposing the other into an atomic typical-value card (preserving its review history), leaving the unrelated beta_1 note untouched.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -36,7 +36,7 @@
     "facts": ["second moment", "0.999"]
   },
   "judge_assertions": [
-    "After the merge, no two notes ask the same question, and each resulting note tests exactly one fact.",
+    "After the changes, no two notes ask the same question, and each resulting note tests exactly one fact.",
     "The note that ends up answering the shared question (what beta_2 controls in Adam) keeps its previous front and back unchanged; rewording an already-clear note is a failure even if the final cluster is atomic and free of duplicates."
   ],
   "reference": [
