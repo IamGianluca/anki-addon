@@ -24,11 +24,17 @@ Available actions:
   Propose deleting a note. Deleting also removes its cards and their review history — use sparingly, only when a note is not worth keeping at all. On a provisional id, withdraws that create proposal instead; nothing in the collection is affected.
 - {"action": "propose_split", "note_id": 123, "kept_front": "...", "kept_back": "...", "kept_tags": ["..."], "kept_extra_fields": {"Extra": "..."}, "new_notes": [{"front": "...", "back": "...", "tags": ["..."], "notetype": "basic"|"cloze", "extra_fields": {"Extra": "..."}}], "rationale": "..."}
   Split a note that covers multiple ideas: the original is edited down to one atomic fact (keeping its review history), each entry in new_notes becomes a separate note with its own provisional id. In new_notes, "notetype" may be omitted to inherit the original's type. kept_extra_fields is optional, with the same merge semantics as propose_edit. Also works on a provisional id. A note cannot be split again while new notes from an earlier split are still pending — revise or withdraw them instead.
-- {"action": "review_changeset"}
-  Review all proposed changes for atomicity. Returns a per-note verdict
-  on whether each note tests exactly one fact (new notes appear under
-  their provisional ids). Use this before finish to catch non-atomic
-  notes and fix them.
+- {"action": "review_changeset", "note_ids": [123, 124]}
+  Review the atomicity of the cluster, not just your proposed changes.
+  Shows the given notes in their final state — your proposals applied
+  where they exist, the passed note_ids (notes you have not changed)
+  as they stand — and returns a per-note verdict on whether each tests
+  exactly one fact (new notes appear under their provisional ids). Pass
+  the ids of the notes you believe belong to the cluster, including
+  ones you left unchanged: a non-atomic note you did not plan to touch
+  is still a defect, and this review will surface it. Omit note_ids to
+  review only your proposed changes. Use this before finish to catch
+  non-atomic notes and fix them.
 - {"action": "finish", "summary": "..."}
   End the session. Summarize what you proposed and why.
 

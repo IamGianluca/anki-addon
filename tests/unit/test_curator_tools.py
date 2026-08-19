@@ -708,3 +708,57 @@ def test_review_changeset_shows_new_notes_under_stable_provisional_ids(
     assert "Note -1 (new)" in first
     assert "Note -2 (new)" in first
     assert first == second
+
+
+def test_review_changeset_includes_untouched_notes_passed_by_the_agent(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_edit(NoteId(1), "f", "b", ["ml"], "tighter wording")
+
+    # When
+    result = tools.review_changeset([2])
+
+    # Then
+    assert "Note 2 (unchanged)" in result
+    assert "beta_1 control" in result  # note 2's content is rendered
+    assert "Note 1" in result  # the edited note is still shown
+
+
+def test_review_changeset_does_not_duplicate_changed_notes(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_edit(NoteId(1), "new front", "new back", ["ml"], "r")
+
+    # When
+    result = tools.review_changeset([1, 2])
+
+    # Then
+    assert "new front" in result
+    assert result.count("Note 1") == 1
+
+
+def test_review_changeset_judges_notes_even_without_any_changes(
+    tools: CuratorTools,
+) -> None:
+    # When
+    result = tools.review_changeset([2])
+
+    # Then
+    assert "No changes proposed." not in result
+    assert "Note 2 (unchanged)" in result
+
+
+def test_review_changeset_excludes_deleted_and_reports_unknown_ids(
+    tools: CuratorTools,
+) -> None:
+    # Given
+    tools.propose_delete(NoteId(4), "off-topic")
+
+    # When
+    result = tools.review_changeset([4, 999])
+
+    # Then
+    assert "capital of France" not in result
+    assert "999" in result

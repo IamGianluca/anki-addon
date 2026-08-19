@@ -222,33 +222,57 @@ class CuratorTools:
             return f"error: {e}"
         return f"Delete proposal recorded for note {note_id}."
 
-    def review_changeset(self) -> str:
-        """Render the after-state of every note affected by the change
-        set, so the agent can review atomicity before finishing.
+    def review_changeset(self, note_ids: list[int] | None = None) -> str:
+        """Render the final cluster for an atomicity review.
 
-        Returns a formatted block showing each note's effective content
-        after applying all proposals. Notes not in the change set are
-        omitted — the agent only needs to review what changed.
+        Shows each note in its final state — proposals applied where
+        they exist, plus any note_ids the agent passes (notes it did
+        not change) as they stand. This lets the review judge the whole
+        cluster, not just the deltas: an untouched note can still be
+        non-atomic. Changed notes are not duplicated, deleted notes are
+        omitted even when passed, and unknown ids are reported.
         """
-        if not self.change_set:
-            return "No changes proposed."
-
-        # Build the effective "after" state for each affected note.
-        # Edits replace, creates add, deletes remove. New notes appear
-        # under their provisional ids so the agent can reference them.
         after_notes: dict[int, AddonNote] = {}
+        extra_ids: set[int] = set()
+        not_found: list[int] = []
+        deleted_ids: set[int] = set()
         for proposal in self.change_set:
             if isinstance(proposal, EditProposal):
                 after_notes[proposal.note_id] = proposal.after
             elif isinstance(proposal, CreateProposal):
                 after_notes[self._provisional_id_of(proposal)] = proposal.note
+            elif isinstance(proposal, DeleteProposal):
+                deleted_ids.add(proposal.note_id)
             # Deletes: note is removed, so don't include it.
+        for note_id in note_ids or []:
+            if note_id in after_notes or note_id in deleted_ids:
+                continue
+            try:
+                after_notes[note_id] = self._repository.get(note_id)
+            except NoteNotFoundError:
+                not_found.append(note_id)
+            else:
+                extra_ids.add(note_id)
 
-        lines = ["Proposed notes after applying changes:"]
+        if not after_notes:
+            if not_found:
+                return (
+                    "No changes proposed.\n"
+                    "Unknown note ids (excluded): "
+                    + ", ".join(map(str, sorted(not_found)))
+                )
+            return "No changes proposed."
+
+        lines = ["Notes for atomicity review:"]
         for note_id, note in sorted(
             after_notes.items(), key=lambda kv: (kv[0] < 0, abs(kv[0]))
         ):
-            label = f"Note {note_id} (new)" if note_id < 0 else f"Note {note_id}"
+            if note_id < 0:
+                label = f"Note {note_id} (new)"
+            elif note_id in extra_ids:
+                label = f"Note {note_id} (unchanged)"
+            else:
+                label = f"Note {note_id}"
             tags = ", ".join(note.tags) if note.tags else "(none)"
             lines.append(
                 f"{label} [tags: {tags}]\n"
@@ -262,6 +286,12 @@ class CuratorTools:
                         f"{k}={v}" for k, v in note.extra_fields.items()
                     )
                 )
+        if not_found:
+            lines.append("")
+            lines.append(
+                "Unknown note ids (excluded): "
+                + ", ".join(map(str, sorted(not_found)))
+            )
         return "\n".join(lines)
 
     def propose_split(

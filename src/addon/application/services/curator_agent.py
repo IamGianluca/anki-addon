@@ -161,12 +161,16 @@ class CuratorAgent:
                 kept_extra_fields=action.kept_extra_fields,
             )
         if isinstance(action, ReviewChangesetAction):
-            return self._review_changeset(tools)
+            return self._review_changeset(tools, action.note_ids)
         raise ValueError(f"unexpected action: {action}")
 
-    def _review_changeset(self, tools: CuratorTools) -> str:
-        """Render the changeset and run an LLM-based atomicity check."""
-        rendered = tools.review_changeset()
+    def _review_changeset(
+        self, tools: CuratorTools, note_ids: list[int]
+    ) -> str:
+        """Render the final cluster and run an LLM-based atomicity
+        check over it (the change set's after-state plus any extra
+        note_ids the agent passed)."""
+        rendered = tools.review_changeset(note_ids)
         if rendered == "No changes proposed.":
             return rendered
 

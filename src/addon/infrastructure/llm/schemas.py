@@ -79,10 +79,13 @@ class ProposeSplitAction(BaseModel):
 
 
 class ReviewChangesetAction(BaseModel):
-    """Ask the agent to review its proposed changes for atomicity
-    and coherence before finishing."""
+    """Ask the agent to review the atomicity of proposed changes plus
+    any extra notes it passes (untouched cluster notes), before
+    finishing. The review judges the final state: proposals applied
+    where they exist, the passed notes as they stand."""
 
     action: Literal["review_changeset"]
+    note_ids: list[int] = Field(default_factory=list)
 
 
 class FinishAction(BaseModel):

@@ -372,3 +372,32 @@ def test_review_changeset_non_atomic_feedback_prompts_fix(
     assert "0.999" not in edits[0].after.back
     # Create was added
     assert len(creates) == 1
+
+
+def test_review_changeset_reviews_untouched_cluster_notes(
+    adam_cluster: dict[int, AddonNote],
+) -> None:
+    # Given: the agent passes an untouched note to the atomicity review
+    atomicity_review_response = json.dumps(
+        {
+            "verdicts": [
+                {"note_id": 2, "atomic": True, "reason": "one fact."}
+            ]
+        }
+    )
+    responses = [
+        _step({"action": "review_changeset", "note_ids": [2]}),
+        atomicity_review_response,
+        _step({"action": "finish", "summary": "cluster is atomic"}),
+    ]
+
+    # When
+    session, client = _run_agent(responses, adam_cluster)
+
+    # Then
+    assert session.summary == "cluster is atomic"
+    # The atomicity sub-call (call 1) saw the untouched note rendered
+    atomicity_call = client.prompts_received[1]
+    rendered = "\n".join(str(m) for m in atomicity_call)
+    assert "Note 2 (unchanged)" in rendered
+    assert "beta_1 control" in rendered
