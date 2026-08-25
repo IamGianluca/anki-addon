@@ -183,6 +183,24 @@ next to the traces. The label field suggests labels already used,
 so a consistent failure-mode taxonomy builds itself — when the same
 label shows up on many sessions, turn it into an eval task.
 
+The **Progress page** (link in the top bar) is where that taxonomy
+surfaces: it shows review coverage per run (annotated / total) and
+every failure mode grouped by label, with counts, the recorded
+notes, and links back into the sessions. Agents working the loop
+can read and update the mode descriptions through the JSON API:
+
+```bash
+curl -s http://127.0.0.1:5000/api/patterns                      # modes + coverage
+curl -s -X POST http://127.0.0.1:5000/api/patterns \
+  -H "Content-Type: application/json" \
+  -d '{"did-not-split": {"description": "keeps compound notes intact"}}'
+```
+
+Counts and example records are always derived from `annotations.json`;
+the taxonomy (stored in `patterns.json` next to the run folders) holds
+only the agent's descriptions, so interpretation and evidence cannot
+disagree. The Progress page shows both side by side.
+
 Eval trial pages have the same annotation form, useful for marking
 unfair failures while reading transcripts.
 

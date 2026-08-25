@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,6 +35,7 @@ from fasthtml.common import (  # noqa: F401
     Form,
     Header,
     Input,
+    JSONResponse,
     Label,
     Li,
     Main,
@@ -41,6 +43,7 @@ from fasthtml.common import (  # noqa: F401
     P,
     Pre,
     RedirectResponse,
+    Request,
     Script,
     Section,
     Span,
@@ -193,6 +196,125 @@ def load_runs() -> list[RunSummary]:
         runs.append(summary)
 
     return runs
+
+
+# ---------------------------------------------------------------------------
+# Failure mode aggregation
+# ---------------------------------------------------------------------------
+
+
+_ANNOTATION_KEY_RE = re.compile(
+    r"^(?P<task_id>.+)\.trial(?P<trial>\d+)\.json$"
+)
+
+
+def parse_annotation_key(file_name: str) -> tuple[str, int] | None:
+    """Split an annotation key like 'note_123.trial0.json' into
+    (task_id, trial_index); None if the name is not a record key."""
+    match = _ANNOTATION_KEY_RE.match(file_name)
+    if match is None:
+        return None
+    return match.group("task_id"), int(match.group("trial"))
+
+
+def failure_modes(runs: list[RunSummary]) -> dict[str, dict[str, Any]]:
+    """Group annotations by label into failure modes.
+
+    Returns {label: {label, count, records}} sorted by count descending,
+    then label ascending. Each record carries the run stamp, task id,
+    trial index, note, and update time so the UI can link back to the
+    trial page. Annotations without a label or with an unparseable key
+    are skipped.
+    """
+    modes: dict[str, dict[str, Any]] = {}
+    for run in runs:
+        for file_name, ann in run.annotations.items():
+            label = (ann.get("label") or "").strip()
+            if not label:
+                continue
+            key = parse_annotation_key(file_name)
+            if key is None:
+                continue
+            task_id, trial = key
+            record = {
+                "run": run.stamp,
+                "file_name": file_name,
+                "task_id": task_id,
+                "trial": trial,
+                "note": ann.get("note", ""),
+                "updated": ann.get("updated", ""),
+            }
+            mode = modes.setdefault(label, {"label": label, "records": []})
+            mode["records"].append(record)
+    for mode in modes.values():
+        mode["records"].sort(
+            key=lambda r: (r["updated"], r["run"], r["file_name"]),
+            reverse=True,
+        )
+        mode["count"] = len(mode["records"])
+    return dict(sorted(modes.items(), key=lambda kv: (-kv[1]["count"], kv[0])))
+
+
+def coverage(runs: list[RunSummary]) -> dict[str, Any]:
+    """Review coverage for one results directory.
+
+    Returns {annotated, total, per_run: {stamp: {annotated, total}}}
+    where 'annotated' counts annotation records (labelled or not) and
+    'total' counts trial records on disk.
+    """
+    per_run = {
+        r.stamp: {"annotated": len(r.annotations), "total": r.total_trials}
+        for r in runs
+    }
+    return {
+        "annotated": sum(v["annotated"] for v in per_run.values()),
+        "total": sum(v["total"] for v in per_run.values()),
+        "per_run": per_run,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Agent taxonomy (patterns.json)
+# ---------------------------------------------------------------------------
+# The taxonomy stores only interpretation: a description per failure
+# mode. Counts and example records are always derived from the
+# annotations files, so the two can never disagree.
+
+
+def _patterns_path() -> Path:
+    """Corpus-level taxonomy file beside the run folders being viewed."""
+    return _results_dir() / "patterns.json"
+
+
+def load_patterns(path: Path | None = None) -> dict[str, dict[str, str]]:
+    """Load {label: {description}} from the taxonomy file."""
+    path = path or _patterns_path()
+    if not path.exists():
+        return {}
+    data = json.loads(path.read_text())
+    return data if isinstance(data, dict) else {}
+
+
+def save_patterns(
+    patterns: dict[str, dict[str, str]], path: Path | None = None
+) -> None:
+    """Write the taxonomy, replacing any previous version."""
+    path = path or _patterns_path()
+    path.write_text(json.dumps(patterns, indent=2, ensure_ascii=False) + "\n")
+
+
+def _patterns_view(runs: list[RunSummary]) -> dict[str, Any]:
+    """Failure modes with agent descriptions attached, plus coverage.
+
+    The payload behind GET /api/patterns: the agent reads it to
+    organize annotations into modes, and pushes descriptions back
+    via POST.
+    """
+    modes = failure_modes(runs)
+    stored = load_patterns()
+    for label, mode in modes.items():
+        mode["description"] = stored.get(label, {}).get("description", "")
+    return {"patterns": modes, "coverage": coverage(runs)}
 
 
 # ---------------------------------------------------------------------------
@@ -437,6 +559,8 @@ def _annotation_badge(run: RunSummary, trial: TrialRecord) -> str | Span:
 def _nav() -> Header:
     return Header(
         A("Dashboard", href="/"),
+        Span("  |  ", style="margin: 0 0.5rem;"),
+        A("Progress", href="/progress"),
         Span("  |  ", style="margin: 0 0.5rem;"),
         Span(
             f"Results: {_results_dir().name}",
@@ -1038,6 +1162,152 @@ async def post(  # noqa: F811
     return RedirectResponse(
         f"/trial/{stamp}/{task_id}/{trial_idx}", status_code=303
     )
+
+
+@rt("/progress")
+async def get():  # noqa: F811
+    """Review progress: coverage stats and failure modes grouped by
+    annotation label, each with its records and the agent's
+    description of the mode (if the taxonomy has one)."""
+    runs = load_runs()
+    modes = failure_modes(runs)
+    stored = load_patterns()
+    cov = coverage(runs)
+
+    percent = f"{cov['annotated'] / cov['total']:.0%}" if cov["total"] else "—"
+    cov_rows = [
+        Tr(
+            Td(stamp),
+            Td(f"{c['annotated']}/{c['total']}"),
+            Td(f"{c['annotated'] / c['total']:.0%}" if c["total"] else "—"),
+        )
+        for stamp, c in sorted(cov["per_run"].items(), reverse=True)
+        if c["total"]
+    ]
+
+    coverage_card = Section(
+        H3("Coverage"),
+        Div(
+            Div(
+                Div(str(cov["annotated"]), cls="stat-value"),
+                Div("Annotated", cls="stat-label"),
+                cls="stat-box",
+            ),
+            Div(
+                Div(str(cov["total"]), cls="stat-value"),
+                Div("Records", cls="stat-label"),
+                cls="stat-box",
+            ),
+            Div(
+                Div(percent, cls="stat-value"),
+                Div("Reviewed", cls="stat-label"),
+                cls="stat-box",
+            ),
+            cls="stats-grid",
+        ),
+        (
+            Table(
+                Thead(Tr(Th("Run"), Th("Annotated"), Th("%"))),
+                Tbody(*cov_rows),
+            )
+            if cov_rows
+            else ""
+        ),
+        cls="card",
+    )
+
+    if not modes:
+        return Main(
+            _nav(),
+            H1("Progress"),
+            coverage_card,
+            H2("Failure modes"),
+            P(
+                "No annotations yet. Open a trial, save a label and "
+                "note, and it will show up here grouped by label."
+            ),
+        )
+
+    mode_cards = []
+    for label, mode in modes.items():
+        description = stored.get(label, {}).get("description", "")
+        record_items = []
+        for rec in mode["records"]:
+            record_items.append(
+                Li(
+                    Div(
+                        A(
+                            f"{rec['run']}  ·  {rec['task_id']}",
+                            href=(
+                                f"/trial/{rec['run']}/{rec['task_id']}/"
+                                f"{rec['trial']}"
+                            ),
+                        ),
+                        Span(
+                            f"  ({rec['updated']})",
+                            style=(
+                                "color: var(--text-muted); font-size: 0.85rem;"
+                            ),
+                        ),
+                    ),
+                    Pre(
+                        rec["note"],
+                        style=(
+                            "font-size: 0.85rem; white-space: pre-wrap;"
+                            " font-family: inherit; margin-top: 0.25rem;"
+                        ),
+                    )
+                    if rec["note"]
+                    else "",
+                )
+            )
+        mode_cards.append(
+            Section(
+                Div(
+                    H3(label),
+                    _badge(str(mode["count"]), "unknown"),
+                    style="display: flex; align-items: center; gap: 0.5rem;",
+                ),
+                P(
+                    description,
+                    style=(
+                        "color: var(--text-muted); font-style: italic;"
+                        " font-size: 0.9rem;"
+                    ),
+                )
+                if description
+                else "",
+                Ul(*record_items, cls="check-list"),
+                cls="card",
+            )
+        )
+
+    return Main(
+        _nav(),
+        H1("Progress"),
+        coverage_card,
+        H2("Failure modes"),
+        *mode_cards,
+    )
+
+
+@rt("/api/patterns")
+async def get():  # noqa: F811
+    """Failure modes with agent descriptions, plus coverage (JSON)."""
+    return JSONResponse(_patterns_view(load_runs()))
+
+
+@rt("/api/patterns", methods=["post"])
+async def post(request: Request) -> JSONResponse:  # noqa: F811
+    """Replace the stored taxonomy with the agent's latest version.
+
+    Body: {label: {"description": str}}. Counts and records are
+    always recomputed from annotations, so the agent only writes
+    interpretation.
+    """
+    body = await request.json()
+    save_patterns(body if isinstance(body, dict) else {})
+    return JSONResponse(_patterns_view(load_runs()))
 
 
 if __name__ == "__main__":
