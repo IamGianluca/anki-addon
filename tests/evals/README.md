@@ -21,10 +21,16 @@ Evals are opt-in: they are slow, non-deterministic, and spend LLM
 tokens, so they are skipped in `make test` / `make test_slow`.
 
 ```bash
-make eval                                # report-only
+make eval                                # both suites; capability report-only
+make eval_capability                    # hill to climb — run while tuning
+make eval_regression                    # pass^k gates — pre-merge/CI guard
 EVAL_STRICT=1 make eval                  # capability failures fail too
 RUN_EVALS=1 uv run pytest tests/evals/ -k split   # run a subset
 ```
+
+The suite (`capability` vs `regression`) is per task, in its JSON file;
+`make eval_capability` / `make eval_regression` select one suite via
+pytest markers (`-m capability` / `-m regression`).
 
 The LLM is configured from the same env vars as the integration tests
 (`.envrc`). Select the provider with `LLM_PROVIDER` (`openai` default,
@@ -112,6 +118,10 @@ One JSON file per task in `tasks/`. See the existing files for examples.
   applying the change set** (HTML stripped, case-insensitive, matched on
   word boundaries: `0.9` does not match `0.999`). Guards against
   rewrites that silently drop content.
+- `must_not_contain` — words that must **not** appear in the proposed
+  notes (edited and created ones only, matched like `facts`). Enforces
+  wording constraints deterministically, e.g.
+  `["you", "i", "we"]` for person-neutral phrasing.
 - `read_before_propose` (default true) — every edit/split/delete of a
   note other than the seed must be preceded by reading it. Enforces a
   rule from the agent's own system prompt; the seed is exempt because
@@ -200,6 +210,15 @@ Counts and example records are always derived from `annotations.json`;
 the taxonomy (stored in `patterns.json` next to the run folders) holds
 only the agent's descriptions, so interpretation and evidence cannot
 disagree. The Progress page shows both side by side.
+
+The **Review batch** page (also in the top bar) shows a focused set
+of sessions picked for review, separate from the full trace list:
+cards with the outcome badge, model, why the session was suggested,
+a summary snippet, and whether it is annotated yet. The agent
+running the loop pushes the current batch via `POST /api/batch` with
+a `{'batch': [{run, task_id, trial, reason}]}` body and reads it
+back from `GET /api/batch`; stale or duplicate entries are dropped
+when the view is built.
 
 Eval trial pages have the same annotation form, useful for marking
 unfair failures while reading transcripts.

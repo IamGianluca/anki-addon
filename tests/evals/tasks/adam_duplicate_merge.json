@@ -1,6 +1,6 @@
 {
   "id": "adam_duplicate_merge_1",
-  "suite": "capability",
+  "suite": "regression",
   "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should resolve the overlap by keeping one note as the role card and repurposing the other into an atomic typical-value card (preserving its review history), leaving the unrelated beta_1 note untouched.",
   "seed_note_id": 1,
   "trials": 3,
@@ -8,7 +8,7 @@
   "notes": [
     {
       "id": 1,
-      "front": "What does beta_2 control in Adam?",
+      "front": "In Adam, what does beta_2 control?",
       "back": "Decay rate of the second moment estimate.",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
@@ -22,7 +22,7 @@
     },
     {
       "id": 3,
-      "front": "What does beta_1 control in Adam?",
+      "front": "In Adam, what does beta_1 control?",
       "back": "Decay rate of the first moment estimate.",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
@@ -43,7 +43,7 @@
     {
       "type": "edit",
       "note_id": 2,
-      "front": "What is the typical value of beta_2 in Adam?",
+      "front": "In Adam, what is the typical value of beta_2?",
       "back": "0.999.",
       "tags": ["ml", "adam"],
       "rationale": "repurpose the duplicate into the atomic typical-value note, preserving its review history"

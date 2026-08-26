@@ -1,4 +1,4 @@
-.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_summary eval_snapshot eval_viewer
+.PHONY: install jupyter test test_slow static_check format clean test_update_baseline test_slow_update_baseline eval eval_capability eval_regression eval_summary eval_snapshot eval_viewer trace_viewer
 
 install:
 	uv sync --all-extras && \
@@ -48,8 +48,19 @@ test_slow_update_baseline:
 
 # LLM evals are not part of test_slow: they are slow, non-deterministic,
 # and spend tokens. No timing gate applies. See tests/evals/README.md.
+# `make eval` runs both suites; the suite-specific targets select one.
 eval:
 	RUN_EVALS=1 uv run pytest tests/evals/ -vv -s
+
+# Capability suite only: report-only by definition — a hill to climb,
+# never a gate. Runs when tuning the prompt or the model.
+eval_capability:
+	RUN_EVALS=1 uv run pytest tests/evals/ -vv -s -m capability
+
+# Regression suite only: pass^k enforced per task — failures fail the
+# build. The pre-merge guard; run in CI, not during tuning.
+eval_regression:
+	RUN_EVALS=1 uv run pytest tests/evals/ -vv -s -m regression
 
 # Summarize the latest eval run; for an older one:
 # make eval_summary RESULTS=tests/evals/results/<timestamp>

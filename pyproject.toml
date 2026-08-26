@@ -55,6 +55,8 @@ norecursedirs = [
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "eval: LLM evals; opt-in via RUN_EVALS=1 (see tests/evals/README.md)",
+    "capability: capability-suite eval tasks (report-only; the hill to climb)",
+    "regression: regression-suite eval tasks (pass^k gate, pre-merge guard)",
 ]
 
 [tool.pyrefly]

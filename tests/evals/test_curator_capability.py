@@ -35,10 +35,19 @@ pytestmark = [
 ]
 
 _TASK_FILES = sorted(TASKS_DIR.glob("*.json"))
-_TASK_IDS = [path.stem for path in _TASK_FILES]
+_SUITE_MARK = {
+    "capability": pytest.mark.capability,
+    "regression": pytest.mark.regression,
+}
+# Each task carries its suite as a marker so a run can select one
+# suite only (make capability_evals / make regression_evals).
+_TASK_PARAMS = [
+    pytest.param(path, id=path.stem, marks=_SUITE_MARK[load_task(path).suite])
+    for path in _TASK_FILES
+]
 
 
-@pytest.mark.parametrize("task_path", _TASK_FILES, ids=_TASK_IDS)
+@pytest.mark.parametrize("task_path", _TASK_PARAMS)
 def test_curator_task(
     task_path: Path,
     llm_client: CompletionProvider,

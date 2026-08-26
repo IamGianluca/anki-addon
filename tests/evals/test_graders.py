@@ -12,7 +12,11 @@ from tests.evals.graders import GradeResult, grade_outcome, grade_transcript
 from tests.evals.harness import EvalTask, Expectation, TaskNote
 
 from addon.application.services.curator_agent import CurationSession
-from addon.domain.entities.proposals import ProposedChangeSet
+from addon.domain.entities.note import AddonNote
+from addon.domain.entities.proposals import (
+    EditProposal,
+    ProposedChangeSet,
+)
 
 
 def _grade_facts(backs: list[str], facts: list[str]) -> GradeResult:
@@ -84,8 +88,59 @@ def test_fact_matches_across_punctuation():
     assert _verdict(result, "len") == "pass"
 
 
+def _grade_banned(proposals: list, banned: list[str]) -> GradeResult:
+    """Grade a change set against must_not_contain words."""
+    task = EvalTask(
+        id="banned_words",
+        desc="must-not-contain semantics",
+        seed_note_id=1,
+        notes=[TaskNote(id=1, front="Q?", back="A")],
+        expect=Expectation(must_not_contain=banned),
+    )
+    return grade_outcome(task, proposals)
+
+
+def _edit_proposal(front: str, back: str) -> EditProposal:
+    before = AddonNote(front="Q?", back="A")
+    after = AddonNote(front=front, back=back)
+    return EditProposal(note_id=1, before=before, after=after, rationale="r")
+
+
+def _verdict_banned(result: GradeResult, word: str) -> str:
+    return next(
+        c for c in result.checks if c.name == f"must_not_contain_{word}"
+    ).verdict
+
+
+def test_banned_word_in_proposed_note_fails():
+    # Given a proposal that uses the banned word "you"
+    proposals = [_edit_proposal("How do you find the maximum?", "A")]
+
+    # When it is graded against the ban
+    result = _grade_banned(proposals, ["you", "i", "we"])
+
+    # Then the "you" check fails while the others pass
+    assert _verdict_banned(result, "you") == "fail"
+    assert _verdict_banned(result, "i") == "pass"
+    assert _verdict_banned(result, "we") == "pass"
+
+
+def test_banned_word_in_unchanged_note_is_ignored():
+    # Given a proposal whose text is clean, while a pre-existing note
+    # (not part of any proposal) contains the banned word
+    proposals = [_edit_proposal("How is the maximum found?", "A")]
+
+    # When it is graded against the ban
+    result = _grade_banned(proposals, ["you"])
+
+    # Then the ban passes — the agent is not responsible for
+    # pre-existing note content
+    assert _verdict_banned(result, "you") == "pass"
+
+
 def _grade_transcript(
-    actions: list[dict], seed_note_id: int = 1,
+    actions: list[dict],
+    seed_note_id: int = 1,
 ) -> GradeResult:
     """Grade an agent transcript built from the given raw action
     payloads (each wrapped with a thought, as the agent emits)."""
@@ -113,15 +168,11 @@ def _grade_transcript(
 
 def test_editing_a_collection_note_without_reading_it_fails():
     # When the agent edits a note it never read
-    result = _grade_transcript(
-        [{"action": "propose_edit", "note_id": 5}]
-    )
+    result = _grade_transcript([{"action": "propose_edit", "note_id": 5}])
 
     # Then a read-before-edit violation is recorded
     assert not result.passed
-    assert any(
-        c.name == "read_before_propose_edit_5" for c in result.checks
-    )
+    assert any(c.name == "read_before_propose_edit_5" for c in result.checks)
 
 
 def test_editing_a_note_after_reading_it_passes():

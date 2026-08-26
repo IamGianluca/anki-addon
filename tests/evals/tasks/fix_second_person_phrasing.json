@@ -1,0 +1,46 @@
+{
+  "id": "fix_second_person_phrasing_1",
+  "suite": "capability",
+  "desc": "The seed note is well-formed and atomic: one question, tested by a single fact. Its only defect is the wording of the question, which is formulated in the second person ('How do you find the minimum of a convex function?') and lacks the mandatory 'In <domain>, ...' prefix. House style requires every question to be a neutral, third-person formulation prefixed with 'In <domain>, ...', the domain inferred from the tags or the question — e.g. 'In optimization, how is the minimum of a convex function found?' is fine. The agent should correct the phrasing on its own — nothing in the task asks for it — while keeping the back and the tested fact intact, and leave the unrelated convex-set note untouched.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "How do you find the minimum of a convex function?",
+      "back": "Set the gradient to zero.",
+      "tags": ["math", "optimization"],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "In math, what is a convex set?",
+      "back": "A set where the line segment between any two points lies inside the set.",
+      "tags": ["math"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [1, 1],
+    "creates": [0, 0],
+    "deletes": [0, 0],
+    "must_touch": [1],
+    "must_not_touch": [2],
+    "facts": ["minimum", "convex", "gradient"],
+    "must_not_contain": ["you", "i", "we"]
+  },
+  "judge_assertions": [
+    "The proposal corrects the second-person phrasing into the mandatory house-style form: the front is a neutral, third-person question prefixed with 'In <domain>, ...' (the domain inferred from the tags or the question — any reasonable domain granularity is acceptable), and the corrected question still tests the same fact as the original."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "In convex optimization, how is the minimum of a convex function found?",
+      "back": "Set the gradient to zero.",
+      "tags": ["math", "optimization"],
+      "rationale": "reformulate the question in the neutral house-style form; the tested fact and the back are unchanged"
+    }
+  ]
+}

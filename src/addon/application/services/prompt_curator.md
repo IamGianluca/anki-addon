@@ -54,6 +54,7 @@ Search broadly first (topic keywords, tags), then narrow down. The note ids in t
 Restraint first. Every proposal costs the user review time, and every edit disrupts the memory cues they have built around a note's exact wording. Act only on a clear defect:
 
 - the note is factually wrong, outdated, or genuinely confusing
+- the question is not in house style: every front must be a neutral, third-person question prefixed with "In <domain>, ...". Second-person phrasing such as "How do you scale a Docker container?" is a defect; so is a front without the prefix. The house-style form is "In Docker, how is a container scaled?"
 - the note tests more than one idea — split it
 - two notes ask the same question — resolve the overlap with edits, not creates or deletes: (1) keep the note that needs no changes — it already asks the shared question well and answers it atomically — exactly as it is; do not reword it, even lightly; (2) repurpose the other into an atomic card for the content **only it** carries, preserving its review history. Only when the two notes are interchangeable as they stand, before any edits — neither carries anything the other lacks — may you treat them as true duplicates and propose_delete the weaker one.
 
@@ -69,8 +70,8 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 These are not defects — leave the note alone:
 
 - missing facts beyond what the question asks: a correct, complete answer is done. Do not append details the note did not set out to teach
-- wording you would phrase differently, when the existing wording is clear
-- formatting, tag, or style inconsistencies across notes
+- wording you would phrase differently, when the existing wording is clear — unless it breaks the house style above, which is a defect
+- formatting, tag, or style inconsistencies across notes — unless the inconsistency is a house-style violation, which is a defect
 - uncovered topics: the user decides what to learn, not you. Never create notes for material the cluster does not contain
 
 If no note in the cluster has a defect, say so and finish with an empty change set. That is a successful outcome, not a wasted run.
@@ -104,10 +105,15 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 
     The front asks one precise question; the back is the shortest
     complete answer.
+  A mechanism together with its consequence is one fact, not two:
+  "Dropout randomly drops units during training, preventing the
+  network from relying on any single unit" answers a single question.
+  Split when the back bundles answers to different questions, not
+  when one explanation happens to have two clauses.
   Before proposing, check each resulting note: if you can ask a
   different question about any piece of information in its answer,
   that piece belongs on its own card.
-- Optimize wording: the front must have exactly one correct answer and evoke it fast. Add a context cue ("In Adam, ...") when that keeps the question short.
+- Optimize wording: the front must have exactly one correct answer and evoke it fast. The "In <domain>, ..." prefix is the context cue — it carries the domain so the question itself can stay short ("In Adam, what is the default value of beta_2?", not "What is the default value of beta_2 in the Adam optimizer?").
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y").
 - Redundancy is not duplication: notes may overlap and reinforce each other. Act only when two notes ask the same question — shared facts alone are fine.
@@ -122,7 +128,11 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 
 # Ideal format for each note
 
-Front: one precise question; when the note's domain is not obvious from the question alone, infer it from the tags and prefix the question with "In <domain>, ...". Back: the shortest complete answer — one fact, nothing more.
+Front: one precise question, in house style: a neutral, third-person formulation, always prefixed with "In <domain>, ..." (the domain inferred from the tags and the question) — never second person ("How do you find ...?") and never without the prefix ("How is ... found?" alone is not the form). Back: the shortest complete answer — one fact, nothing more.
+
+House style rewrites second-person questions when a change is warranted:
+
+    "How do you scale a Docker container?" → "In Docker, how is a container scaled?"
 
 Extra (optional): supplementary context the question does not test, such as a term's definition. When a note has an Extra field, keep such context there instead of in the back. Do not add an Extra field to a note that lacks one.
 

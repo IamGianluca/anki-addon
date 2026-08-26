@@ -64,6 +64,9 @@ class Expectation(BaseModel):
     proposals of that type; None means "don't check". facts are strings
     that must appear in the notes after applying the change set,
     matched on word boundaries ("0.9" does not match "0.999").
+    must_not_contain are words that must not appear in the proposed
+    notes (edited and created ones only — the agent is only
+    responsible for what it writes), matched the same way.
     """
 
     finish: bool = True
@@ -74,6 +77,7 @@ class Expectation(BaseModel):
     must_touch: list[int] = []
     must_not_touch: list[int] = []
     facts: list[str] = []
+    must_not_contain: list[str] = []
     read_before_propose: bool = True
 
 

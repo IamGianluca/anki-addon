@@ -197,6 +197,17 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
         else:
             result.add_check(name=f"fact_{fact}", verdict="pass")
 
+    proposal_text = _proposal_text(proposals)
+    for banned in expect.must_not_contain:
+        if _contains_fact(proposal_text, banned):
+            result.add_check(
+                name=f"must_not_contain_{banned}",
+                verdict="fail",
+                reason=f"banned term {banned!r} appears in a proposed note",
+            )
+        else:
+            result.add_check(name=f"must_not_contain_{banned}", verdict="pass")
+
     for proposal in edits:
         if (
             proposal.before.notetype == AddonNoteType.CLOZE
@@ -410,6 +421,22 @@ def _final_state_text(task: EvalTask, proposals: list[Proposal]) -> str:
         for p in proposals
         if isinstance(p, CreateProposal)
     ]
+    return " ".join(parts).lower()
+
+
+def _proposal_text(proposals: list[Proposal]) -> str:
+    """Plain text of the notes the proposals would write — edited and
+    created ones only, since the agent is only responsible for what it
+    proposes, not for pre-existing note content."""
+    parts = []
+    for proposal in proposals:
+        if isinstance(proposal, EditProposal):
+            note = proposal.after
+        elif isinstance(proposal, CreateProposal):
+            note = proposal.note
+        else:
+            continue
+        parts.append(_plain(note.front, note.back, note.extra_fields))
     return " ".join(parts).lower()
 
 

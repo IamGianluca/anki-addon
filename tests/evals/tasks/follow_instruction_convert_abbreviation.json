@@ -1,0 +1,69 @@
+{
+  "id": "follow_instruction_convert_abbreviation_1",
+  "suite": "capability",
+  "desc": "A collection-wide directive from the user: convert every occurrence of the 'NN' abbreviation to 'neural network'. Two notes in the cluster use the abbreviation (the seed's back and the backpropagation note's front); two do not. The cluster is already atomic and in house style (every front carries the mandatory 'In <domain>, ...' prefix) — the conversion is the only change needed. The agent should find all notes using 'NN', convert them, and leave the clean notes untouched. A too-narrow search that fixes only the seed fails: the directive applies to the whole collection, and every proposed note must come out without the abbreviation.",
+  "seed_note_id": 1,
+  "instruction": "Search all notes for the abbreviation 'NN' and convert it to 'neural network' in every note that uses it.",
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In neural networks, why does dropout reduce overfitting?",
+      "back": "During NN training, dropout randomly drops units, preventing the network from relying on any single unit.",
+      "tags": ["ml", "neural-networks"],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "In Adam, what is the typical learning rate?",
+      "back": "0.001.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    },
+    {
+      "id": 3,
+      "front": "In neural networks, how does backpropagation update weights in an NN?",
+      "back": "It computes the gradient of the loss with respect to each weight using the chain rule.",
+      "tags": ["ml", "neural-networks"],
+      "notetype": "basic"
+    },
+    {
+      "id": 4,
+      "front": "In ML, what is the role of the learning rate schedule?",
+      "back": "It decays the learning rate over training to settle into a minimum.",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [2, 2],
+    "creates": [0, 0],
+    "deletes": [0, 0],
+    "must_touch": [1, 3],
+    "must_not_touch": [2, 4],
+    "facts": ["neural network", "dropout", "gradient"],
+    "must_not_contain": ["nn"]
+  },
+  "judge_assertions": [
+    "Every proposed front is in the mandatory house-style form: a neutral, third-person question prefixed with 'In <domain>, ...'."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "In neural networks, why does dropout reduce overfitting?",
+      "back": "During neural network training, dropout randomly drops units, preventing the network from relying on any single unit.",
+      "tags": ["ml", "neural-networks"],
+      "rationale": "convert the NN abbreviation on the seed note's back"
+    },
+    {
+      "type": "edit",
+      "note_id": 3,
+      "front": "In neural networks, how does backpropagation update weights in a neural network?",
+      "back": "It computes the gradient of the loss with respect to each weight using the chain rule.",
+      "tags": ["ml", "neural-networks"],
+      "rationale": "convert the NN abbreviation on the second note that uses it"
+    }
+  ]
+}

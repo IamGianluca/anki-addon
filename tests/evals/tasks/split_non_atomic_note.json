@@ -1,7 +1,7 @@
 {
   "id": "split_non_atomic_note_1",
-  "suite": "capability",
-  "desc": "The seed note tests two unrelated facts in a single card (two Python built-in functions). The agent should split it into two atomic notes — one per fact — and leave the unrelated third note untouched.",
+  "suite": "regression",
+  "desc": "The seed note tests two unrelated facts in a single card (two Python built-in functions), and its front lacks the mandatory 'In <domain>, ...' house-style prefix. The agent should split it into two atomic house-style notes — one per fact — and leave the unrelated third note untouched.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "front": "What does enumerate() return in Python?",
+      "front": "In Python, what does enumerate() return?",
       "back": "An iterator of (index, item) pairs.",
       "tags": ["python", "builtins"],
       "notetype": "basic"
@@ -36,14 +36,14 @@
     {
       "type": "edit",
       "note_id": 1,
-      "front": "What does len() do in Python?",
+      "front": "In Python, what does len() do?",
       "back": "Returns the number of items in an object.",
       "tags": ["python", "builtins"],
       "rationale": "keep the len() fact on the original note"
     },
     {
       "type": "create",
-      "front": "What does range() do in Python?",
+      "front": "In Python, what does range() do?",
       "back": "Generates a sequence of integers.",
       "tags": ["python", "builtins"],
       "notetype": "basic",
