@@ -207,6 +207,10 @@ _ANNOTATION_KEY_RE = re.compile(
     r"^(?P<task_id>.+)\.trial(?P<trial>\d+)\.json$"
 )
 
+# Labels reviewers use for "this trace is fine". They count toward
+# coverage but are not failure modes and never appear on Progress.
+_NON_FAILURE_LABELS = {"pass", "lgtm", "ok"}
+
 
 def parse_annotation_key(file_name: str) -> tuple[str, int] | None:
     """Split an annotation key like 'note_123.trial0.json' into
@@ -230,7 +234,7 @@ def failure_modes(runs: list[RunSummary]) -> dict[str, dict[str, Any]]:
     for run in runs:
         for file_name, ann in run.annotations.items():
             label = (ann.get("label") or "").strip()
-            if not label:
+            if not label or label.lower() in _NON_FAILURE_LABELS:
                 continue
             key = parse_annotation_key(file_name)
             if key is None:
@@ -318,6 +322,141 @@ def _patterns_view(runs: list[RunSummary]) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# Review batch (batch.json)
+# ---------------------------------------------------------------------------
+# The batch is the agent's suggested next slice of sessions to review:
+# a focused set with a reason each, separate from the full trace
+# list. It holds only suggestions; outcome, model, and annotation
+# state are always derived from the run records.
+
+
+def _batch_path() -> Path:
+    """Corpus-level batch file beside the run folders being viewed."""
+    return _results_dir() / "batch.json"
+
+
+def load_batch(path: Path | None = None) -> list[dict[str, Any]]:
+    """Load the suggested review batch; empty list if absent."""
+    path = path or _batch_path()
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text())
+    return data if isinstance(data, list) else []
+
+
+def save_batch(batch: list[dict[str, Any]], path: Path | None = None) -> None:
+    """Write the review batch, replacing any previous version.
+
+    Entries are kept only if they carry a run stamp, a task id, and
+    an integer trial index; everything else is dropped on write.
+    """
+    path = path or _batch_path()
+    valid = [
+        {k: e[k] for k in ("run", "task_id", "trial", "reason") if k in e}
+        for e in batch
+        if isinstance(e, dict)
+        and e.get("run")
+        and e.get("task_id")
+        and isinstance(e.get("trial"), int)
+    ]
+    path.write_text(json.dumps(valid, indent=2, ensure_ascii=False) + "\n")
+
+
+def batch_items(
+    batch: list[dict[str, Any]], runs: list[RunSummary]
+) -> list[dict[str, Any]]:
+    """Enrich batch entries with model, outcome, summary, and label.
+
+    Stale entries that no longer resolve to a real run/trial, and
+    duplicates of the same record, are dropped so the batch never
+    renders broken links. Annotated entries sink to the bottom so
+    the unannotated ones stay on top; relative order is preserved
+    within each group.
+    """
+    by_stamp = {r.stamp: r for r in runs}
+    items: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+    for entry in batch:
+        run = by_stamp.get(entry.get("run"))
+        if run is None:
+            continue
+        trials = run.tasks.get(entry.get("task_id"), [])
+        trial = next(
+            (t for t in trials if t.trial_index == entry.get("trial")),
+            None,
+        )
+        if trial is None:
+            continue
+        key = (run.stamp, trial.file_name)
+        if key in seen:
+            continue
+        seen.add(key)
+        annotated = trial.file_name in run.annotations
+        label = (run.annotations.get(trial.file_name) or {}).get("label", "")
+        items.append(
+            {
+                "run": run.stamp,
+                "task_id": trial.task_id,
+                "trial": trial.trial_index,
+                "file_name": trial.file_name,
+                "reason": entry.get("reason", ""),
+                "model": trial.model or run.model,
+                "outcome": (
+                    (trial.outcome or {}).get("status")
+                    if trial.outcome
+                    else None
+                ),
+                "summary": trial.summary,
+                "label": label,
+                "annotated": annotated,
+                "passed": trial.passed,
+            }
+        )
+    items.sort(key=lambda i: i["annotated"])
+    return items
+
+
+def next_batch_item(
+    batch: list[dict[str, Any]],
+    run: str,
+    task_id: str,
+    trial: int,
+    runs: list[RunSummary],
+) -> dict[str, Any] | None:
+    """The next unannotated batch entry after the given session.
+
+    Scans forward from the current session and wraps around to the
+    start, so annotating in any order always advances. None when no
+    unannotated entry remains, or the only one left is the current
+    session itself (nothing to advance to).
+    """
+    items = batch_items(batch, runs)
+    current = (run, task_id, trial)
+    start = next(
+        (
+            i
+            for i, item in enumerate(items)
+            if (item["run"], item["task_id"], item["trial"]) == current
+        ),
+        -1,
+    )
+
+    def first_unannotated(after: int) -> int | None:
+        for i, item in enumerate(items):
+            if i > after and not item["annotated"]:
+                return i
+        for i, item in enumerate(items):
+            if not item["annotated"]:
+                return i
+        return None
+
+    nxt = first_unannotated(start)
+    if nxt is None or nxt == start:
+        return None
+    return items[nxt]
+
+
+# ---------------------------------------------------------------------------
 # Styles
 # ---------------------------------------------------------------------------
 
@@ -353,6 +492,16 @@ h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
 
 a { color: var(--blue); text-decoration: none; }
 a:hover { text-decoration: underline; }
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 0.9rem;
+    background: var(--blue);
+    color: #fff !important;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.btn:hover { text-decoration: none; opacity: 0.9; }
 
 .card {
     background: var(--card-bg);
@@ -559,6 +708,8 @@ def _annotation_badge(run: RunSummary, trial: TrialRecord) -> str | Span:
 def _nav() -> Header:
     return Header(
         A("Dashboard", href="/"),
+        Span("  |  ", style="margin: 0 0.5rem;"),
+        A("Batch", href="/batch"),
         Span("  |  ", style="margin: 0 0.5rem;"),
         A("Progress", href="/progress"),
         Span("  |  ", style="margin: 0 0.5rem;"),
@@ -844,6 +995,8 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
     if trial is None:
         return Main(_nav(), H1("Trial not found"))
 
+    next_item = next_batch_item(load_batch(), stamp, task_id, trial_idx, runs)
+
     # Stats
     stats_items = []
     for k, v in trial.stats.items():
@@ -965,6 +1118,21 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
             ),
             method="post",
             action=f"/annotate/{stamp}/{task_id}/{trial_idx}",
+        ),
+        (
+            Div(
+                A(
+                    f"Next in batch → {next_item['task_id']}",
+                    href=(
+                        f"/trial/{next_item['run']}/"
+                        f"{next_item['task_id']}/{next_item['trial']}"
+                    ),
+                    cls="btn",
+                ),
+                style="margin-top: 0.75rem;",
+            )
+            if next_item
+            else ""
         ),
         cls="card",
     )
@@ -1308,6 +1476,110 @@ async def post(request: Request) -> JSONResponse:  # noqa: F811
     body = await request.json()
     save_patterns(body if isinstance(body, dict) else {})
     return JSONResponse(_patterns_view(load_runs()))
+
+
+@rt("/batch")
+async def get():  # noqa: F811
+    """The review batch: the agent's suggested next slice of sessions,
+    separate from the full trace list on the dashboard."""
+    runs = load_runs()
+    items = batch_items(load_batch(), runs)
+
+    if not items:
+        return Main(
+            _nav(),
+            H1("Review batch"),
+            P(
+                "No batch set. The agent running the review loop can "
+                "push a suggested set of sessions via "
+                "POST /api/batch with a {'batch': [{run, task_id, "
+                "trial, reason}]} body."
+            ),
+        )
+
+    remaining = sum(1 for i in items if not i["annotated"])
+    cards = []
+    for item in items:
+        status = item["outcome"] or ("pass" if item["passed"] else "fail")
+        if item["label"]:
+            state_badge = _badge(item["label"], "unknown")
+        elif item["annotated"]:
+            state_badge = _badge("ANNOTATED", "unknown")
+        else:
+            state_badge = _badge("NOT ANNOTATED", "unknown")
+        cards.append(
+            Section(
+                Div(
+                    A(
+                        f"{item['run']}  ·  {item['task_id']}",
+                        href=(
+                            f"/trial/{item['run']}/{item['task_id']}/"
+                            f"{item['trial']}"
+                        ),
+                    ),
+                    Span(
+                        f"  ({item['model']})",
+                        style=(
+                            "color: var(--text-muted); font-size: 0.85rem;"
+                        ),
+                    ),
+                    _outcome_badge(status),
+                    state_badge,
+                    style="display: flex; align-items: center; gap: 0.5rem;",
+                ),
+                P(
+                    item["reason"],
+                    style=(
+                        "color: var(--text-muted); font-style: italic;"
+                        " font-size: 0.9rem;"
+                    ),
+                )
+                if item["reason"]
+                else "",
+                P(
+                    (item["summary"] or "").replace("\n", " ")[:160],
+                    style=("color: var(--text-muted); font-size: 0.85rem;"),
+                )
+                if item["summary"]
+                else "",
+                cls="card",
+            )
+        )
+
+    return Main(
+        _nav(),
+        H1("Review batch"),
+        P(
+            f"{len(items)} sessions suggested, {remaining} left to "
+            "annotate. Annotated sessions sink to the bottom; each "
+            "trial page has a next-in-batch link.",
+            style="color: var(--text-muted);",
+        ),
+        *cards,
+    )
+
+
+@rt("/api/batch")
+async def get():  # noqa: F811
+    """The current review batch with per-session details (JSON)."""
+    runs = load_runs()
+    return JSONResponse({"batch": batch_items(load_batch(), runs)})
+
+
+@rt("/api/batch", methods=["post"])
+async def post(request: Request) -> JSONResponse:  # noqa: F811
+    """Replace the review batch with the agent's latest suggestion.
+
+    Body: {'batch': [{run, task_id, trial, reason}]}. Entries
+    without a resolvable run/trial are dropped when the view is
+    built. The wrapper dict (rather than a bare list) matches the
+    GET response shape and FastHTML's JSON form handling.
+    """
+    body = await request.json()
+    batch = body.get("batch") if isinstance(body, dict) else None
+    save_batch(batch if isinstance(batch, list) else [])
+    runs = load_runs()
+    return JSONResponse({"batch": batch_items(load_batch(), runs)})
 
 
 if __name__ == "__main__":
