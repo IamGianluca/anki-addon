@@ -23,6 +23,12 @@ import sys
 import textwrap
 from pathlib import Path
 
+from tests.evals.formatting import (
+    FormattingViolation,
+    check_formatting,
+    written_fields_from_record,
+)
+
 RESULTS_ROOT = Path(__file__).parent / "results"
 SCORES_FILE = Path(__file__).parent / "scores.md"
 
@@ -94,6 +100,8 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
         _print_task(out, color, with_reasons, task_id, trials, n_passed)
         print(file=out)
 
+    _print_formatting(out, color, records)
+
     score_line = ""
     if mean_scores:
         score_line = f", mean score {sum(mean_scores) / len(mean_scores):.0%}"
@@ -102,6 +110,46 @@ def _emit(records: list[dict], out: io.TextIOBase, with_reasons: bool) -> None:
         f"{score_line}",
         file=out,
     )
+
+
+def _print_formatting(
+    out: io.TextIOBase, color: bool, records: list[dict]
+) -> None:
+    """Standing house-style violations, aggregated across all trials.
+
+    Re-derived from each record's change set (not from per-trial
+    stats), so historical runs — eval records and production traces
+    alike, which share the record shape — can be audited with the
+    same code path.
+    """
+    violations: list[tuple[dict, FormattingViolation]] = []
+    for record in records:
+        for violation in check_formatting(written_fields_from_record(record)):
+            violations.append((record, violation))
+    if not violations:
+        print(
+            f"formatting: {_marker(True, color)} no violations "
+            f"across {len(records)} trials",
+            file=out,
+        )
+        return
+    by_rule: dict[str, int] = {}
+    for _, violation in violations:
+        by_rule[violation.rule] = by_rule.get(violation.rule, 0) + 1
+    counts = ", ".join(f"{rule}: {n}" for rule, n in sorted(by_rule.items()))
+    print(
+        f"formatting: {_marker(False, color)} {len(violations)} violation(s) "
+        f"across {len(records)} trials ({counts})",
+        file=out,
+    )
+    for record, violation in violations:
+        task_id = record.get("task_id", "?")
+        trial = record.get("trial", "?")
+        print(
+            f"  {task_id:<28} trial {trial}: "
+            f"{violation.rule} [{violation.field}] {violation.snippet}",
+            file=out,
+        )
 
 
 def _print_task(

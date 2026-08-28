@@ -9,14 +9,14 @@
     {
       "id": 1,
       "front": "What are beta_1 and beta_2 in Adam, and what are their typical values?",
-      "back": "beta_1: decay rate of the first moment estimate, typically 0.9. beta_2: decay rate of the second moment estimate, typically 0.999.",
+      "back": "beta_1: decay rate of the first moment estimate, typically 0.9. beta_2: decay rate of the second moment estimate, typically 0.999",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     },
     {
       "id": 2,
       "front": "In Adam, what is the typical learning rate?",
-      "back": "0.001.",
+      "back": "0.001",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     }
@@ -37,14 +37,14 @@
       "type": "edit",
       "note_id": 1,
       "front": "In Adam, what does beta_1 control?",
-      "back": "Decay rate of the first moment estimate.",
+      "back": "Decay rate of the first moment estimate",
       "tags": ["ml", "optimizers"],
       "rationale": "keep the beta_1 role on the original note"
     },
     {
       "type": "create",
       "front": "In Adam, what is the typical value of beta_1?",
-      "back": "0.9.",
+      "back": "0.9",
       "tags": ["ml", "optimizers"],
       "notetype": "basic",
       "rationale": "the typical value is a separate memory from the role"
@@ -52,7 +52,7 @@
     {
       "type": "create",
       "front": "In Adam, what does beta_2 control?",
-      "back": "Decay rate of the second moment estimate.",
+      "back": "Decay rate of the second moment estimate",
       "tags": ["ml", "optimizers"],
       "notetype": "basic",
       "rationale": "the beta_2 role becomes its own note"
@@ -60,7 +60,7 @@
     {
       "type": "create",
       "front": "In Adam, what is the typical value of beta_2?",
-      "back": "0.999.",
+      "back": "0.999",
       "tags": ["ml", "optimizers"],
       "notetype": "basic",
       "rationale": "the typical value is a separate memory from the role"

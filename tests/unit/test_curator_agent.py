@@ -379,11 +379,7 @@ def test_review_changeset_reviews_untouched_cluster_notes(
 ) -> None:
     # Given: the agent passes an untouched note to the atomicity review
     atomicity_review_response = json.dumps(
-        {
-            "verdicts": [
-                {"note_id": 2, "atomic": True, "reason": "one fact."}
-            ]
-        }
+        {"verdicts": [{"note_id": 2, "atomic": True, "reason": "one fact."}]}
     )
     responses = [
         _step({"action": "review_changeset", "note_ids": [2]}),

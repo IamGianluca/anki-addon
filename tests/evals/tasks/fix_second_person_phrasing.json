@@ -9,14 +9,14 @@
     {
       "id": 1,
       "front": "How do you find the minimum of a convex function?",
-      "back": "Set the gradient to zero.",
+      "back": "Set the gradient to zero",
       "tags": ["math", "optimization"],
       "notetype": "basic"
     },
     {
       "id": 2,
       "front": "In math, what is a convex set?",
-      "back": "A set where the line segment between any two points lies inside the set.",
+      "back": "A set where the line segment between any two points lies inside the set",
       "tags": ["math"],
       "notetype": "basic"
     }
@@ -38,7 +38,7 @@
       "type": "edit",
       "note_id": 1,
       "front": "In convex optimization, how is the minimum of a convex function found?",
-      "back": "Set the gradient to zero.",
+      "back": "Set the gradient to zero",
       "tags": ["math", "optimization"],
       "rationale": "reformulate the question in the neutral house-style form; the tested fact and the back are unchanged"
     }

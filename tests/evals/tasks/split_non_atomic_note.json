@@ -9,14 +9,14 @@
     {
       "id": 1,
       "front": "What do len() and range() do in Python?",
-      "back": "len() returns the number of items in an object. range() generates a sequence of integers.",
+      "back": "len() returns the number of items in an object. range() generates a sequence of integers",
       "tags": ["python", "builtins"],
       "notetype": "basic"
     },
     {
       "id": 2,
       "front": "In Python, what does enumerate() return?",
-      "back": "An iterator of (index, item) pairs.",
+      "back": "An iterator of (index, item) pairs",
       "tags": ["python", "builtins"],
       "notetype": "basic"
     }
@@ -37,14 +37,14 @@
       "type": "edit",
       "note_id": 1,
       "front": "In Python, what does len() do?",
-      "back": "Returns the number of items in an object.",
+      "back": "Returns the number of items in an object",
       "tags": ["python", "builtins"],
       "rationale": "keep the len() fact on the original note"
     },
     {
       "type": "create",
       "front": "In Python, what does range() do?",
-      "back": "Generates a sequence of integers.",
+      "back": "Generates a sequence of integers",
       "tags": ["python", "builtins"],
       "notetype": "basic",
       "rationale": "range() is a separate fact that deserves its own card"

@@ -9,6 +9,9 @@ Three families, in order of preference:
   conversation (did the agent finish, did it read notes before
   proposing changes to them). Rule adherence, not solution shape:
   nothing here prescribes which actions a correct run must take.
+- grade_formatting: standing house-style checks on what the agent
+  proposes to write, recorded as stats — they are their own signal
+  and must not change task pass/fail.
 - grade_by_judge: one LLM call per task assertion, with an explicit
   "unknown" verdict so the judge never has to guess.
 
@@ -24,6 +27,8 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from tests.evals.formatting import check_formatting, written_fields
 
 from addon.domain.entities.note import AddonNoteType
 from addon.domain.entities.proposals import (
@@ -125,8 +130,31 @@ def grade_trial(
     """Grade one trial with all applicable grader families."""
     result = grade_outcome(task, list(outcome.session.change_set))
     result.merge(grade_transcript(task, outcome.session))
+    result.merge(grade_formatting(list(outcome.session.change_set)))
     if judge_client is not None:
         result.merge(grade_by_judge(task, outcome.session, judge_client))
+    return result
+
+
+def grade_formatting(proposals: list[Proposal]) -> GradeResult:
+    """Standing house-style checks on the notes a change set writes.
+
+    Deliberately stats-only: formatting is its own signal, reported
+    across all trials, and must not change a task's pass/fail.
+    """
+    result = GradeResult()
+    violations = check_formatting(written_fields(proposals))
+    result.stats["formatting_violations"] = len(violations)
+    if violations:
+        result.stats["formatting_violation_details"] = [
+            {
+                "rule": v.rule,
+                "note_id": v.note_id,
+                "field": v.field,
+                "snippet": v.snippet,
+            }
+            for v in violations
+        ]
     return result
 
 

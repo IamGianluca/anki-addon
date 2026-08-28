@@ -9,21 +9,21 @@
     {
       "id": 1,
       "front": "In Adam, what does beta_1 control?",
-      "back": "Decay rate of the first moment estimate.",
+      "back": "Decay rate of the first moment estimate",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     },
     {
       "id": 2,
       "front": "In Adam, what does beta_2 control?",
-      "back": "Decay rate of the second moment estimate.",
+      "back": "Decay rate of the second moment estimate",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     },
     {
       "id": 3,
       "front": "In Adam, what is the typical learning rate?",
-      "back": "0.001.",
+      "back": "0.001",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     }

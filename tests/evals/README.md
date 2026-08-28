@@ -160,6 +160,33 @@ It proves the task is solvable and the graders are wired correctly; a
 0% pass rate on a task whose reference validates usually means a hard
 task, but re-read the spec before blaming the model.
 
+### Standing house-style checks
+
+Formatting rules stated in the agent's system prompt apply to **every**
+task, so they are checked cross-cuttingly rather than per task:
+
+- Every trial's grade records `formatting_violations` (and per-violation
+  details: rule, field, note id, snippet) in its `stats` — they never
+  change task pass/fail, they are their own signal.
+- `summarize.py` always prints a formatting section (per-run violation
+  count, per-rule totals, and one line per violating trial), computed
+  from the records' change sets — so **historical** runs and production
+  traces audit with the same code path, no need to re-run anything.
+
+```text
+formatting: ✗ 17 violation(s) across 18 trials (no_trailing_period: 17)
+  split_compound_note_1        trial 0: no_trailing_period [back] …estimate.
+```
+
+Rules live in `tests/evals/formatting.py`, one function per rule, and
+apply to every field of the notes a change set writes — edited and
+created alike, with **no pass-through exemption**: the agent is
+responsible for the final text of every card it touches, and under
+the rule a trailing full stop is itself a defect. **Reference
+solutions must respect the same rules** — `test_task_files.py` checks
+it, because a reference that violates a standing rule contradicts the
+system prompt.
+
 ## Production traces: the human as grader
 
 The addon writes one JSON trace per curation session to

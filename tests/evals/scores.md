@@ -1,8 +1,8 @@
 # Eval scores
 
-run: 20260828T032559Z
+run: 20260829T023226Z
 model: unsloth/Qwen3.8-27B-GGUF:Q4_K_XL
-elapsed: 16m 12s
+elapsed: 16m 7s
 
 ✓ adam_duplicate_merge_1       pass@1 100%  pass^3 100%  (3/3 trials)  score 100%
 
@@ -16,4 +16,5 @@ elapsed: 16m 12s
 
 ✓ split_non_atomic_note_1      pass@1 100%  pass^3 100%  (3/3 trials)  score 100%
 
+formatting: ✓ no violations across 18 trials
 summary: mean pass^k 100%, mean score 100%

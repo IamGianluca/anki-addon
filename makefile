@@ -65,12 +65,12 @@ eval_regression:
 # Summarize the latest eval run; for an older one:
 # make eval_summary RESULTS=tests/evals/results/<timestamp>
 eval_summary:
-	uv run python tests/evals/summarize.py $(RESULTS)
+	uv run python -m tests.evals.summarize $(RESULTS)
 
 # Snapshot the latest run's scores into the tracked, diff-friendly
 # tests/evals/scores.md — commit it with the change it measures.
 eval_snapshot:
-	uv run python tests/evals/summarize.py --write
+	uv run python -m tests.evals.summarize --write
 
 # Web viewer for eval results: http://127.0.0.1:5000
 eval_viewer:

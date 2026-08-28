@@ -72,9 +72,7 @@ class ProposedChangeSet:
     def add_create(self, proposal: CreateProposal) -> None:
         self._proposals.append(proposal)
 
-    def replace_create(
-        self, old: CreateProposal, new: CreateProposal
-    ) -> None:
+    def replace_create(self, old: CreateProposal, new: CreateProposal) -> None:
         """Replace a pending create proposal with a revised one,
         keeping its position in the change set."""
         self._proposals = [new if p is old else p for p in self._proposals]

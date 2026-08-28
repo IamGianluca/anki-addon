@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from tests.evals.formatting import check_formatting, written_fields
 from tests.evals.graders import grade_outcome
 from tests.evals.harness import (
     TASKS_DIR,
@@ -58,3 +59,22 @@ def test_reference_solution_passes_outcome_graders(
 
     # Then
     assert result.passed, result.failures
+
+
+@pytest.mark.parametrize("task_path", _TASK_FILES, ids=_TASK_IDS)
+def test_reference_solution_respects_formatting_rules(
+    task_path: Path,
+) -> None:
+    """Reference solutions are known-good agent output, so they must
+    obey the same standing house-style rules the agent must obey."""
+    # Given
+    task = load_task(task_path)
+    proposals = build_reference_proposals(task)
+
+    # When
+    violations = check_formatting(written_fields(proposals))
+
+    # Then
+    assert not violations, [
+        f"{v.rule} [{v.field}] {v.snippet}" for v in violations
+    ]

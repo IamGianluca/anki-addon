@@ -86,22 +86,22 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 
     Compound: "What are Python list, dict, and set, and their lookup
     complexity?"
-      list: ordered sequence, O(1) by index.
-      dict: key-value mapping, O(1) by key.
-      set: unordered collection, O(1) by membership.
+      list: ordered sequence, O(1) by index
+      dict: key-value mapping, O(1) by key
+      set: unordered collection, O(1) by membership
 
     Wrong split (3 notes, grouped by type):
-      1. What is a Python list? Ordered sequence; O(1) lookup by index.
-      2. What is a Python dict? Key-value mapping; O(1) lookup by key.
-      3. What is a Python set? Unordered collection; O(1) by membership.
+      1. What is a Python list? Ordered sequence; O(1) lookup by index
+      2. What is a Python dict? Key-value mapping; O(1) lookup by key
+      3. What is a Python set? Unordered collection; O(1) by membership
 
     Correct split (6 notes, one fact each):
-      1. What is a Python list? — An ordered sequence.
-      2. What is the lookup complexity of a Python list by index? — O(1).
-      3. What is a Python dict? — A key-value mapping.
-      4. What is the lookup complexity of a Python dict by key? — O(1).
-      5. What is a Python set? — An unordered collection.
-      6. What is the membership test complexity of a Python set? — O(1).
+      1. What is a Python list? — An ordered sequence
+      2. What is the lookup complexity of a Python list by index? — O(1)
+      3. What is a Python dict? — A key-value mapping
+      4. What is the lookup complexity of a Python dict by key? — O(1)
+      5. What is a Python set? — An unordered collection
+      6. What is the membership test complexity of a Python set? — O(1)
 
     The front asks one precise question; the back is the shortest
     complete answer.
@@ -129,6 +129,8 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 # Ideal format for each note
 
 Front: one precise question, in house style: a neutral, third-person formulation, always prefixed with "In <domain>, ..." (the domain inferred from the tags and the question) — never second person ("How do you find ...?") and never without the prefix ("How is ... found?" alone is not the form). Back: the shortest complete answer — one fact, nothing more.
+
+The last sentence of the Back or Extra fields never ends with a full stop; periods inside earlier sentences are fine.
 
 House style rewrites second-person questions when a change is warranted:
 
