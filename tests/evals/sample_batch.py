@@ -66,13 +66,27 @@ def load_annotated(traces_dir: Path) -> tuple[set[str], set[str]]:
     return names, note_ids
 
 
+def _step_count(record: dict) -> int:
+    """Agent turns, not transcript length: production traces record
+    the assistant-message count in stats.steps, and the raw transcript
+    also carries the system prompt, the seed message, and one user
+    message per tool result. Older records without stats fall back to
+    counting assistant messages directly."""
+    stats = record.get("stats") or {}
+    if "steps" in stats:
+        return int(stats["steps"])
+    return sum(
+        1 for m in record.get("transcript", []) if m.get("role") == "assistant"
+    )
+
+
 def _informativeness(record: dict) -> tuple:
     """Rank runs of the same note: changes beat steps beat staleness."""
     changes = record.get("change_set", [])
     return (
         len(changes) > 0,  # runs that proposed something rank first
         len(changes),  # more proposals first
-        len(record.get("transcript", [])),  # then deeper sessions
+        _step_count(record),  # then deeper sessions
     )
 
 
@@ -144,7 +158,7 @@ def reason_for(record: dict) -> str:
     parts = [f"{record.get('outcome', {}).get('status', '?')}"]
     if changes:
         parts.append(f"{len(changes)} {kinds} proposal(s)")
-    parts.append(f"{len(record.get('transcript', []))} steps")
+    parts.append(f"{_step_count(record)} steps")
     return "; ".join(parts)
 
 
