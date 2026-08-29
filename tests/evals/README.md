@@ -122,6 +122,13 @@ One JSON file per task in `tasks/`. See the existing files for examples.
   notes (edited and created ones only, matched like `facts`). Enforces
   wording constraints deterministically, e.g.
   `["you", "i", "we"]` for person-neutral phrasing.
+- `no_dollar_math` — the proposed notes must not contain the `$`
+  character at all (Anki's MathJax renders `$`/`$$` math
+  inconsistently — mangled spacing, mixed symbol sizes — so a bare
+  `$` is a math-delimiter defect). Clusters that opt in must
+  not contain legitimate dollar amounts, since the check treats any
+  `$` as the defect. Kept out of `must_not_contain` because the
+  word-boundary matcher cannot see a `$` glued to word characters.
 - `read_before_propose` (default true) — every edit/split/delete of a
   note other than the seed must be preceded by reading it. Enforces a
   rule from the agent's own system prompt; the seed is exempt because

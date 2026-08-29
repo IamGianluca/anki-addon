@@ -67,6 +67,10 @@ class Expectation(BaseModel):
     must_not_contain are words that must not appear in the proposed
     notes (edited and created ones only — the agent is only
     responsible for what it writes), matched the same way.
+    no_dollar_math requires the proposed notes to contain no '$'
+    character at all — the word-boundary machinery above cannot see
+    a $ glued to word characters — so clusters that opt in must not
+    contain legitimate dollar amounts.
     """
 
     finish: bool = True
@@ -78,6 +82,7 @@ class Expectation(BaseModel):
     must_not_touch: list[int] = []
     facts: list[str] = []
     must_not_contain: list[str] = []
+    no_dollar_math: bool = False
     read_before_propose: bool = True
 
 

@@ -55,6 +55,7 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 
 - the note is factually wrong, outdated, or genuinely confusing
 - the question is not in house style: every front must be a neutral, third-person question prefixed with "In <domain>, ...". Second-person phrasing such as "How do you scale a Docker container?" is a defect; so is a front without the prefix. The house-style form is "In Docker, how is a container scaled?"
+- math is delimited with $ or $$: house style is \(...\) for inline math and \[...\] for block equations; $...$ and $$...$$ are a defect. MathJax does render them, but never reliably — spacing between symbols gets mangled and symbol sizes vary across the card. A note that carries them is defective even if everything else about it is fine: propose an edit that converts the delimiters and changes nothing else — $...$ becomes \(...\) and $$...$$ becomes \[...\], keeping the formula's inline or block mode.
 - the note tests more than one idea — split it
 - two notes ask the same question — resolve the overlap with edits, not creates or deletes: (1) keep the note that needs no changes — it already asks the shared question well and answers it atomically — exactly as it is; do not reword it, even lightly; (2) repurpose the other into an atomic card for the content **only it** carries, preserving its review history. Only when the two notes are interchangeable as they stand, before any edits — neither carries anything the other lacks — may you treat them as true duplicates and propose_delete the weaker one.
 
@@ -117,7 +118,7 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y").
 - Redundancy is not duplication: notes may overlap and reinforce each other. Act only when two notes ask the same question — shared facts alone are fine.
-- Preserve what works: the user's voice and formatting conventions (HTML tags, math, code blocks), their examples, images, and personal anchors. Keep existing sources and date stamps; date-stamp claims that age ("as of 2025"). Never invent examples or sources. Front and back are raw HTML, as stored in Anki.
+- Preserve what works: the user's voice and formatting conventions (HTML tags, correct math delimiters, code blocks), their examples, images, and personal anchors. Keep existing sources and date stamps; date-stamp claims that age ("as of 2025"). Never invent examples or sources. Front and back are raw HTML, as stored in Anki.
 
 # Rules
 
@@ -131,6 +132,8 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 Front: one precise question, in house style: a neutral, third-person formulation, always prefixed with "In <domain>, ..." (the domain inferred from the tags and the question) — never second person ("How do you find ...?") and never without the prefix ("How is ... found?" alone is not the form). Back: the shortest complete answer — one fact, nothing more.
 
 The last sentence of the Back or Extra fields never ends with a full stop; periods inside earlier sentences are fine.
+
+Math is written in Anki's LaTeX form: \(...\) for inline math and \[...\] for block equations — never $...$ or $$...$$, which MathJax renders with mangled spacing and inconsistent symbol sizes. Converting an existing note's delimiters keeps the formula's mode: $...$ becomes \(...\), $$...$$ becomes \[...\]. When writing a formula from scratch, choose by its role on the card: a formula that flows as part of a sentence is inline ("the roots are \(x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}\)"), a formula that stands alone — the whole answer, or an equation displayed on its own line — is block: \[\frac{d}{dx}\left(\frac{u}{v}\right) = \frac{u'v - uv'}{v^2}\].
 
 House style rewrites second-person questions when a change is warranted:
 

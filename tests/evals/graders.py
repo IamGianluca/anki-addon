@@ -236,6 +236,9 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
         else:
             result.add_check(name=f"must_not_contain_{banned}", verdict="pass")
 
+    if expect.no_dollar_math:
+        _check_no_dollar_math(result, proposals)
+
     for proposal in edits:
         if (
             proposal.before.notetype == AddonNoteType.CLOZE
@@ -249,6 +252,42 @@ def grade_outcome(task: EvalTask, proposals: list[Proposal]) -> GradeResult:
                 "cloze markup from the front",
             )
     return result
+
+
+def _check_no_dollar_math(
+    result: GradeResult, proposals: list[Proposal]
+) -> None:
+    """Proposed notes must not use the $ character as a math delimiter.
+
+    Anki's MathJax renders $/$$ math inconsistently — mangled
+    spacing, mixed symbol sizes — so a bare $ in a note is the
+    defect. The word-boundary matching of
+    must_not_contain cannot see a $ glued to word characters
+    ("$x^2$" carries no standalone "$"), so this is its own check.
+    Like must_not_contain it inspects only the notes the agent
+    proposes to write — pre-existing notes are not its
+    responsibility.
+    """
+    offenders: list[str] = []
+    for proposal in proposals:
+        if isinstance(proposal, EditProposal):
+            note, label = proposal.after, f"note {proposal.note_id}"
+        elif isinstance(proposal, CreateProposal):
+            note, label = proposal.note, "a created note"
+        else:
+            continue
+        text = _plain(note.front, note.back, note.extra_fields)
+        if "$" not in text:
+            continue
+        idx = text.index("$")
+        snippet = text[max(0, idx - 20) : idx + 40]
+        offenders.append(f"{label} uses $ math delimiters: …{snippet}…")
+    if offenders:
+        result.add_check(
+            name="no_dollar_math", verdict="fail", reason="; ".join(offenders)
+        )
+    else:
+        result.add_check(name="no_dollar_math", verdict="pass")
 
 
 def grade_transcript(task: EvalTask, session: CurationSession) -> GradeResult:

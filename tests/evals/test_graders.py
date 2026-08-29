@@ -14,6 +14,7 @@ from tests.evals.harness import EvalTask, Expectation, TaskNote
 from addon.application.services.curator_agent import CurationSession
 from addon.domain.entities.note import AddonNote
 from addon.domain.entities.proposals import (
+    CreateProposal,
     EditProposal,
     ProposedChangeSet,
 )
@@ -136,6 +137,95 @@ def test_banned_word_in_unchanged_note_is_ignored():
     # Then the ban passes — the agent is not responsible for
     # pre-existing note content
     assert _verdict_banned(result, "you") == "pass"
+
+
+def test_unchanged_note_with_dollar_math_passes():
+    # Given a seed note that uses $ math while the agent proposes nothing
+    # When it is graded with no_dollar_math
+    task = EvalTask(
+        id="dollar_math",
+        desc="no-dollar-math semantics",
+        seed_note_id=1,
+        notes=[TaskNote(id=1, front="Q?", back="$x^2$")],
+        expect=Expectation(no_dollar_math=True),
+    )
+    result = grade_outcome(task, [])
+
+    # Then the check passes — the agent is not responsible for
+    # pre-existing note content
+    assert _no_dollar_verdict(result) == "pass"
+
+
+def test_dollar_math_in_edited_note_fails():
+    # Given an edit that keeps the $ inline math delimiter
+    proposals = [_edit_proposal("What?", "$x^2$")]
+
+    # When the edit is graded with no_dollar_math
+    task = EvalTask(
+        id="dollar_math",
+        desc="no-dollar-math semantics",
+        seed_note_id=1,
+        notes=[TaskNote(id=1, front="Q?", back="A")],
+        expect=Expectation(no_dollar_math=True),
+    )
+    result = grade_outcome(task, proposals)
+
+    # Then the check fails with the offending note in the reason
+    assert _no_dollar_verdict(result) == "fail"
+    assert "note 1" in _no_dollar_reason(result)
+
+
+def test_dollar_math_in_created_note_fails():
+    # Given a create proposal that writes block math with $$ (the
+    # unchanged seed notes carry no $ of their own)
+    proposals = [
+        CreateProposal(
+            AddonNote(front="Q?", back="$$\\frac{d}{dx} x^2 = 2x$$"),
+            "r",
+        )
+    ]
+
+    # When the create is graded with no_dollar_math
+    task = EvalTask(
+        id="dollar_math",
+        desc="no-dollar-math semantics",
+        seed_note_id=1,
+        notes=[TaskNote(id=1, front="Q?", back="A")],
+        expect=Expectation(no_dollar_math=True),
+    )
+    result = grade_outcome(task, proposals)
+
+    # Then the check fails
+    assert _no_dollar_verdict(result) == "fail"
+
+
+def test_anki_math_delimiters_pass():
+    # Given an edit that rewrites math with the Anki delimiters
+    proposals = [
+        _edit_proposal("What?", "\\sin(2x) = 2 \\sin x \\cos x"),
+        _edit_proposal("What?", "\\[\\frac{d}{dx} x^2 = 2x\\]"),
+    ]
+
+    # When it is graded with no_dollar_math
+    task = EvalTask(
+        id="dollar_math",
+        desc="no-dollar-math semantics",
+        seed_note_id=1,
+        notes=[TaskNote(id=1, front="Q?", back="A")],
+        expect=Expectation(no_dollar_math=True),
+    )
+    result = grade_outcome(task, proposals)
+
+    # Then the check passes — \(...\) and \[...\] are the correct forms
+    assert _no_dollar_verdict(result) == "pass"
+
+
+def _no_dollar_verdict(result: GradeResult) -> str:
+    return next(c for c in result.checks if c.name == "no_dollar_math").verdict
+
+
+def _no_dollar_reason(result: GradeResult) -> str:
+    return next(c for c in result.checks if c.name == "no_dollar_math").reason
 
 
 def _grade_transcript(
