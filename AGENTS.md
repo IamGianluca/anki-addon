@@ -33,6 +33,30 @@ uv run pytest tests/unit/test_format_notes.py::test_function_name
 uv run pytest -k "test_name_pattern"
 ```
 
+## Trace Review Workflow
+
+The add-on writes one trace per curation session to
+traces/<stamp>/note_<seed_id>.trial0.json. Production traces are the
+best source for new eval tasks — mine rejected/cancelled sessions
+for failure modes and encode them as capability tasks.
+
+```bash
+uv run python -m tests.evals.viewer --dir traces   # http://localhost:5000
+uv run python tests/evals/sample_batch.py          # fresh review batch
+```
+
+The viewer's Review batch page is the review queue: trial pages
+have a save-and-advance form (annotations persist to
+traces/<stamp>/annotations.json), the Failure modes page aggregates
+the taxonomy, and `sample_batch.py` picks a fresh batch that
+excludes already-annotated records and mixes outcome statuses.
+The agent can push a hand-picked batch via `POST /api/batch` with
+{"batch": [{run, task_id, trial, reason}]}. Full details in
+tests/evals/README.md under "Production traces".
+
+Commit the sampler (`tests/evals/sample_batch.py`) together with
+changes to the workflow, not with markdown/formatting edits.
+
 ## Test Time Baselines
 
 **Never update test time baselines** after making code changes. If a timing test fails because the baseline is off, note the failure but do not adjust the baseline values. The baselines are intentional constraints, not targets to chase.

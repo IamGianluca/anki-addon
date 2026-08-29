@@ -220,11 +220,12 @@ next to the traces. The label field suggests labels already used,
 so a consistent failure-mode taxonomy builds itself — when the same
 label shows up on many sessions, turn it into an eval task.
 
-The **Progress page** (link in the top bar) is where that taxonomy
-surfaces: it shows review coverage per run (annotated / total) and
-every failure mode grouped by label, with counts, the recorded
-notes, and links back into the sessions. Agents working the loop
-can read and update the mode descriptions through the JSON API:
+The **Progress page** (link in the top bar) shows review coverage
+per run (annotated / total). The **Failure modes page** is where the
+taxonomy itself surfaces: every failure mode grouped by label, with
+counts, the recorded notes, and links back into the sessions.
+Agents working the loop can read and update the mode descriptions
+through the JSON API:
 
 ```bash
 curl -s http://127.0.0.1:5000/api/patterns                      # modes + coverage
@@ -246,6 +247,29 @@ running the loop pushes the current batch via `POST /api/batch` with
 a `{'batch': [{run, task_id, trial, reason}]}` body and reads it
 back from `GET /api/batch`; stale or duplicate entries are dropped
 when the view is built.
+
+Start a fresh batch from the production traces with the sampler:
+
+```bash
+uv run python tests/evals/sample_batch.py          # 20 sessions
+uv run python tests/evals/sample_batch.py --size 30 --seed 7
+```
+
+It excludes every record that already has an annotation (by file
+name or note id, across all runs), keeps one run per note — the
+most informative (proposed changes over none, more changes, more
+steps) — and round-robins across outcome statuses so each batch
+mixes applied, rejected, no_changes, cancelled, and failed
+sessions. It writes `traces/batch.json` and POSTs the batch to the
+viewer; `--no-post` writes the file only, `--host` points at a
+viewer in a different location. Reasons are generated from each
+record's facts (outcome, proposals, steps) — hand-refine them when
+a choice needs domain context.
+
+On each trial page, **Save and move to next** saves the annotation
+and redirects to the next unannotated batch entry; **Skip and move
+to next** advances without saving. Annotated entries sink to the
+bottom of the batch page so the unannotated remainder stays on top.
 
 Eval trial pages have the same annotation form, useful for marking
 unfair failures while reading transcripts.
