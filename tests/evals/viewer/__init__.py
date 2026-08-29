@@ -500,6 +500,9 @@ a:hover { text-decoration: underline; }
     color: #fff !important;
     border-radius: 6px;
     font-weight: 600;
+    border: none;
+    font: inherit;
+    cursor: pointer;
 }
 .btn:hover { text-decoration: none; opacity: 0.9; }
 
@@ -712,6 +715,8 @@ def _nav() -> Header:
         A("Batch", href="/batch"),
         Span("  |  ", style="margin: 0 0.5rem;"),
         A("Progress", href="/progress"),
+        Span("  |  ", style="margin: 0 0.5rem;"),
+        A("Failure modes", href="/modes"),
         Span("  |  ", style="margin: 0 0.5rem;"),
         Span(
             f"Results: {_results_dir().name}",
@@ -1121,9 +1126,12 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
                             type="submit",
                             name="advance",
                             value="1",
+                            cls="btn",
                         )
                         if next_item
-                        else Button("Save annotation", type="submit")
+                        else Button(
+                            "Save annotation", type="submit", cls="btn"
+                        )
                     ),
                     (
                         A(
@@ -1362,12 +1370,9 @@ async def post(  # noqa: F811
 
 @rt("/progress")
 async def get():  # noqa: F811
-    """Review progress: coverage stats and failure modes grouped by
-    annotation label, each with its records and the agent's
-    description of the mode (if the taxonomy has one)."""
+    """Review progress: annotation coverage per run. Failure modes
+    live on their own tab (/modes)."""
     runs = load_runs()
-    modes = failure_modes(runs)
-    stored = load_patterns()
     cov = coverage(runs)
 
     percent = f"{cov['annotated'] / cov['total']:.0%}" if cov["total"] else "—"
@@ -1412,19 +1417,16 @@ async def get():  # noqa: F811
         cls="card",
     )
 
-    if not modes:
-        return Main(
-            _nav(),
-            H1("Progress"),
-            coverage_card,
-            H2("Failure modes"),
-            P(
-                "No annotations yet. Open a trial, save a label and "
-                "note, and it will show up here grouped by label."
-            ),
-        )
+    return Main(_nav(), H1("Progress"), coverage_card)
 
-    mode_cards = []
+
+def _failure_mode_cards(
+    modes: dict[str, dict[str, Any]], stored: dict[str, dict[str, str]]
+) -> list[Section]:
+    """Cards grouping annotated records by failure-mode label, each
+    with the agent's description of the mode (if patterns.json has
+    one)."""
+    cards = []
     for label, mode in modes.items():
         description = stored.get(label, {}).get("description", "")
         record_items = []
@@ -1457,7 +1459,7 @@ async def get():  # noqa: F811
                     else "",
                 )
             )
-        mode_cards.append(
+        cards.append(
             Section(
                 Div(
                     H3(label),
@@ -1477,13 +1479,28 @@ async def get():  # noqa: F811
                 cls="card",
             )
         )
+    return cards
 
+
+@rt("/modes")
+async def get():  # noqa: F811
+    """Failure modes grouped by annotation label, each with its
+    records and the agent's description of the mode (if the taxonomy
+    has one)."""
+    runs = load_runs()
+    modes = failure_modes(runs)
+    stored = load_patterns()
+    if not modes:
+        return Main(
+            _nav(),
+            H1("Failure modes"),
+            P(
+                "No annotations yet. Open a trial, save a label and "
+                "note, and it will show up here grouped by label."
+            ),
+        )
     return Main(
-        _nav(),
-        H1("Progress"),
-        coverage_card,
-        H2("Failure modes"),
-        *mode_cards,
+        _nav(), H1("Failure modes"), *_failure_mode_cards(modes, stored)
     )
 
 
