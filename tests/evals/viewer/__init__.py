@@ -1114,25 +1114,34 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
                     rows=4,
                     style="width: 100%; margin-bottom: 0.5rem;",
                 ),
-                Button("Save annotation", type="submit"),
+                Div(
+                    (
+                        Button(
+                            "Save and move to next",
+                            type="submit",
+                            name="advance",
+                            value="1",
+                        )
+                        if next_item
+                        else Button("Save annotation", type="submit")
+                    ),
+                    (
+                        A(
+                            "Skip and move to next",
+                            href=(
+                                f"/trial/{next_item['run']}/"
+                                f"{next_item['task_id']}/{next_item['trial']}"
+                            ),
+                            cls="btn",
+                        )
+                        if next_item
+                        else ""
+                    ),
+                    style="display: flex; align-items: center; gap: 0.5rem;",
+                ),
             ),
             method="post",
             action=f"/annotate/{stamp}/{task_id}/{trial_idx}",
-        ),
-        (
-            Div(
-                A(
-                    f"Next in batch → {next_item['task_id']}",
-                    href=(
-                        f"/trial/{next_item['run']}/"
-                        f"{next_item['task_id']}/{next_item['trial']}"
-                    ),
-                    cls="btn",
-                ),
-                style="margin-top: 0.75rem;",
-            )
-            if next_item
-            else ""
         ),
         cls="card",
     )
@@ -1314,9 +1323,20 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
 
 @rt("/annotate/{stamp}/{task_id}/{trial_idx}", methods=["post"])
 async def post(  # noqa: F811
-    stamp: str, task_id: str, trial_idx: int, label: str = "", note: str = ""
+    stamp: str,
+    task_id: str,
+    trial_idx: int,
+    label: str = "",
+    note: str = "",
+    advance: str = "",
 ) -> RedirectResponse:
-    """Save an annotation for one record; redirect back to its page."""
+    """Save an annotation for one record.
+
+    With the form's advance field set, redirect to the next
+    unannotated batch entry instead of back to the same page — the
+    "save and move to next" review flow. Falls back to the same page
+    when the batch has nowhere left to go.
+    """
     ann_path = _results_dir() / stamp / "annotations.json"
     annotations = json.loads(ann_path.read_text()) if ann_path.exists() else {}
     annotations[f"{task_id}.trial{trial_idx}.json"] = {
@@ -1327,6 +1347,14 @@ async def post(  # noqa: F811
     ann_path.write_text(
         json.dumps(annotations, indent=2, ensure_ascii=False) + "\n"
     )
+    if advance:
+        runs = load_runs()
+        nxt = next_batch_item(load_batch(), stamp, task_id, trial_idx, runs)
+        if nxt is not None:
+            return RedirectResponse(
+                f"/trial/{nxt['run']}/{nxt['task_id']}/{nxt['trial']}",
+                status_code=303,
+            )
     return RedirectResponse(
         f"/trial/{stamp}/{task_id}/{trial_idx}", status_code=303
     )
@@ -1551,8 +1579,9 @@ async def get():  # noqa: F811
         H1("Review batch"),
         P(
             f"{len(items)} sessions suggested, {remaining} left to "
-            "annotate. Annotated sessions sink to the bottom; each "
-            "trial page has a next-in-batch link.",
+            "annotate. Annotated sessions sink to the bottom; on each "
+            "trial page, save-and-next or skip-and-next advances "
+            "through the batch.",
             style="color: var(--text-muted);",
         ),
         *cards,
