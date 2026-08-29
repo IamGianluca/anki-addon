@@ -222,22 +222,35 @@ label shows up on many sessions, turn it into an eval task.
 
 The **Progress page** (link in the top bar) shows review coverage
 per run (annotated / total). The **Failure modes page** is where the
-taxonomy itself surfaces: every failure mode grouped by label, with
-counts, the recorded notes, and links back into the sessions.
-Agents working the loop can read and update the mode descriptions
-through the JSON API:
+taxonomy surfaces: every failure mode grouped by label, with counts,
+the recorded notes, and links back into the sessions. Modes are
+bucketed by recency, derived from run stamps: **Active** (newest
+occurrence first, with how many times seen in the last 20 sessions),
+**Dormant** (dimmed — not seen recently, with a "Mark resolved"
+button), and **Resolved** (collapsed behind a toggle, kept as the
+regression baseline). A resolved mode that occurs again pops back
+into Active with a RECURRED badge until reopened. Resolution is a
+flag (`resolved_at`) stored in `patterns.json`; occurrences stay
+derived from the annotations, so the two never disagree. Agents
+working the loop can read and update the taxonomy through the JSON
+API:
 
 ```bash
-curl -s http://127.0.0.1:5000/api/patterns                      # modes + coverage
+curl -s http://127.0.0.1:5000/api/patterns              # modes + coverage
 curl -s -X POST http://127.0.0.1:5000/api/patterns \
   -H "Content-Type: application/json" \
-  -d '{"did-not-split": {"description": "keeps compound notes intact"}}'
+  -d '{"did-not-split": {"description": "keeps compound notes intact", "resolved_at": "2026-08-12 10:00 UTC"}}'
+curl -s -X POST http://127.0.0.1:5000/api/patterns/resolve \
+  -d 'label=did-not-split&resolved=1'                   # button equivalent
 ```
 
-Counts and example records are always derived from `annotations.json`;
-the taxonomy (stored in `patterns.json` next to the run folders) holds
-only the agent's descriptions, so interpretation and evidence cannot
-disagree. The Progress page shows both side by side.
+Each mode in the API payload carries the derived `count`, `active_count`
+(occurrences in the last 20 runs) and `last_seen`, plus the stored
+`description` and `resolved_at`. Counts and example records are always
+derived from `annotations.json`; the taxonomy (stored in
+`patterns.json` next to the run folders) holds only interpretation, so
+evidence and interpretation cannot disagree. The Progress page shows
+coverage side by side.
 
 The **Review batch** page (also in the top bar) shows a focused set
 of sessions picked for review, separate from the full trace list:

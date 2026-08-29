@@ -211,6 +211,9 @@ _ANNOTATION_KEY_RE = re.compile(
 # coverage but are not failure modes and never appear on Progress.
 _NON_FAILURE_LABELS = {"pass", "lgtm", "ok"}
 
+# The newest N runs count as "recent" for mode recency (active_count).
+ACTIVE_WINDOW = 20
+
 
 def parse_annotation_key(file_name: str) -> tuple[str, int] | None:
     """Split an annotation key like 'note_123.trial0.json' into
@@ -221,14 +224,22 @@ def parse_annotation_key(file_name: str) -> tuple[str, int] | None:
     return match.group("task_id"), int(match.group("trial"))
 
 
-def failure_modes(runs: list[RunSummary]) -> dict[str, dict[str, Any]]:
+def failure_modes(
+    runs: list[RunSummary], active_window: int = ACTIVE_WINDOW
+) -> dict[str, dict[str, Any]]:
     """Group annotations by label into failure modes.
 
-    Returns {label: {label, count, records}} sorted by count descending,
-    then label ascending. Each record carries the run stamp, task id,
-    trial index, note, and update time so the UI can link back to the
-    trial page. Annotations without a label or with an unparseable key
-    are skipped.
+    Returns {label: {label, count, active_count, last_seen, records}}
+    sorted by last_seen descending, then count descending, then label
+    ascending. Each record carries the run stamp, task id, trial index,
+    note, and update time so the UI can link back to the trial page.
+    Annotations without a label or with an unparseable key are skipped.
+
+    Recency is derived from run stamps, not annotation times: the
+    `active_window` newest runs count as recent, and each mode gets
+    `last_seen` (its newest run stamp) and `active_count` (occurrences
+    inside the window). A mode with active_count == 0 happened but is
+    not occurring now.
     """
     modes: dict[str, dict[str, Any]] = {}
     for run in runs:
@@ -250,13 +261,46 @@ def failure_modes(runs: list[RunSummary]) -> dict[str, dict[str, Any]]:
             }
             mode = modes.setdefault(label, {"label": label, "records": []})
             mode["records"].append(record)
+    newest = set(
+        stamp
+        for stamp in sorted((r.stamp for r in runs), reverse=True)[
+            :active_window
+        ]
+    )
     for mode in modes.values():
         mode["records"].sort(
-            key=lambda r: (r["updated"], r["run"], r["file_name"]),
+            key=lambda r: (r["run"], r["updated"], r["file_name"]),
             reverse=True,
         )
         mode["count"] = len(mode["records"])
-    return dict(sorted(modes.items(), key=lambda kv: (-kv[1]["count"], kv[0])))
+        mode["last_seen"] = mode["records"][0]["run"]
+        mode["active_count"] = sum(
+            1 for r in mode["records"] if r["run"] in newest
+        )
+    # Stable sort: label ascending first, then recency/count desc so
+    # ties keep alphabetical order.
+    modes = dict(sorted(modes.items(), key=lambda kv: kv[0]))
+    return dict(
+        sorted(
+            modes.items(),
+            key=lambda kv: (kv[1]["last_seen"], kv[1]["count"]),
+            reverse=True,
+        )
+    )
+
+
+def mode_status(mode: dict[str, Any], resolved_at: str = "") -> str:
+    """Where a mode belongs on the Failure modes page.
+
+    Derived from occurrence recency and the stored resolution flag:
+    'active', 'quiet' (no occurrence inside the active window),
+    'resolved' (explicitly closed and still quiet), or 'recurred'
+    (resolved but occurring again). Occurrence data wins: a resolved
+    mode with fresh annotations is 'recurred', never 'resolved'.
+    """
+    if mode["active_count"] > 0:
+        return "recurred" if resolved_at else "active"
+    return "resolved" if resolved_at else "quiet"
 
 
 def coverage(runs: list[RunSummary]) -> dict[str, Any]:
@@ -307,17 +351,39 @@ def save_patterns(
     path.write_text(json.dumps(patterns, indent=2, ensure_ascii=False) + "\n")
 
 
+def set_resolved(
+    patterns: dict[str, dict[str, str]], label: str, resolved: bool
+) -> dict[str, dict[str, str]]:
+    """Set or clear a mode's resolved flag, keeping its description.
+
+    `resolved=True` records a UTC timestamp on the mode's taxonomy
+    entry; `False` removes the flag. Occurrences are never touched —
+    they always stay derived from the annotations.
+    """
+    entry = patterns.setdefault(label, {})
+    if resolved:
+        entry["resolved_at"] = datetime.now(timezone.utc).strftime(
+            "%Y-%m-%d %H:%M UTC"
+        )
+    else:
+        entry.pop("resolved_at", None)
+    return patterns
+
+
 def _patterns_view(runs: list[RunSummary]) -> dict[str, Any]:
-    """Failure modes with agent descriptions attached, plus coverage.
+    """Failure modes with agent descriptions and resolution flags
+    attached, plus coverage.
 
     The payload behind GET /api/patterns: the agent reads it to
-    organize annotations into modes, and pushes descriptions back
-    via POST.
+    organize annotations into modes, and pushes descriptions and
+    resolution decisions back via POST.
     """
     modes = failure_modes(runs)
     stored = load_patterns()
     for label, mode in modes.items():
-        mode["description"] = stored.get(label, {}).get("description", "")
+        entry = stored.get(label, {})
+        mode["description"] = entry.get("description", "")
+        mode["resolved_at"] = entry.get("resolved_at", "")
     return {"patterns": modes, "coverage": coverage(runs)}
 
 
@@ -524,6 +590,21 @@ a:hover { text-decoration: underline; }
 .badge-pass { background: #dcfce7; color: var(--green); }
 .badge-fail { background: #fee2e2; color: var(--red); }
 .badge-unknown { background: #fef9c3; color: var(--yellow); }
+
+.btn-mini {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: var(--blue);
+    color: #fff !important;
+    border-radius: 4px;
+    font-weight: 600;
+    border: none;
+    font: inherit;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+.btn-mini:hover { opacity: 0.9; }
+.card-stale { opacity: 0.65; }
 
 table {
     width: 100%;
@@ -1420,15 +1501,68 @@ async def get():  # noqa: F811
     return Main(_nav(), H1("Progress"), coverage_card)
 
 
+def _pretty_stamp(stamp: str) -> str:
+    """Compact date for a run stamp like 20260812T033041Z."""
+    if len(stamp) >= 8 and stamp[:8].isdigit():
+        return f"{stamp[:4]}-{stamp[4:6]}-{stamp[6:8]}"
+    return stamp
+
+
+def _recency_line(mode: dict[str, Any], status: str) -> Span:
+    """Muted summary of how recently a mode's failures occurred."""
+    pretty = _pretty_stamp(mode["last_seen"])
+    if status in ("active", "recurred"):
+        text = (
+            f"{mode['active_count']} in last {ACTIVE_WINDOW} sessions"
+            f" · last seen {pretty}"
+        )
+    elif status == "quiet":
+        text = f"last seen {pretty} · not in last {ACTIVE_WINDOW} sessions"
+    else:
+        text = f"last seen {pretty}"
+    return Span(text, style="color: var(--text-muted); font-size: 0.85rem;")
+
+
+def _resolve_form(label: str, resolved: bool) -> Form:
+    """Button that sets (resolved=True) or clears the mode's
+    resolved flag in patterns.json."""
+    return Form(
+        Input(type="hidden", name="label", value=label),
+        Input(type="hidden", name="resolved", value="1") if resolved else "",
+        Button(
+            "Mark resolved" if resolved else "Reopen",
+            type="submit",
+            cls="btn-mini",
+        ),
+        method="post",
+        action="/api/patterns/resolve",
+        style="margin-left: auto;",
+    )
+
+
 def _failure_mode_cards(
     modes: dict[str, dict[str, Any]], stored: dict[str, dict[str, str]]
-) -> list[Section]:
-    """Cards grouping annotated records by failure-mode label, each
-    with the agent's description of the mode (if patterns.json has
-    one)."""
-    cards = []
+) -> tuple[list[Section], list[Section], list[Section]]:
+    """Cards for the modes page, split into (active, dormant, resolved).
+
+    Active and recurred modes are the current failure surface, sorted
+    newest-first; dormant modes are dimmed with a last-seen note;
+    resolved modes keep description and examples for regression
+    comparison behind a toggle. Active modes get no button (an ongoing
+    failure cannot be resolved); dormant ones offer "Mark resolved",
+    resolved and recurred ones offer "Reopen".
+    """
+    buckets: dict[str, list[Section]] = {
+        "active": [],
+        "quiet": [],
+        "resolved": [],
+    }
     for label, mode in modes.items():
-        description = stored.get(label, {}).get("description", "")
+        entry = stored.get(label, {})
+        description = entry.get("description", "")
+        resolved_at = entry.get("resolved_at", "")
+        status = mode_status(mode, resolved_at)
+
         record_items = []
         for rec in mode["records"]:
             record_items.append(
@@ -1459,13 +1593,34 @@ def _failure_mode_cards(
                     else "",
                 )
             )
-        cards.append(
+
+        header_items = [
+            H3(label),
+            _badge(str(mode["count"]), "unknown"),
+            _recency_line(mode, status),
+        ]
+        if status == "recurred":
+            header_items.append(_badge("RECURRED", "fail"))
+        elif status == "resolved":
+            header_items.append(_badge("RESOLVED", "pass"))
+            header_items.append(
+                Span(
+                    resolved_at,
+                    style="color: var(--text-muted); font-size: 0.85rem;",
+                )
+            )
+        if status in ("quiet", "resolved", "recurred"):
+            header_items.append(
+                _resolve_form(label, resolved=(status == "quiet"))
+            )
+        header = Div(
+            *header_items,
+            style="display: flex; align-items: center; gap: 0.5rem;",
+        )
+
+        buckets["active" if status == "recurred" else status].append(
             Section(
-                Div(
-                    H3(label),
-                    _badge(str(mode["count"]), "unknown"),
-                    style="display: flex; align-items: center; gap: 0.5rem;",
-                ),
+                header,
                 P(
                     description,
                     style=(
@@ -1476,17 +1631,18 @@ def _failure_mode_cards(
                 if description
                 else "",
                 Ul(*record_items, cls="check-list"),
-                cls="card",
+                cls="card card-stale" if status == "quiet" else "card",
             )
         )
-    return cards
+    return buckets["active"], buckets["quiet"], buckets["resolved"]
 
 
 @rt("/modes")
 async def get():  # noqa: F811
-    """Failure modes grouped by annotation label, each with its
-    records and the agent's description of the mode (if the taxonomy
-    has one)."""
+    """Failure modes grouped by label: active modes first (newest
+    occurrence first), dormant modes dimmed with a last-seen note,
+    resolved modes collapsed behind a toggle. Recency and counts come
+    from the annotations; resolution flags come from the taxonomy."""
     runs = load_runs()
     modes = failure_modes(runs)
     stored = load_patterns()
@@ -1499,8 +1655,47 @@ async def get():  # noqa: F811
                 "note, and it will show up here grouped by label."
             ),
         )
+    active, dormant, resolved = _failure_mode_cards(modes, stored)
     return Main(
-        _nav(), H1("Failure modes"), *_failure_mode_cards(modes, stored)
+        _nav(),
+        H1("Failure modes"),
+        (
+            Section(
+                H2("Active"),
+                P(
+                    f"Occurred in the last {ACTIVE_WINDOW} sessions.",
+                    style="color: var(--text-muted); font-size: 0.85rem;",
+                ),
+                *active,
+            )
+            if active
+            else ""
+        ),
+        (
+            Section(
+                H2("Dormant"),
+                P(
+                    f"Seen before but not in the last {ACTIVE_WINDOW} "
+                    "sessions. Mark resolved once fixed.",
+                    style="color: var(--text-muted); font-size: 0.85rem;",
+                ),
+                *dormant,
+            )
+            if dormant
+            else ""
+        ),
+        (
+            Div(
+                Button(
+                    f"Show resolved ({len(resolved)})",
+                    onclick="toggle('resolved_modes')",
+                    style=_BUTTON_STYLE,
+                ),
+                Div(*resolved, id="resolved_modes", style="display: none;"),
+            )
+            if resolved
+            else ""
+        ),
     )
 
 
@@ -1514,13 +1709,27 @@ async def get():  # noqa: F811
 async def post(request: Request) -> JSONResponse:  # noqa: F811
     """Replace the stored taxonomy with the agent's latest version.
 
-    Body: {label: {"description": str}}. Counts and records are
-    always recomputed from annotations, so the agent only writes
-    interpretation.
+    Body: {label: {"description": str, "resolved_at": str?}}. Counts
+    and records are always recomputed from annotations, so the agent
+    only writes interpretation (including resolution decisions).
     """
     body = await request.json()
     save_patterns(body if isinstance(body, dict) else {})
     return JSONResponse(_patterns_view(load_runs()))
+
+
+@rt("/api/patterns/resolve", methods=["post"])
+async def resolve(label: str = "", resolved: str = "") -> RedirectResponse:
+    """Set or clear the resolved flag on one failure mode.
+
+    Form fields: label (the mode name) and resolved ("1" to mark
+    resolved; absent to reopen). Only the flag changes — descriptions
+    and occurrence counts are untouched. Redirects back to the modes
+    page.
+    """
+    patterns = set_resolved(load_patterns(), label, bool(resolved))
+    save_patterns(patterns)
+    return RedirectResponse("/modes", status_code=303)
 
 
 @rt("/batch")

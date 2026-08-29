@@ -5,15 +5,18 @@ from __future__ import annotations
 from tests.evals.viewer import (
     RunSummary,
     TrialRecord,
+    _failure_mode_cards,
     batch_items,
     coverage,
     failure_modes,
     load_batch,
     load_patterns,
+    mode_status,
     next_batch_item,
     parse_annotation_key,
     save_batch,
     save_patterns,
+    set_resolved,
 )
 
 
@@ -180,8 +183,135 @@ def test_failure_modes_sorts_by_count_then_label() -> None:
     # When
     modes = failure_modes(runs)
 
-    # Then
+    # Then — same recency, so count desc then label asc
     assert list(modes) == ["alpha", "beta", "zebra"]
+
+
+def test_failure_modes_derives_recency_from_run_stamps() -> None:
+    # Given — the mode in every run of a six-run corpus
+    runs = [
+        _run(
+            f"run{i:02d}",
+            total_trials=1,
+            annotations={f"a{i}.trial0.json": {"label": "old"}},
+        )
+        for i in range(6)
+    ]
+
+    # When — two newest runs count as recent
+    modes = failure_modes(runs, active_window=2)
+
+    # Then
+    assert modes["old"]["count"] == 6
+    assert modes["old"]["active_count"] == 2
+    assert modes["old"]["last_seen"] == "run05"
+
+
+def test_failure_modes_sorts_by_last_seen_not_count() -> None:
+    # Given — a frequent mode last seen in an old run, a rare one in
+    # the newest run
+    runs = [
+        _run(
+            "runA",
+            total_trials=4,
+            annotations={
+                f"a{i}.trial0.json": {"label": "frequent-old"}
+                for i in range(4)
+            },
+        ),
+        _run(
+            "runB",
+            total_trials=1,
+            annotations={"b.trial0.json": {"label": "rare-new"}},
+        ),
+    ]
+
+    # When — only the newest run is active
+    modes = failure_modes(runs, active_window=1)
+
+    # Then — recency wins over cumulative count
+    assert list(modes) == ["rare-new", "frequent-old"]
+    assert modes["frequent-old"]["active_count"] == 0
+    assert modes["rare-new"]["active_count"] == 1
+
+
+def test_mode_status_combines_recency_and_resolution() -> None:
+    # Given / When / Then
+    assert mode_status({"active_count": 2}, "") == "active"
+    assert mode_status({"active_count": 0}, "") == "quiet"
+    assert (
+        mode_status({"active_count": 0}, "2026-08-12 10:00 UTC") == "resolved"
+    )
+    # Occurrence data wins over the stored flag.
+    assert (
+        mode_status({"active_count": 1}, "2026-08-12 10:00 UTC") == "recurred"
+    )
+
+
+def test_set_resolved_keeps_description_and_toggles_flag() -> None:
+    # Given
+    patterns = {"m": {"description": "keeps compound notes intact"}}
+
+    # When — marking resolved
+    set_resolved(patterns, "m", True)
+
+    # Then
+    assert patterns["m"]["description"] == "keeps compound notes intact"
+    assert "resolved_at" in patterns["m"]
+
+    # When — reopening clears the flag but keeps the description
+    set_resolved(patterns, "m", False)
+
+    # Then
+    assert patterns["m"] == {"description": "keeps compound notes intact"}
+
+
+def test_failure_mode_cards_bucket_by_status() -> None:
+    # Given — one mode per status; recurred and resolved carry the flag
+    modes = {
+        "active-mode": {
+            "count": 2,
+            "active_count": 2,
+            "last_seen": "runC",
+            "records": [],
+        },
+        "recurred-mode": {
+            "count": 1,
+            "active_count": 1,
+            "last_seen": "runB",
+            "records": [],
+        },
+        "quiet-mode": {
+            "count": 1,
+            "active_count": 0,
+            "last_seen": "runA",
+            "records": [],
+        },
+        "resolved-mode": {
+            "count": 1,
+            "active_count": 0,
+            "last_seen": "runA",
+            "records": [],
+        },
+    }
+    stored = {
+        "recurred-mode": {
+            "description": "came back",
+            "resolved_at": "2026-08-01 10:00 UTC",
+        },
+        "resolved-mode": {
+            "description": "done",
+            "resolved_at": "2026-08-01 10:00 UTC",
+        },
+    }
+
+    # When
+    active, dormant, resolved = _failure_mode_cards(modes, stored)
+
+    # Then — recurred joins the active surface, resolved stays collapsed
+    assert len(active) == 2
+    assert len(dormant) == 1
+    assert len(resolved) == 1
 
 
 def test_parse_annotation_key_splits_task_and_trial() -> None:
