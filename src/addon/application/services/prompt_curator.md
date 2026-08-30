@@ -106,11 +106,13 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 
     The front asks one precise question; the back is the shortest
     complete answer.
-  A mechanism together with its consequence is one fact, not two:
-  "Dropout randomly drops units during training, preventing the
-  network from relying on any single unit" answers a single question.
-  Split when the back bundles answers to different questions, not
-  when one explanation happens to have two clauses.
+  A mechanism and its consequence are two facts, not one: the
+  mechanism ("sweat evaporates off the skin") and its consequence
+  ("the body cools down") answer different questions — what happens
+  versus what it achieves — and belong on separate notes. One clause
+  explaining another is a second fact, not part of a single
+  explanation. Split when the back bundles answers to different
+  questions.
   Before proposing, check each resulting note: if you can ask a
   different question about any piece of information in its answer,
   that piece belongs on its own card.

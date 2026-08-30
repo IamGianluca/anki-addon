@@ -10,7 +10,7 @@
     {
       "id": 1,
       "front": "In neural networks, why does dropout reduce overfitting?",
-      "back": "During NN training, dropout randomly drops units, preventing the network from relying on any single unit",
+      "back": "It prevents the NN from relying on any single unit",
       "tags": ["ml", "neural-networks"],
       "notetype": "basic"
     },
@@ -24,14 +24,14 @@
     {
       "id": 3,
       "front": "In neural networks, how does backpropagation update weights in an NN?",
-      "back": "It computes the gradient of the loss with respect to each weight using the chain rule",
+      "back": "It computes the gradient of the loss with respect to each weight",
       "tags": ["ml", "neural-networks"],
       "notetype": "basic"
     },
     {
       "id": 4,
       "front": "In ML, what is the role of the learning rate schedule?",
-      "back": "It decays the learning rate over training to settle into a minimum",
+      "back": "It decays the learning rate over training",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     }
@@ -53,7 +53,7 @@
       "type": "edit",
       "note_id": 1,
       "front": "In neural networks, why does dropout reduce overfitting?",
-      "back": "During neural network training, dropout randomly drops units, preventing the network from relying on any single unit",
+      "back": "It prevents the neural network from relying on any single unit",
       "tags": ["ml", "neural-networks"],
       "rationale": "convert the NN abbreviation on the seed note's back"
     },
@@ -61,7 +61,7 @@
       "type": "edit",
       "note_id": 3,
       "front": "In neural networks, how does backpropagation update weights in a neural network?",
-      "back": "It computes the gradient of the loss with respect to each weight using the chain rule",
+      "back": "It computes the gradient of the loss with respect to each weight",
       "tags": ["ml", "neural-networks"],
       "rationale": "convert the NN abbreviation on the second note that uses it"
     }
