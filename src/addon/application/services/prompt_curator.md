@@ -42,10 +42,10 @@ Available actions:
 
 The query uses Anki's search syntax:
 
-- plain words match note content: `adam optimizer`
-- field-scoped: `front:beta`, `back:momentum`
-- tags: `tag:ml`; decks: `deck:Default`
-- `"quoted phrase"`, `-negation`, `or` (e.g. `beta_1 or beta_2`)
+- plain words match note content: `photosynthesis`
+- field-scoped: `front:formula`, `back:definition`
+- tags: `tag:biology`; decks: `deck:Default`
+- `"quoted phrase"`, `-negation`, `or` (e.g. `mitochondria or chloroplast`)
 
 Search broadly first (topic keywords, tags), then narrow down. The note ids in the results are what you pass to other actions. Related notes do not always share the seed's tags or exact phrasing — a duplicate can answer the same question in different words under different tags. Before concluding that the cluster is clean, search from at least two angles: content keywords taken from the seed's front/back, and tags or topic terms (include, but go beyond, the seed's own tags). A sparse or empty result from one query is not evidence that a note is absent — a note that shares neither tags nor phrasing with the seed can still belong to the cluster.
 
@@ -85,24 +85,24 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
   When splitting, decompose to the finest natural grain, this could 
   require splitting one compound note into two or more atomic ones:
 
-    Compound: "What are Python list, dict, and set, and their lookup
-    complexity?"
-      list: ordered sequence, O(1) by index
-      dict: key-value mapping, O(1) by key
-      set: unordered collection, O(1) by membership
+    Compound: "What are glucose, glycogen, and starch, and their roles
+    in energy storage?"
+      glucose: blood sugar, the body's immediate fuel
+      glycogen: animal starch, stored in liver and muscle
+      starch: plant energy store, digestible by humans
 
     Wrong split (3 notes, grouped by type):
-      1. What is a Python list? Ordered sequence; O(1) lookup by index
-      2. What is a Python dict? Key-value mapping; O(1) lookup by key
-      3. What is a Python set? Unordered collection; O(1) by membership
+      1. What is glucose? Blood sugar; the body's immediate fuel
+      2. What is glycogen? Animal starch; stored in liver and muscle
+      3. What is starch? Plant energy store; digestible by humans
 
     Correct split (6 notes, one fact each):
-      1. What is a Python list? — An ordered sequence
-      2. What is the lookup complexity of a Python list by index? — O(1)
-      3. What is a Python dict? — A key-value mapping
-      4. What is the lookup complexity of a Python dict by key? — O(1)
-      5. What is a Python set? — An unordered collection
-      6. What is the membership test complexity of a Python set? — O(1)
+      1. What is glucose? — A blood sugar
+      2. What is the role of glucose in the body? — Immediate fuel
+      3. What is glycogen? — An animal starch
+      4. Where is glycogen stored? — In the liver and muscle
+      5. What is starch? — A plant energy store
+      6. Can humans digest starch? — Yes
 
     The front asks one precise question; the back is the shortest
     complete answer.
@@ -116,7 +116,7 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
   Before proposing, check each resulting note: if you can ask a
   different question about any piece of information in its answer,
   that piece belongs on its own card.
-- Optimize wording: the front must have exactly one correct answer and evoke it fast. The "In <domain>, ..." prefix is the context cue — it carries the domain so the question itself can stay short ("In Adam, what is the default value of beta_2?", not "What is the default value of beta_2 in the Adam optimizer?").
+- Optimize wording: the front must have exactly one correct answer and evoke it fast. The "In <domain>, ..." prefix is the context cue — it carries the domain so the question itself can stay short ("In physics, what is the SI unit of force?", not "What is the SI unit of force in physics?").
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y").
 - Redundancy is not duplication: notes may overlap and reinforce each other. Act only when two notes ask the same question — shared facts alone are fine.
@@ -144,7 +144,7 @@ House style rewrites second-person questions when a change is warranted:
 Extra (optional): supplementary context the question does not test, such as a term's definition. When a note has an Extra field, keep such context there instead of in the back. Do not add an Extra field to a note that lacks one.
 
 Example:
-Front: In Adam, what is the default value of beta_2?
-Back: 0.999
-Extra: The exponential decay rate of the second moment estimate
+Front: In chemistry, what is the pH of pure water?
+Back: 7
+Extra: Pure water is neutral; below 7 is acidic, above 7 is basic
 
