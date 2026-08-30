@@ -1,9 +1,9 @@
 {
   "id": "fix_math_delimiters_1",
   "suite": "capability",
-  "desc": "The cluster mixes correct and incorrect math delimiters. Anki's MathJax renders LaTeX dependably between \\(...\\) (inline) and \\[...\\] (block); $ and $$ also render as math but inconsistently — spacing between symbols gets mangled and symbol sizes vary, so they are a defect. The seed note's back uses $...$ for inline math and bundles two facts (the sine and cosine double-angle formulas) into one card, so it must be split into two atomic notes; note 2, a sibling double-angle card under the same tags, uses $$...$$ for its block equation. Both defective notes surface through the agent's normal cluster exploration (same tags, same content family) — no exhaustive collection-wide search is needed. The agent should split the compound seed note, convert every $...$ to \\(...\\) and every $$...$$ to \\[...\\] in the notes it edits and in the notes it creates during the split, keep the formulas themselves intact, and leave the already-correct Pythagorean identity note untouched.",
+  "desc": "The cluster mixes correct and incorrect math delimiters. Anki's MathJax renders LaTeX dependably between \\(...\\) (inline) and \\[...\\] (block); $ and $$ also render as math but inconsistently — spacing between symbols gets mangled and symbol sizes vary, so they are a defect. The seed note's back uses $...$ for inline math and bundles two facts (the sine and cosine double-angle formulas) into one card, so it must be split into two atomic notes; note 2, a sibling double-angle card under the same tags, uses $$...$$ for its block equation; note 3's Pythagorean identity is a whole-answer formula written inline \\(...\\), and as the entire answer it must become \\[...\\]. All three defective notes surface through the agent's normal cluster exploration (same tags, same content family) — no exhaustive collection-wide search is needed. The agent should split the compound seed note and convert every formula to the Anki form matching its role on its final card — \\[...\\] when the formula is the whole answer or stands alone, \\(...\\) when it is embedded in a sentence; a $$...$$ block equation is converted to \\[...\\], never collapsed to \\(...\\) — keeping the formulas themselves intact.",
   "seed_note_id": 1,
-  "instruction": "Anki's MathJax renders math dependably between \\(...\\) (inline) and \\[...\\] (block) delimiters; $ and $$ also render as math but inconsistently (mangled spacing, mixed symbol sizes). Convert every wrong math delimiter you encounter in the notes you edit, and write any math in the notes you create with \\(...\\) or \\[...\\], keeping the formulas themselves unchanged.",
+  "instruction": "Anki math uses \\(...\\) (inline) when a formula is embedded in a sentence and \\[...\\] (block) when a formula is the whole answer or stands alone. $ and $$ render inconsistently (mangled spacing, mixed symbol sizes) and must be converted; a whole-answer formula written inline \\(...\\) must also be converted to \\[...\\]. Fix every wrong delimiter in the notes you edit and write any math in the notes you create by the same role rule, keeping the formulas themselves unchanged.",
   "trials": 3,
   "max_steps": 15,
   "notes": [
@@ -30,34 +30,33 @@
     }
   ],
   "expect": {
-    "edits": [2, 2],
+    "edits": [3, 3],
     "creates": [1, 1],
     "deletes": [0, 0],
-    "must_touch": [1, 2],
-    "must_not_touch": [3],
-    "facts": ["sin(2x)", "cos(2x)", "tan(2x)"],
+    "must_touch": [1, 2, 3],
+    "facts": ["sin(2x)", "cos(2x)", "tan(2x)", "\\cos^2 x + \\sin^2 x = 1"],
     "no_dollar_math": true
   },
   "judge_assertions": [
-    "Across the whole change set, every math expression the change set carries is in the Anki forms: $...$ converted to \\(...\\) and $$...$$ to \\[...\\] (inline stays inline, block stays block), with the formulas themselves unchanged. When a compound note is split, its expressions may move from the edited note into newly created notes — that is still a valid conversion.",
-    "In the notes the agent proposes to create, every math expression is written with \\(...\\) (inline) or \\[...\\] (block) delimiters — never with $ or $$."
+    "Every math expression in the change set is the whole answer of its card — the back holds one formula and nothing else — and is delimited with \\[...\\]. No expression uses $ or $$, and none uses \\(...\\) for a formula that is the entire answer. The formulas' content is unchanged (differences in LaTeX whitespace are not content changes).",
+    "The note the agent proposes to create holds one formula as its entire answer and is delimited with \\[...\\] — never with $ or $$."
   ],
   "reference": [
     {
       "type": "edit",
       "note_id": 1,
       "front": "In trigonometry, what is the double-angle formula for sine?",
-      "back": "\\(\\sin(2x) = 2 \\sin x \\cos x\\)",
+      "back": "\\[\\sin(2x) = 2 \\sin x \\cos x\\]",
       "tags": ["math", "trigonometry"],
-      "rationale": "kept half of the split: the sine formula alone, with inline math in the Anki \\(...\\) form"
+      "rationale": "kept half of the split: the sine formula is now the whole answer of its own card, written as a block equation in the Anki \\[...\\] form"
     },
     {
       "type": "create",
       "front": "In trigonometry, what is the double-angle formula for cosine?",
-      "back": "\\(\\cos(2x) = \\cos^2 x - \\sin^2 x\\)",
+      "back": "\\[\\cos(2x) = \\cos^2 x - \\sin^2 x\\]",
       "tags": ["math", "trigonometry"],
       "notetype": "basic",
-      "rationale": "the cosine formula becomes its own note, also written with \\(...\\) inline math"
+      "rationale": "the cosine formula becomes its own note; as the whole answer it is a block equation in the \\[...\\] form"
     },
     {
       "type": "edit",
@@ -66,6 +65,14 @@
       "back": "\\[\\tan(2x) = \\frac{2 \\tan x}{1 - \\tan^2 x}\\]",
       "tags": ["math", "trigonometry"],
       "rationale": "convert the $$...$$ block equation to the Anki \\[...\\] block form"
+    },
+    {
+      "type": "edit",
+      "note_id": 3,
+      "front": "In trigonometry, what is the Pythagorean identity?",
+      "back": "\\[\\cos^2 x + \\sin^2 x = 1\\]",
+      "tags": ["math", "trigonometry"],
+      "rationale": "the Pythagorean identity is a whole-answer formula; convert the inline \\(...\\) form to the block \\[...\\] form"
     }
   ]
 }
