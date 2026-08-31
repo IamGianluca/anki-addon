@@ -9,10 +9,7 @@ def setup_addon() -> None:
         display_notes_marked_for_review_count,
     )
     from .application.use_cases.note_curator import add_curator_button
-    from .application.use_cases.note_formatter import (
-        add_custom_button,
-        open_review_editor,
-    )
+    from .application.use_cases.review_editor import open_review_editor
 
     # Add option in "Tools" to count notes that require formatting changes
     action = QAction("Count notes marked for review", mw)
@@ -20,14 +17,11 @@ def setup_addon() -> None:
     qconnect(action.triggered, display_notes_marked_for_review_count)
     mw.form.menuTools.addAction(action)
 
-    # Add option in "Tools" to format notes using AI
+    # Add option in "Tools" to review flagged notes in a batch editor
     action = QAction("Improve note using AI", mw)
     action.setShortcut(QKeySequence("r"))
     qconnect(action.triggered, open_review_editor)
     mw.form.menuTools.addAction(action)
-
-    # Add button in Browser view to format notes using AI
-    gui_hooks.editor_did_init_buttons.append(add_custom_button)
 
     # Add button in the editor to curate the note's cluster using AI
     gui_hooks.editor_did_init_buttons.append(add_curator_button)

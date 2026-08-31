@@ -100,13 +100,6 @@ cd [your-anki-addons-path]/addons21/anki-addon
 
 ## 🔍 Usage
 
-### Format a note with AI
-
-1. Open a note in the Anki editor
-2. Click the AI toolbar button or press `Ctrl+Alt+M`
-3. Review the suggested changes in the dialog
-4. Click `Apply changes` to accept or dismiss to cancel
-
 ### Curate a note's cluster with AI
 
 1. Open a note in the Anki editor

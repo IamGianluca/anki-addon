@@ -1,28 +1,19 @@
 from __future__ import annotations
 
-import os
-from pathlib import Path
-from typing import TYPE_CHECKING
-
-from ...application.services.formatter_service import AnkiNoteMapper
 from ...infrastructure.persistence.training_dataset import (
     create_training_dataset,
 )
-from ...infrastructure.services.formatter_factory import get_formatter
 from ...infrastructure.ui.editor import EditorDialog
-from ...utils import ensure_collection, ensure_note
-
-if TYPE_CHECKING:
-    from aqt.editor import Editor
+from ...utils import ensure_collection
 
 
 def open_review_editor() -> None:
-    """The open_standalone_editor() function creates the actual user interface:
+    """Open the batch review editor for notes flagged with the orange flag.
 
-    - It creates a dialog window with an Anki editor widget
-    - It adds buttons for saving changes, skipping to the next note, or
-      canceling the editing session
-    - It implements handlers for each button's functionality
+    Creates a dialog window with an Anki editor widget plus buttons for
+    saving changes, skipping to the next note, or canceling the editing
+    session. Saving records a training example and strips the flag;
+    skipping or canceling restores the note's original content.
     """
     from aqt import mw
     from aqt.editor import Editor
@@ -48,8 +39,6 @@ def open_review_editor() -> None:
         editor_state = EditorDialog(col)
     except ValueError as e:
         # Handle the case where no notes are marked for review
-        from aqt.utils import showInfo
-
         showInfo(str(e))
         return
 
@@ -151,44 +140,3 @@ def open_review_editor() -> None:
 
     # Run as a "modal" dialog
     dialog.exec()
-
-
-def add_custom_button(buttons, editor: Editor) -> None:
-    """Add button to retrieve AI suggestions to Editor."""
-    addon_dir = Path(__file__).parents[2]
-    icon_path = os.path.join(addon_dir, "imgs", "ai-icon.png")
-    button = editor.addButton(
-        icon=icon_path,
-        cmd="myCustomAction",
-        func=lambda editor=editor: on_custom_action(editor),  # type: ignore[misc]
-        tip="Format with AI",
-        keys="Ctrl+Alt+M",  # Optional keyboard shortcut
-    )
-    buttons.insert(5, button)  # Media buttons usually start around index 4-5
-
-
-def on_custom_action(editor: Editor) -> None:
-    from aqt.utils import askUser, tooltip
-
-    note = ensure_note(editor.note)
-
-    # Convert to domain model
-    original_addon_note = AnkiNoteMapper.to_addon_note(note)
-
-    # Format using pure domain logic (formatter is a session-level singleton)
-    formatter = get_formatter()
-    formatted_addon_note = formatter.format(original_addon_note)
-
-    # Temporarily merge changes into note for preview
-    note = AnkiNoteMapper.merge_addon_changes(note, formatted_addon_note)
-    editor.loadNote()
-
-    # Ask the user if they want to keep the changes
-    if askUser("Apply changes?"):
-        col = ensure_collection(editor.mw.col)
-        col.update_note(note)
-        tooltip("Changes applied")
-    else:
-        # User rejected changes, restore by merging original AddonNote back
-        note = AnkiNoteMapper.merge_addon_changes(note, original_addon_note)
-        editor.loadNote()

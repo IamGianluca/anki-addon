@@ -2,17 +2,82 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from ...application.services.formatter_service import AnkiNoteMapper
 from ...domain.entities.note import AddonNote, AddonNoteType, NoteId
 from ...domain.repositories.note_repository import (
     InvalidSearchQueryError,
     NoteNotFoundError,
 )
+from ...utils import is_cloze_note
 
 if TYPE_CHECKING:
     from anki.collection import Collection
     from anki.notes import Note
     from anki.notes import NoteId as AnkiNoteId
+
+
+class AnkiNoteMapper:
+    """Maps between Anki's Note object and AddonNote domain entity."""
+
+    @staticmethod
+    def to_addon_note(note: Note) -> AddonNote:
+        """Convert an Anki Note to an AddonNote entity in our domain.
+
+        Differently from Anki, we do not differentiate between Basic
+        and Cloze notes. We have one AddonNote class, with a "front"
+        and "back" field.
+
+        Basic notes map:
+        - "front" -> "front"
+        - "back"  -> "back"
+
+        Cloze notes map:
+        - "Text" -> "front"
+        - "Back Extra" to "back"
+
+        Any other fields the notetype has (e.g. "Extra", "Difficulty")
+        are preserved in extra_fields, keyed by field name.
+        """
+        if is_cloze_note(note):
+            front, back = note["Text"], note["Back Extra"]
+            notetype = AddonNoteType.CLOZE
+            primary = ("Text", "Back Extra")
+        else:
+            front, back = note["Front"], note["Back"]
+            notetype = AddonNoteType.BASIC
+            primary = ("Front", "Back")
+        extra_fields = {
+            name: note[name] for name in note.keys() if name not in primary
+        }
+        return AddonNote(
+            guid=note.guid,
+            front=front,
+            back=back,
+            tags=note.tags,
+            notetype=notetype,
+            extra_fields=extra_fields,
+        )
+
+    @staticmethod
+    def merge_addon_changes(
+        note: Note, addon_note: AddonNote, include_tags: bool = False
+    ) -> Note:
+        if is_cloze_note(note):
+            note["Text"] = addon_note.front
+            note["Back Extra"] = addon_note.back
+        else:
+            note["Front"] = addon_note.front
+            note["Back"] = addon_note.back
+        # Tags are opt-in: curation (edit/split proposals) may change
+        # them, any other caller keeps the original tags.
+        if include_tags:
+            note.tags = list(addon_note.tags or [])
+        # Extra fields round-trip; keys the notetype doesn't have are
+        # skipped rather than failing (e.g. an agent-provided field
+        # name that doesn't exist on this notetype).
+        for name, value in addon_note.extra_fields.items():
+            if name in note.keys():
+                note[name] = value
+        return note
 
 
 class AnkiNoteRepository:

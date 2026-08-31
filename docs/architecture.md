@@ -16,17 +16,17 @@ src/addon/
 │   └── services/            # Domain services
 ├── application/
 │   ├── protocols.py         # Ports consumed by the application layer (e.g. CompletionProvider)
-│   ├── use_cases/           # Application use cases (formatting, curation, counting, duplicates)
-│   └── services/            # Application services: NoteFormatter, CuratorAgent (ReAct loop)
+│   ├── use_cases/           # Application use cases (curation, review editor, counting, duplicates)
+│   └── services/            # Application services: CuratorAgent (ReAct loop)
 │                            #   + CuratorTools (agent tool surface) + CurationTraceStore
 └── infrastructure/
     ├── protocols.py         # Ports for external systems (HttpClient, ConfigProvider, QdrantDriver)
     ├── configuration/       # Config loading (AddonConfig, OpenAIConfig, OpenCodeGoConfig)
     ├── external_services/   # LLM clients: OpenAIClient (self-hosted compatible servers) and OpenCodeGoClient
     ├── llm/                 # Pydantic schemas for LLM structured output
-    ├── persistence/         # Qdrant vector DB adapter, AnkiNoteRepository, training datasets
-    ├── services/            # Composition factories (completion provider, formatter)
-    └── ui/                  # PyQt6 UI components (editor dialog, curation review dialog)
+    ├── persistence/         # Qdrant vector DB adapter, AnkiNoteRepository (incl. note mapping)
+    ├── services/            # Composition factories (completion provider)
+    └── ui/                  # PyQt6 UI components (review editor dialog, curation review dialog)
 ```
 
 Dependency rules — a practical rule of thumb: check the imports.
@@ -37,13 +37,11 @@ Dependency rules — a practical rule of thumb: check the imports.
 
 For more information on the architectural patterns used in this project, see [Architecture Patterns in Python](https://www.cosmicpython.com/).
 
-## Two AI workflows
+## The curation workflow
 
-The add-on ships two LLM workflows, both built on the same
-`CompletionProvider` port:
+The add-on ships one LLM workflow, built on the `CompletionProvider`
+port:
 
-- **NoteFormatter** (one-shot): rewrites a single flagged note in one
-  LLM call and shows the diff for approval.
 - **CuratorAgent** (ReAct loop): given a seed note, the agent explores
   the collection through `CuratorTools` (search, read, propose
   edit/create/delete/split, review_changeset for atomicity checking)

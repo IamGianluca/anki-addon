@@ -3,11 +3,11 @@ import dataclasses
 import pytest
 from tests.conftest import FakeCollection, FakeMainWindow, FakeNote
 
-from addon.application.services.formatter_service import AnkiNoteMapper
 from addon.application.use_cases.apply_curation import apply_proposals
 from addon.domain.entities.note import NoteId
 from addon.domain.entities.proposals import EditProposal
 from addon.infrastructure.persistence.anki_note_repository import (
+    AnkiNoteMapper,
     AnkiNoteRepository,
 )
 from addon.infrastructure.ui.editor import EditorDialog

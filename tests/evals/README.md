@@ -309,5 +309,5 @@ unfair failures while reading transcripts.
   look like, not the steps to get there.
 
 The same harness pattern — real client, fake note repository, outcome
-grading — extends to the single-turn `NoteFormatter` when its prompt
+grading — extends to any future single-turn workflow when its prompt
 or model needs evaluating.

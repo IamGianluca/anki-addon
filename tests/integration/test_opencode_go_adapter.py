@@ -6,7 +6,7 @@ from addon.infrastructure.configuration.settings import OpenCodeGoConfig
 from addon.infrastructure.external_services.opencode_go import (
     OpenCodeGoClient,
 )
-from addon.infrastructure.llm.schemas import AddonNoteChanges
+from addon.infrastructure.llm.schemas import AgentStep
 
 # NOTE: These tests require a live OpenCode Go API key. Configure it via
 # env vars in .envrc: OPENCODE_GO_API_KEY, OPENCODE_GO_MODEL.
@@ -57,16 +57,15 @@ def test_structured_output_matches_addon_schema(
     client: OpenCodeGoClient,
 ) -> None:
     """Verify the gateway honors response_format json_schema with the real
-    schema the note formatter depends on."""
+    schema the curation agent depends on."""
     # Given
     prompt = [
         {
             "role": "user",
             "content": (
-                "Improve this flashcard. Fix the capitalization of the front "
-                "field, keep the back as is.\n"
-                "Front: what is the capital of france?\n"
-                "Back: Paris"
+                "You are a flashcard curation agent. Search the collection "
+                "for notes about the capital of France, limiting to 3 "
+                "results. Respond with exactly one AgentStep JSON object."
             ),
         }
     ]
@@ -77,13 +76,13 @@ def test_structured_output_matches_addon_schema(
         response_format={
             "type": "json_schema",
             "json_schema": {
-                "name": "addon_note_changes",
-                "schema": AddonNoteChanges.model_json_schema(),
+                "name": "agent_step",
+                "schema": AgentStep.model_json_schema(),
             },
         },
     )
 
     # Then
-    changes = AddonNoteChanges.model_validate_json(result)
-    assert changes.front
-    assert changes.back
+    step = AgentStep.model_validate_json(result)
+    assert step.thought
+    assert step.action.action == "search_notes"

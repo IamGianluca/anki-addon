@@ -60,7 +60,6 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 - [ ] Add web search capability to AI agent to overcome knowledge limitation in the specific language model ― **Goal 2**
 - [x] For OpenAI-compatible servers (llama.cpp, vLLM), hide per-model quirks (e.g., thinking params, markdown fence stripping) inside `OpenAIClient` driven by config. — **Goal 3** — `openai_reasoning` / `openai_preserve_thinking` in `OpenAIConfig`, markdown fence stripping in `llm/parsing.py`
 - [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — **Goal 3**
-- [x] Investigate `tests/e2e/test_format_note_workflow.py::test_complete_format_workflow_for_basic_note`. Takes 0.06s. Might contain calls to infra. — resolved: the test runs the full workflow against fakes (`FakeCompletionProvider`, `FakeCollection`); no real infra calls.
 
 ### Later
 
