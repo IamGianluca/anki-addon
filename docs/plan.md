@@ -47,20 +47,20 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 
 ### Now (highest impact)
 
-- [ ] Keep track of metrics (e.g., number of suggestions, suggestions accepted/declined/accepted with changes) ― **Goal 2**
-- [ ] Create streamlined workflow to do error analysis, in order to prioritize next actions ― **Goal 2**
-- [ ] Support OpenCode Go, to get access to more capable models than what we can self-host ― **Goal 2**
+- [x] Keep track of metrics (e.g., number of suggestions, suggestions accepted/declined/accepted with changes) ― **Goal 2** — every curation session writes a trace with the user's outcome (applied/rejected/cancelled/no_changes/failed + per-proposal decisions); the trace viewer surfaces them
+- [x] Create streamlined workflow to do error analysis, in order to prioritize next actions ― **Goal 2** — trace viewer with annotations, failure-mode taxonomy, review batches, and `tests/evals/sample_batch.py`; mine rejected sessions into eval tasks
+- [x] Support OpenCode Go, to get access to more capable models than what we can self-host ― **Goal 2**
 
 ### Next
 
-- [ ] Identify notes that are not atomic and suggest fix — **Goal 2**
+- [x] Identify notes that are not atomic and suggest fix — **Goal 2** — the agent's `review_changeset` action runs an atomicity check over the cluster (including untouched notes) and the system prompt instructs splitting non-atomic notes
 - [ ] Identify isolated notes — these will be harder to learn ― and suggest fix — **Goal 2**
-- [ ] Support converting existing note to a different type (e.g., Basic --> Cloze, Cloze --> Basic) — **Goal 2**
+- [ ] Support converting existing note to a different type (e.g., Basic --> Cloze, Cloze --> Basic) — **Goal 2** — partially covered by `propose_create` (splits can mint cloze notes), but no in-place type conversion
 - [x] Evolve the backend approach from one-shot LLM call to an AI agent using dedicated tools ― **Goal 2**
 - [ ] Add web search capability to AI agent to overcome knowledge limitation in the specific language model ― **Goal 2**
-- [ ] For OpenAI-compatible servers (llama.cpp, vLLM), hide per-model quirks (e.g., thinking params, markdown fence stripping) inside `OpenAIClient` driven by `AddonConfig`. — **Goal 3**
+- [x] For OpenAI-compatible servers (llama.cpp, vLLM), hide per-model quirks (e.g., thinking params, markdown fence stripping) inside `OpenAIClient` driven by config. — **Goal 3** — `openai_reasoning` / `openai_preserve_thinking` in `OpenAIConfig`, markdown fence stripping in `llm/parsing.py`
 - [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — **Goal 3**
-- [ ] Investigate `tests/e2e/test_format_note_workflow.py::test_complete_format_workflow_for_basic_note`. Takes 0.06s. Might contain calls to infra.
+- [x] Investigate `tests/e2e/test_format_note_workflow.py::test_complete_format_workflow_for_basic_note`. Takes 0.06s. Might contain calls to infra. — resolved: the test runs the full workflow against fakes (`FakeCompletionProvider`, `FakeCollection`); no real infra calls.
 
 ### Later
 
@@ -89,6 +89,9 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 | Q3 2025 | No mocks — use fakes in `tests/fakes/` | Mocks couple tests to implementation; fakes exercise real logic and survive refactors |
 | Q2 2026 | Deprecate `.create()` and Nullable patterns in favor of `__init__()` and dedicated Fakes + Dependency Injection | No test code in production; simplify production code; more standard approach |
 | Q3 2026 | Curation agent has no write access to the collection; mutations are proposals the user approves in batch | Data integrity (Goal 1) by construction: the agent cannot corrupt notes; one review point instead of per-action prompts |
+| Q3 2026 | Every curation session writes a trace with the user's outcome; the eval viewer renders production traces | The human's decision is the production grade; rejected sessions are the raw material for error analysis and new eval tasks |
+| Q3 2026 | Capability vs regression eval suites; pass^k gates for regression, report-only for capability | Proposals get applied to a real collection, so reliability per session is the product requirement; capability tasks give prompt/model changes a hill to climb without failing the build |
+| Q3 2026 | House-style formatting rules enforced across every eval task (cross-cutting checks, no per-task opt-out) | Formatting rules apply to every note the agent touches; per-task copies would drift and miss untested tasks |
 
 ## Review cadence
 
