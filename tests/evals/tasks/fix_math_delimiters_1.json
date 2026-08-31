@@ -1,9 +1,8 @@
 {
   "id": "fix_math_delimiters_1",
   "suite": "capability",
-  "desc": "The cluster mixes correct and incorrect math delimiters. Anki's MathJax renders LaTeX dependably between \\(...\\) (inline) and \\[...\\] (block); $ and $$ also render as math but inconsistently — spacing between symbols gets mangled and symbol sizes vary, so they are a defect. The seed note's back uses $...$ for inline math and bundles two facts (the sine and cosine double-angle formulas) into one card, so it must be split into two atomic notes; note 2, a sibling double-angle card under the same tags, uses $$...$$ for its block equation; note 3's Pythagorean identity is a whole-answer formula written inline \\(...\\), and as the entire answer it must become \\[...\\]. All three defective notes surface through the agent's normal cluster exploration (same tags, same content family) — no exhaustive collection-wide search is needed. The agent should split the compound seed note and convert every formula to the Anki form matching its role on its final card — \\[...\\] when the formula is the whole answer or stands alone, \\(...\\) when it is embedded in a sentence; a $$...$$ block equation is converted to \\[...\\], never collapsed to \\(...\\) — keeping the formulas themselves intact.",
+  "desc": "The cluster mixes correct and incorrect math delimiters. Anki's MathJax renders LaTeX dependably between \\(...\\) (inline) and \\[...\\] (block); $ and $$ also render as math but inconsistently — spacing between symbols gets mangled and symbol sizes vary, so they are a defect. The seed note's back uses $...$ for inline math and bundles two facts (the sine and cosine double-angle formulas) into one card, so it must be split into two atomic notes; note 2, a sibling double-angle card under the same tags, uses $$...$$ for its block equation; note 3, another sibling double-angle card, is a whole-answer formula written inline \\(...\\), and as the entire answer it must become \\[...\\]. All three defective notes surface through the agent's normal cluster exploration (same tags, same content family, matching the seed's own content queries) — no exhaustive collection-wide search is needed. The agent should split the compound seed note and convert every formula to the Anki form matching its role on its final card — \\[...\\] when the formula is the whole answer or stands alone, \\(...\\) when it is embedded in a sentence; a $$...$$ block equation is converted to \\[...\\], never collapsed to \\(...\\) — keeping the formulas themselves intact.",
   "seed_note_id": 1,
-  "instruction": "Anki math uses \\(...\\) (inline) when a formula is embedded in a sentence and \\[...\\] (block) when a formula is the whole answer or stands alone. $ and $$ render inconsistently (mangled spacing, mixed symbol sizes) and must be converted; a whole-answer formula written inline \\(...\\) must also be converted to \\[...\\]. Fix every wrong delimiter in the notes you edit and write any math in the notes you create by the same role rule, keeping the formulas themselves unchanged.",
   "trials": 3,
   "max_steps": 15,
   "notes": [
@@ -23,8 +22,8 @@
     },
     {
       "id": 3,
-      "front": "In trigonometry, what is the Pythagorean identity?",
-      "back": "\\(\\cos^2 x + \\sin^2 x = 1\\)",
+      "front": "In trigonometry, what is the double-angle formula for secant?",
+      "back": "\\(\\sec(2x) = \\frac{\\sec^2 x}{1 - \\tan^2 x}\\)",
       "tags": ["math", "trigonometry"],
       "notetype": "basic"
     }
@@ -34,7 +33,7 @@
     "creates": [1, 1],
     "deletes": [0, 0],
     "must_touch": [1, 2, 3],
-    "facts": ["sin(2x)", "cos(2x)", "tan(2x)", "\\cos^2 x + \\sin^2 x = 1"],
+    "facts": ["sin(2x)", "cos(2x)", "tan(2x)", "sec(2x)"],
     "no_dollar_math": true
   },
   "judge_assertions": [
@@ -69,10 +68,10 @@
     {
       "type": "edit",
       "note_id": 3,
-      "front": "In trigonometry, what is the Pythagorean identity?",
-      "back": "\\[\\cos^2 x + \\sin^2 x = 1\\]",
+      "front": "In trigonometry, what is the double-angle formula for secant?",
+      "back": "\\[\\sec(2x) = \\frac{\\sec^2 x}{1 - \\tan^2 x}\\]",
       "tags": ["math", "trigonometry"],
-      "rationale": "the Pythagorean identity is a whole-answer formula; convert the inline \\(...\\) form to the block \\[...\\] form"
+      "rationale": "the secant formula is a whole-answer formula; convert the inline \\(...\\) form to the block \\[...\\] form"
     }
   ]
 }
