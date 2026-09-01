@@ -1,8 +1,8 @@
 # Eval scores
 
-run: 20260831T022341Z
-model: unsloth/Qwen3.8-27B-GGUF:Q4_K_XL
-elapsed: 21m 34s
+run: 20260901T024816Z
+model: qwen3.8-27b
+elapsed: 22m 13s
 
 ✓ adam_duplicate_merge_1       pass@1 100%  pass^3 100%  (3/3 trials)  score 100%
 

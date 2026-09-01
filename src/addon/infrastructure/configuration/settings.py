@@ -41,6 +41,8 @@ class OpenAIConfig:
     Attributes:
         url: Complete HTTP URL for the OpenAI-compatible API endpoint.
         model_name: Name of the language model to use for completions.
+        api_key: Optional bearer token for servers that require auth
+            (e.g. vLLM). None when the server accepts anonymous requests.
         temperature: Sampling temperature for the language model (0.0-2.0).
         max_tokens: Maximum number of tokens to generate in completions.
         top_p: Nucleus sampling parameter (optional, LLM-specific).
@@ -72,6 +74,10 @@ class OpenAIConfig:
         self.model_name = model_name
         self.temperature = float(raw.get("openai_temperature", 0.0))
         self.max_tokens = int(raw.get("openai_max_tokens", 200))
+
+        # API key required by servers that authenticate (e.g. vLLM started
+        # with --api-key). Optional: plain llama-server setups send none.
+        self.api_key = raw.get("openai_api_key") or None
 
         # Optional LLM parameters
         self.top_p = (

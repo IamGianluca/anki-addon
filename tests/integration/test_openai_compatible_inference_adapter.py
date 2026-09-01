@@ -7,7 +7,8 @@ from addon.infrastructure.configuration.settings import OpenAIConfig
 from addon.infrastructure.external_services.openai import OpenAIClient
 
 # NOTE: These tests require a live inference server. Configure it via env vars
-# in .envrc: OPENAI_HOST, OPENAI_PORT, OPENAI_MODEL.
+# in .envrc: OPENAI_HOST, OPENAI_PORT, OPENAI_MODEL, and OPENAI_API_KEY if
+# the server requires auth.
 
 
 @pytest.fixture
@@ -19,6 +20,7 @@ def fast_addon_config() -> OpenAIConfig:
             "openai_host": os.environ["OPENAI_HOST"],
             "openai_port": os.environ["OPENAI_PORT"],
             "openai_model": os.environ["OPENAI_MODEL"],
+            "openai_api_key": os.environ.get("OPENAI_API_KEY"),
         }
     )
 

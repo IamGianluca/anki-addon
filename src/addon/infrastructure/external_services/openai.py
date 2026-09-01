@@ -85,11 +85,18 @@ class OpenAIClient:
             # Incorporate extra parameters like `guided_json` schema
             payload.update(kwargs)
 
-        response_data = post_json(self._http_client, self._config.url, payload)
+        headers = None
+        if self._config.api_key:
+            headers = {"Authorization": f"Bearer {self._config.api_key}"}
+        response_data = post_json(
+            self._http_client, self._config.url, payload, headers=headers
+        )
         if self._is_chat_completion:
             message = response_data["choices"][0]["message"]
             text = message["content"]
-            self.last_reasoning_content = message.get("reasoning_content")
+            # llama.cpp reports thinking as reasoning_content; vLLM uses
+            # the OpenAI-compatible "reasoning" field for Qwen3 models.
+            self.last_reasoning_content = message.get("reasoning_content") or message.get("reasoning")
         else:
             text = response_data["choices"][0]["text"]
             self.last_reasoning_content = None

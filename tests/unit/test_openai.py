@@ -137,6 +137,35 @@ def test_forwards_extra_kwargs() -> None:
     assert "response_format" in http.last_payload
 
 
+# --- Authentication ---
+
+
+def test_sends_api_key_as_bearer_token() -> None:
+    # Given
+    http = FakeHttpClient()
+    config = _create_config({"openai_api_key": "sk-test"})
+    client = OpenAIClient(config, http_client=http)
+
+    # When
+    client.run([{"role": "user", "content": "hi"}])
+
+    # Then
+    assert http.last_headers == {"Authorization": "Bearer sk-test"}
+
+
+def test_sends_no_auth_header_without_api_key() -> None:
+    # Given
+    http = FakeHttpClient()
+    config = _create_config()
+    client = OpenAIClient(config, http_client=http)
+
+    # When
+    client.run([{"role": "user", "content": "hi"}])
+
+    # Then
+    assert http.last_headers is None
+
+
 # --- Response parsing ---
 
 
@@ -191,6 +220,25 @@ def test_captures_reasoning_content() -> None:
 
     # Then
     assert client.last_reasoning_content == "let me think..."
+
+
+def test_captures_reasoning_from_vllm_field() -> None:
+    # Given — vLLM returns thinking in the OpenAI-compatible "reasoning"
+    # field (llama.cpp used reasoning_content).
+    body = {
+        "choices": [
+            {"message": {"content": "answer", "reasoning": "vllm think"}}
+        ]
+    }
+    http = FakeHttpClient(json_body=body)
+    config = _create_config()
+    client = OpenAIClient(config, http_client=http)
+
+    # When
+    client.run([{"role": "user", "content": "hi"}])
+
+    # Then
+    assert client.last_reasoning_content == "vllm think"
 
 
 # --- Error handling ---

@@ -43,6 +43,8 @@ e2e tests need a running endpoint. Set the environment variables in an
 export OPENAI_HOST=your_host_url
 export OPENAI_PORT=your_host_port
 export OPENAI_MODEL=your_llm_model
+# If the server requires auth (e.g. vLLM with --api-key):
+export OPENAI_API_KEY=your_key
 ```
 
 then run the full suite:

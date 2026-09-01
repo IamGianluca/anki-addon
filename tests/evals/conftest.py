@@ -4,7 +4,8 @@ The provider is selected via the LLM_PROVIDER env var (default "openai")
 and configured from the same env vars as the integration tests (.envrc):
 
 - openai (self-hosted): OPENAI_HOST, OPENAI_PORT, OPENAI_MODEL, plus the
-  optional OPENAI_* sampling/reasoning overrides.
+  optional OPENAI_* sampling/reasoning overrides. An API key is read from
+  OPENAI_API_KEY and sent as a Bearer token for servers that require auth.
 - opencode_go: OPENCODE_GO_API_KEY, OPENCODE_GO_MODEL, plus the optional
   OPENCODE_GO_TEMPERATURE / OPENCODE_GO_MAX_TOKENS overrides.
 
@@ -41,6 +42,7 @@ _OPENAI_OPTIONAL_ENV = {
     "OPENAI_MIN_P": "openai_min_p",
     "OPENAI_REASONING": "openai_reasoning",
     "OPENAI_PRESERVE_THINKING": "openai_preserve_thinking",
+    "OPENAI_API_KEY": "openai_api_key",
 }
 _BOOL_ENV = {"OPENAI_REASONING", "OPENAI_PRESERVE_THINKING"}
 

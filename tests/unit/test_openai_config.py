@@ -75,6 +75,30 @@ def test_optional_parameters_are_none_when_not_in_config() -> None:
     assert config.min_p is None
 
 
+def test_reads_api_key() -> None:
+    # Given / When
+    config = _create_config({"openai_api_key": "sk-test"})
+
+    # Then
+    assert config.api_key == "sk-test"
+
+
+def test_api_key_defaults_to_none() -> None:
+    # Given / When
+    config = _create_config()
+
+    # Then
+    assert config.api_key is None
+
+
+def test_blank_api_key_is_none() -> None:
+    # Given / When
+    config = _create_config({"openai_api_key": ""})
+
+    # Then
+    assert config.api_key is None
+
+
 @pytest.mark.parametrize(
     "config,expected_missing",
     [

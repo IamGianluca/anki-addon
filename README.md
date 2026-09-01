@@ -58,6 +58,8 @@ cd [your-anki-addons-path]/addons21/anki-addon
      "openai_model": "your_llm_model"
    }
    ```
+   If the server requires an API key (e.g. vLLM started with `--api-key`), add
+   `"openai_api_key": "your_key"` — it is sent as a Bearer token.
 
    **OpenCode Go subscription** (hosted open coding models, e.g. GLM, Kimi,
    DeepSeek — get an API key from the OpenCode Zen console):

@@ -37,7 +37,9 @@ The LLM is configured from the same env vars as the integration tests
 `opencode_go`):
 
 - `openai`: `OPENAI_HOST`, `OPENAI_PORT`, `OPENAI_MODEL`, plus the
-  optional `OPENAI_*` sampling/reasoning overrides.
+  optional `OPENAI_*` sampling/reasoning overrides. An API key is read
+  from `OPENAI_API_KEY` and sent as a Bearer token for servers that
+  require auth.
 - `opencode_go`: `OPENCODE_GO_API_KEY`, `OPENCODE_GO_MODEL`, plus the
   optional `OPENCODE_GO_TEMPERATURE` / `OPENCODE_GO_MAX_TOKENS`
   overrides.
