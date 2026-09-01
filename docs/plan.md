@@ -47,23 +47,19 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 
 ### Now (highest impact)
 
-- [x] Keep track of metrics (e.g., number of suggestions, suggestions accepted/declined/accepted with changes) ― **Goal 2** — every curation session writes a trace with the user's outcome (applied/rejected/cancelled/no_changes/failed + per-proposal decisions); the trace viewer surfaces them
-- [x] Create streamlined workflow to do error analysis, in order to prioritize next actions ― **Goal 2** — trace viewer with annotations, failure-mode taxonomy, review batches, and `tests/evals/sample_batch.py`; mine rejected sessions into eval tasks
-- [x] Support OpenCode Go, to get access to more capable models than what we can self-host ― **Goal 2**
+- [ ] Improve curator agent through error analysis and expand capability and regression evals
 
 ### Next
 
-- [x] Identify notes that are not atomic and suggest fix — **Goal 2** — the agent's `review_changeset` action runs an atomicity check over the cluster (including untouched notes) and the system prompt instructs splitting non-atomic notes
 - [ ] Identify isolated notes — these will be harder to learn ― and suggest fix — **Goal 2**
 - [ ] Support converting existing note to a different type (e.g., Basic --> Cloze, Cloze --> Basic) — **Goal 2** — partially covered by `propose_create` (splits can mint cloze notes), but no in-place type conversion
-- [x] Evolve the backend approach from one-shot LLM call to an AI agent using dedicated tools ― **Goal 2**
 - [ ] Add web search capability to AI agent to overcome knowledge limitation in the specific language model ― **Goal 2**
-- [x] For OpenAI-compatible servers (llama.cpp, vLLM), hide per-model quirks (e.g., thinking params, markdown fence stripping) inside `OpenAIClient` driven by config. — **Goal 3** — `openai_reasoning` / `openai_preserve_thinking` in `OpenAIConfig`, markdown fence stripping in `llm/parsing.py`
-- [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — **Goal 3**
 
 ### Later
 
 - [ ] Use semantic search instead of lexical search in search bar
+- [ ] Explore using EXL3 quants to improve model performance ― no reason in doing this now since capability evals already score 100% reliably
+- [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — **Goal 3**
 
 ### Icebox (ideas, not commitments)
 
