@@ -96,7 +96,9 @@ class OpenAIClient:
             text = message["content"]
             # llama.cpp reports thinking as reasoning_content; vLLM uses
             # the OpenAI-compatible "reasoning" field for Qwen3 models.
-            self.last_reasoning_content = message.get("reasoning_content") or message.get("reasoning")
+            self.last_reasoning_content = message.get(
+                "reasoning_content"
+            ) or message.get("reasoning")
         else:
             text = response_data["choices"][0]["text"]
             self.last_reasoning_content = None
