@@ -188,31 +188,45 @@ def test_failure_modes_sorts_by_count_then_label() -> None:
 
 
 def test_failure_modes_derives_recency_from_run_stamps() -> None:
-    # Given — the mode in every run of a six-run corpus
+    # Given — the mode annotated once per run across a corpus
+    # spanning many weeks
     runs = [
         _run(
-            f"run{i:02d}",
+            stamp,
             total_trials=1,
             annotations={f"a{i}.trial0.json": {"label": "old"}},
         )
-        for i in range(6)
+        for i, stamp in enumerate(
+            (
+                "20260601T120000Z",
+                "20260725T120000Z",
+                "20260820T120000Z",
+            )
+        )
     ]
 
-    # When — two newest runs count as recent
-    modes = failure_modes(runs, active_window=2)
+    # When — default window: thirty calendar days back from the
+    # newest run (20260820 → cutoff 20260721)
+    modes = failure_modes(runs)
 
-    # Then
-    assert modes["old"]["count"] == 6
+    # Then — the two newest runs count as recent, the oldest does not
+    assert modes["old"]["count"] == 3
     assert modes["old"]["active_count"] == 2
-    assert modes["old"]["last_seen"] == "run05"
+    assert modes["old"]["last_seen"] == "20260820T120000Z"
+
+    # When — a tighter ten-day window (cutoff 20260810)
+    modes = failure_modes(runs, active_days=10)
+
+    # Then — only the newest run remains active
+    assert modes["old"]["active_count"] == 1
 
 
 def test_failure_modes_sorts_by_last_seen_not_count() -> None:
-    # Given — a frequent mode last seen in an old run, a rare one in
-    # the newest run
+    # Given — a frequent mode last seen long ago, a rare one in the
+    # newest run
     runs = [
         _run(
-            "runA",
+            "20260601T120000Z",
             total_trials=4,
             annotations={
                 f"a{i}.trial0.json": {"label": "frequent-old"}
@@ -220,19 +234,38 @@ def test_failure_modes_sorts_by_last_seen_not_count() -> None:
             },
         ),
         _run(
-            "runB",
+            "20260820T120000Z",
             total_trials=1,
             annotations={"b.trial0.json": {"label": "rare-new"}},
         ),
     ]
 
-    # When — only the newest run is active
-    modes = failure_modes(runs, active_window=1)
+    # When — default thirty-day window
+    modes = failure_modes(runs)
 
     # Then — recency wins over cumulative count
     assert list(modes) == ["rare-new", "frequent-old"]
     assert modes["frequent-old"]["active_count"] == 0
     assert modes["rare-new"]["active_count"] == 1
+
+
+def test_failure_modes_non_date_stamp_counts_but_not_active() -> None:
+    # Given — an annotation on a run without a date-shaped stamp
+    runs = [
+        _run(
+            "runA",
+            total_trials=1,
+            annotations={"a.trial0.json": {"label": "m"}},
+        ),
+        _run("20260820T120000Z", total_trials=1),
+    ]
+
+    # When
+    modes = failure_modes(runs)
+
+    # Then — counted and sorted, but never active
+    assert modes["m"]["count"] == 1
+    assert modes["m"]["active_count"] == 0
 
 
 def test_mode_status_combines_recency_and_resolution() -> None:
@@ -312,6 +345,40 @@ def test_failure_mode_cards_bucket_by_status() -> None:
     assert len(active) == 2
     assert len(dormant) == 1
     assert len(resolved) == 1
+
+
+def test_failure_mode_cards_rank_active_by_frequency() -> None:
+    # Given — three active modes; the most frequent one is the
+    # oldest, so recency alone would misorder them
+    modes = {
+        "rare": {
+            "count": 2,
+            "active_count": 2,
+            "last_seen": "20260801T000000Z",
+            "records": [],
+        },
+        "frequent": {
+            "count": 5,
+            "active_count": 4,
+            "last_seen": "20260701T000000Z",
+            "records": [],
+        },
+        "tying": {
+            "count": 3,
+            "active_count": 2,
+            "last_seen": "20260715T000000Z",
+            "records": [],
+        },
+    }
+
+    # When
+    active, _, _ = _failure_mode_cards(modes, {})
+
+    # Then — window frequency first, total count breaks the tie
+    rendered = [str(s) for s in active]
+    assert "frequent" in rendered[0]
+    assert "tying" in rendered[1]
+    assert "rare" in rendered[2]
 
 
 def test_parse_annotation_key_splits_task_and_trial() -> None:

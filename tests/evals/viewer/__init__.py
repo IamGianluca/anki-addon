@@ -18,7 +18,7 @@ import json
 import os
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -211,8 +211,21 @@ _ANNOTATION_KEY_RE = re.compile(
 # coverage but are not failure modes and never appear on Progress.
 _NON_FAILURE_LABELS = {"pass", "lgtm", "ok"}
 
-# The newest N runs count as "recent" for mode recency (active_count).
-ACTIVE_WINDOW = 20
+# A mode stays active while any occurrence falls within this many
+# days of the newest run; older modes count as dormant.
+ACTIVE_DAYS = 30
+
+
+# Run stamps are UTC dir names like 20260812T023335Z.
+_STAMP_RE = re.compile(r"^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$")
+
+
+def _stamp_date(stamp: str) -> datetime | None:
+    """Parse a run stamp; None when it is not date-shaped."""
+    m = _STAMP_RE.match(stamp)
+    if m is None:
+        return None
+    return datetime(*map(int, m.groups()), tzinfo=timezone.utc)
 
 
 def parse_annotation_key(file_name: str) -> tuple[str, int] | None:
@@ -225,7 +238,7 @@ def parse_annotation_key(file_name: str) -> tuple[str, int] | None:
 
 
 def failure_modes(
-    runs: list[RunSummary], active_window: int = ACTIVE_WINDOW
+    runs: list[RunSummary], active_days: int = ACTIVE_DAYS
 ) -> dict[str, dict[str, Any]]:
     """Group annotations by label into failure modes.
 
@@ -236,10 +249,11 @@ def failure_modes(
     Annotations without a label or with an unparseable key are skipped.
 
     Recency is derived from run stamps, not annotation times: the
-    `active_window` newest runs count as recent, and each mode gets
-    `last_seen` (its newest run stamp) and `active_count` (occurrences
-    inside the window). A mode with active_count == 0 happened but is
-    not occurring now.
+    window is the `active_days` calendar days before the newest run
+    stamp, and each mode gets `last_seen` (its newest run stamp) and
+    `active_count` (occurrences inside the window). A mode with
+    active_count == 0 happened but is not occurring now. Run stamps
+    that are not date-shaped are treated as outside the window.
     """
     modes: dict[str, dict[str, Any]] = {}
     for run in runs:
@@ -261,11 +275,12 @@ def failure_modes(
             }
             mode = modes.setdefault(label, {"label": label, "records": []})
             mode["records"].append(record)
-    newest = set(
-        stamp
-        for stamp in sorted((r.stamp for r in runs), reverse=True)[
-            :active_window
-        ]
+    newest = max(
+        (d for d in (_stamp_date(r.stamp) for r in runs) if d is not None),
+        default=None,
+    )
+    cutoff = (
+        newest - timedelta(days=active_days) if newest is not None else None
     )
     for mode in modes.values():
         mode["records"].sort(
@@ -275,7 +290,11 @@ def failure_modes(
         mode["count"] = len(mode["records"])
         mode["last_seen"] = mode["records"][0]["run"]
         mode["active_count"] = sum(
-            1 for r in mode["records"] if r["run"] in newest
+            1
+            for r in mode["records"]
+            if (d := _stamp_date(r["run"])) is not None
+            and cutoff is not None
+            and d >= cutoff
         )
     # Stable sort: label ascending first, then recency/count desc so
     # ties keep alphabetical order.
@@ -1513,11 +1532,11 @@ def _recency_line(mode: dict[str, Any], status: str) -> Span:
     pretty = _pretty_stamp(mode["last_seen"])
     if status in ("active", "recurred"):
         text = (
-            f"{mode['active_count']} in last {ACTIVE_WINDOW} sessions"
+            f"{mode['active_count']} in last {ACTIVE_DAYS} days"
             f" · last seen {pretty}"
         )
     elif status == "quiet":
-        text = f"last seen {pretty} · not in last {ACTIVE_WINDOW} sessions"
+        text = f"last seen {pretty} · not in last {ACTIVE_DAYS} days"
     else:
         text = f"last seen {pretty}"
     return Span(text, style="color: var(--text-muted); font-size: 0.85rem;")
@@ -1545,18 +1564,20 @@ def _failure_mode_cards(
 ) -> tuple[list[Section], list[Section], list[Section]]:
     """Cards for the modes page, split into (active, dormant, resolved).
 
-    Active and recurred modes are the current failure surface, sorted
-    newest-first; dormant modes are dimmed with a last-seen note;
-    resolved modes keep description and examples for regression
-    comparison behind a toggle. Active modes get no button (an ongoing
-    failure cannot be resolved); dormant ones offer "Mark resolved",
-    resolved and recurred ones offer "Reopen".
+    Active and recurred modes are the current failure surface, ranked
+    by how often they occur (occurrences in the active window, then
+    total count, then label); dormant modes are dimmed with a
+    last-seen note; resolved modes keep description and examples for
+    regression comparison behind a toggle. Active modes get no button
+    (an ongoing failure cannot be resolved); dormant ones offer "Mark
+    resolved", resolved and recurred ones offer "Reopen".
     """
     buckets: dict[str, list[Section]] = {
         "active": [],
         "quiet": [],
         "resolved": [],
     }
+    active: list[tuple[str, dict[str, Any], Section]] = []
     for label, mode in modes.items():
         entry = stored.get(label, {})
         description = entry.get("description", "")
@@ -1618,31 +1639,45 @@ def _failure_mode_cards(
             style="display: flex; align-items: center; gap: 0.5rem;",
         )
 
-        buckets["active" if status == "recurred" else status].append(
-            Section(
-                header,
-                P(
-                    description,
-                    style=(
-                        "color: var(--text-muted); font-style: italic;"
-                        " font-size: 0.9rem;"
-                    ),
-                )
-                if description
-                else "",
-                Ul(*record_items, cls="check-list"),
-                cls="card card-stale" if status == "quiet" else "card",
+        section = Section(
+            header,
+            P(
+                description,
+                style=(
+                    "color: var(--text-muted); font-style: italic;"
+                    " font-size: 0.9rem;"
+                ),
             )
+            if description
+            else "",
+            Ul(*record_items, cls="check-list"),
+            cls="card card-stale" if status == "quiet" else "card",
         )
-    return buckets["active"], buckets["quiet"], buckets["resolved"]
+        if status in ("active", "recurred"):
+            active.append((label, mode, section))
+        elif status == "quiet":
+            buckets["quiet"].append(section)
+        else:
+            buckets["resolved"].append(section)
+    # Frequency rank: how often the failure still occurs decides,
+    # cumulative count breaks ties, alphabetical order settles them.
+    active.sort(
+        key=lambda kv: (
+            -(kv[1]["active_count"]),
+            -(kv[1]["count"]),
+            kv[0],
+        )
+    )
+    return [s for _, _, s in active], buckets["quiet"], buckets["resolved"]
 
 
 @rt("/modes")
 async def get():  # noqa: F811
-    """Failure modes grouped by label: active modes first (newest
-    occurrence first), dormant modes dimmed with a last-seen note,
-    resolved modes collapsed behind a toggle. Recency and counts come
-    from the annotations; resolution flags come from the taxonomy."""
+    """Failure modes grouped by label: active modes first (most
+    frequent occurrence first), dormant modes dimmed with a last-seen
+    note, resolved modes collapsed behind a toggle. Recency and counts
+    come from the annotations; resolution flags come from the
+    taxonomy."""
     runs = load_runs()
     modes = failure_modes(runs)
     stored = load_patterns()
@@ -1663,7 +1698,7 @@ async def get():  # noqa: F811
             Section(
                 H2("Active"),
                 P(
-                    f"Occurred in the last {ACTIVE_WINDOW} sessions.",
+                    f"Occurred in the last {ACTIVE_DAYS} days.",
                     style="color: var(--text-muted); font-size: 0.85rem;",
                 ),
                 *active,
@@ -1675,8 +1710,8 @@ async def get():  # noqa: F811
             Section(
                 H2("Dormant"),
                 P(
-                    f"Seen before but not in the last {ACTIVE_WINDOW} "
-                    "sessions. Mark resolved once fixed.",
+                    f"Seen before but not in the last {ACTIVE_DAYS} days. "
+                    "Mark resolved once fixed.",
                     style="color: var(--text-muted); font-size: 0.85rem;",
                 ),
                 *dormant,

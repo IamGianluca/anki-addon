@@ -233,9 +233,10 @@ The **Progress page** (link in the top bar) shows review coverage
 per run (annotated / total). The **Failure modes page** is where the
 taxonomy surfaces: every failure mode grouped by label, with counts,
 the recorded notes, and links back into the sessions. Modes are
-bucketed by recency, derived from run stamps: **Active** (newest
-occurrence first, with how many times seen in the last 20 sessions),
-**Dormant** (dimmed — not seen recently, with a "Mark resolved"
+bucketed by recency, derived from run stamps: **Active** (ranked by
+how often seen in the last 30 days, then total count),
+**Dormant** (dimmed — not seen in the last 30 days, with a "Mark
+resolved"
 button), and **Resolved** (collapsed behind a toggle, kept as the
 regression baseline). A resolved mode that occurs again pops back
 into Active with a RECURRED badge until reopened. Resolution is a
@@ -254,7 +255,7 @@ curl -s -X POST http://127.0.0.1:5000/api/patterns/resolve \
 ```
 
 Each mode in the API payload carries the derived `count`, `active_count`
-(occurrences in the last 20 runs) and `last_seen`, plus the stored
+(occurrences in the last 30 days) and `last_seen`, plus the stored
 `description` and `resolved_at`. Counts and example records are always
 derived from `annotations.json`; the taxonomy (stored in
 `patterns.json` next to the run folders) holds only interpretation, so
