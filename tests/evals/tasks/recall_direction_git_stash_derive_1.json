@@ -1,0 +1,45 @@
+{
+  "id": "recall_direction_git_stash_derive_1",
+  "suite": "capability",
+  "desc": "The seed note is atomic, correct, and in house style, and it tests only the definition direction of the concept ('what is a stash?'). The cluster contains no trace of any stash command — no Extra field, nothing in the back. This task measures the strongest form of the spaced-repetition practice of testing high-value knowledge from both recall directions: the agent must derive the missing command direction from its own knowledge of git and propose active-recall cards for the canonical confusable pair — `git stash pop` (applies the stash and removes it from the stash list) and `git stash apply` (applies it without removing it) — keeping the two commands distinguishable and factually correct, while leaving the seed's definition card alone.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In git, what is a stash?",
+      "back": "A saved set of uncommitted changes that can be restored later",
+      "tags": ["git", "cli"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [0, 1],
+    "creates": [2, 2],
+    "deletes": [0, 0],
+    "facts": ["stash", "pop", "apply"]
+  },
+  "judge_assertions": [
+    "The seed note tests only the definition direction ('what is a stash?') and the cluster nowhere mentions any stash command. The change set nevertheless adds cards for the command direction, derived from the agent's own knowledge rather than from anything in the cluster: at least one new card asks what `git stash pop` or `git stash apply` does.",
+    "The added command cards are factually correct and keep the two similar commands distinguishable: `git stash pop` applies the stash and removes it from the stash list, while `git stash apply` applies it without removing it — and no card asks about both commands in one question that bundles their behaviors."
+  ],
+  "reference": [
+    {
+      "type": "create",
+      "front": "In git, what does `git stash pop` do?",
+      "back": "Applies the most recent stash and removes it from the stash list",
+      "tags": ["git", "cli"],
+      "notetype": "basic",
+      "rationale": "derive the canonical command-direction card for pop from the seed's concept"
+    },
+    {
+      "type": "create",
+      "front": "In git, what does `git stash apply` do?",
+      "back": "Applies the most recent stash without removing it from the stash list",
+      "tags": ["git", "cli"],
+      "notetype": "basic",
+      "rationale": "derive the apply card separately so the two similar commands stay distinguishable"
+    }
+  ]
+}

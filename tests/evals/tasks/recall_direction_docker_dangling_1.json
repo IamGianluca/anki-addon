@@ -1,0 +1,54 @@
+{
+  "id": "recall_direction_docker_dangling_1",
+  "suite": "capability",
+  "desc": "The seed note's back bundles three independently recallable facts in one card: the definition of a dangling image, what `docker image prune` removes, and what `docker image prune -a` removes in addition. This task measures whether the agent applies the spaced-repetition best practice of testing knowledge from both recall directions: it should split the card into separate atomic cards covering the definition direction ('what is a dangling image?') and the command direction ('what does `docker image prune` / `docker image prune -a` do?'), keep the two similar commands on distinct cards instead of merging them into one bundled question, and preserve all of the seed's content.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In Docker, what is a dangling image?",
+      "back": "An untagged image that is not referenced by any container. `docker image prune` removes dangling images; `docker image prune -a` also removes tagged images that no container references",
+      "tags": ["docker", "cli"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [1, 1],
+    "creates": [2, 2],
+    "deletes": [0, 0],
+    "must_touch": [1],
+    "facts": ["dangling", "untagged", "prune", "tagged"]
+  },
+  "judge_assertions": [
+    "The change set covers both recall directions for the Docker dangling-image knowledge: at least one card tests the definition direction — its front asks what a dangling image is and its back gives the definition; and at least one card tests the command direction — its front asks what `docker image prune` or `docker image prune -a` does and its back gives that command's behavior.",
+    "The two similar commands are kept distinguishable: no card's front asks about `docker image prune` and `docker image prune -a` together in one question whose answer bundles both behaviors; each command is tested on its own card."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "In Docker, what is a dangling image?",
+      "back": "An untagged image that is not referenced by any container",
+      "tags": ["docker", "cli"],
+      "rationale": "keep the definition-direction card on the original note, preserving its review history"
+    },
+    {
+      "type": "create",
+      "front": "In Docker, what does `docker image prune` do?",
+      "back": "Removes dangling images",
+      "tags": ["docker", "cli"],
+      "notetype": "basic",
+      "rationale": "test the plain prune command's behavior on its own card"
+    },
+    {
+      "type": "create",
+      "front": "In Docker, what does `docker image prune -a` remove in addition to dangling images?",
+      "back": "Tagged images that are not referenced by any container",
+      "tags": ["docker", "cli"],
+      "notetype": "basic",
+      "rationale": "test the -a variant separately so the two similar commands stay distinguishable"
+    }
+  ]
+}

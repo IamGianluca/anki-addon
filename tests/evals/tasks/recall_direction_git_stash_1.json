@@ -1,0 +1,48 @@
+{
+  "id": "recall_direction_git_stash_1",
+  "suite": "capability",
+  "desc": "The seed note is atomic, correct, and in house style, but it tests only the definition direction ('what is a stash?'). Its Extra field carries supplementary context the question does not test: the behaviors of `git stash pop` and `git stash apply`. This task measures whether the agent applies the spaced-repetition best practice of giving high-value knowledge active recall from every direction worth recalling: knowledge a note carries only as untested context is passively recognized but never actively recalled, so the agent should create separate atomic cards that test the command direction — one card for `git stash pop`, one for `git stash apply` — keeping the two similar commands distinguishable from each other (pop removes the stash, apply does not). The seed's definition card should remain as it is; only the missing direction needs to be added.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In git, what is a stash?",
+      "back": "A saved set of uncommitted changes that can be restored later",
+      "extra_fields": {
+        "Extra": "`git stash pop` applies the most recent stash and removes it from the stash list; `git stash apply` applies it without removing it"
+      },
+      "tags": ["git", "cli"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [0, 1],
+    "creates": [2, 2],
+    "deletes": [0, 0],
+    "facts": ["stash", "pop", "apply"]
+  },
+  "judge_assertions": [
+    "The change set creates active-recall cards for the knowledge the seed note only carries as untested context in its Extra field: at least one new card tests the command direction — its front asks what `git stash pop` or `git stash apply` does, and its back gives that command's behavior. The seed's front continues to test the definition direction (what a stash is) — the new cards add the missing direction rather than duplicating the definition.",
+    "The two similar commands `git stash pop` and `git stash apply` are kept distinguishable: no card's front asks about both commands together in one question whose answer bundles both behaviors, and the tests convey the distinguishing behavior — `pop` removes the stash from the stash list, while `apply` does not."
+  ],
+  "reference": [
+    {
+      "type": "create",
+      "front": "In git, what does `git stash pop` do?",
+      "back": "Applies the most recent stash and removes it from the stash list",
+      "tags": ["git", "cli"],
+      "notetype": "basic",
+      "rationale": "test the pop command's behavior, adding active recall to content the seed only carried as untested context"
+    },
+    {
+      "type": "create",
+      "front": "In git, what does `git stash apply` do?",
+      "back": "Applies the most recent stash without removing it from the stash list",
+      "tags": ["git", "cli"],
+      "notetype": "basic",
+      "rationale": "test the apply command separately so the two similar commands stay distinguishable"
+    }
+  ]
+}
