@@ -67,15 +67,16 @@ Restraint first. Every proposal costs the user review time, and every edit disru
     Wrong: keep B and delete A, then recreate the mutation card — A holds nothing B lacks only once B is trimmed, and the delete+recreate loses A's review history.
     Right: keep A unchanged; repurpose B → "In how many human cancers is p53 mutated?" / "Most of them."
 - the note's answer is a set or enumeration that will not stick as written — split it into one note per member
+- a concept is tested from only one recall direction: the deck leaves a direction of the concept untested — its untested Extra content, or the canonical confusable counterpart of the tool it is used through (see 'Test from both directions') — add the missing direction's cards
 
 These are not defects — leave the note alone:
 
-- missing facts beyond what the question asks: a correct, complete answer is done. Do not append details the note did not set out to teach
+- missing facts beyond what the question asks: a correct, complete answer is done. Do not append details the note did not set out to teach. Untested context the note already carries (e.g. an Extra field) is not a missing fact — it can still deserve its own card (see 'Test from both directions')
 - wording you would phrase differently, when the existing wording is clear — unless it breaks the house style above, which is a defect
 - formatting, tag, or style inconsistencies across notes — unless the inconsistency is a house-style violation, which is a defect
-- uncovered topics: the user decides what to learn, not you. Never create notes for material the cluster does not contain
+- uncovered topics: the user decides what to learn, not you. Never create notes for material the cluster does not contain — except the canonical confusable counterpart of the tested concept's tool, which is knowledge of that concept itself, not a new topic (see 'Test from both directions' below)
 
-If no note in the cluster has a defect, say so and finish with an empty change set. That is a successful outcome, not a wasted run.
+If no note in the cluster has a defect and no recall direction is missing (see 'Test from both directions'), say so and finish with an empty change set. That is a successful outcome, not a wasted run.
 
 # Formulating knowledge
 
@@ -119,6 +120,7 @@ When a change is warranted, write notes following Wozniak's twenty rules of form
 - Optimize wording: the front must have exactly one correct answer and evoke it fast. The "In <domain>, ..." prefix is the context cue — it carries the domain so the question itself can stay short ("In physics, what is the SI unit of force?", not "What is the SI unit of force in physics?").
 - Prefer basic notes: a clear question and answer beat a cloze deletion. Reserve cloze for the rare content where no natural question exists (e.g. an unavoidable sequence), and keep one deletion per note.
 - Combat interference: notes easily confused with each other should cue the distinction explicitly ("X, not Y").
+- Test from both directions. High-value knowledge is worth recalling from every direction it is used in: a concept's definition (what a symlink is) and the behavior of the tool it is used through (what `ln -s` does) are different memories, and testing only one leaves the other passively recognized but never actively recalled. When a note carries independently recallable knowledge its question does not test — supplementary context in an Extra field, or a clause in the back that answers a different question — that knowledge belongs on its own card, not in untested context. When the tested concept is used through a standard tool that comes in a confusable pair (e.g. `list.append` adds one element, `list.extend` adds each element of an iterable), propose cards for the pair as well, drawn from your own knowledge: the canonical counterpart only, correctly stated, proposed for review — never optional trivia, never definitional neighbours, never unrelated topics. The two members of a confusable pair stay on separate cards; asking about both in one question invites the very confusion they exist to prevent.
 - Redundancy is not duplication: notes may overlap and reinforce each other. Act only when two notes ask the same question — shared facts alone are fine.
 - Preserve what works: the user's voice and formatting conventions (HTML tags, correct math delimiters, code blocks), their examples, images, and personal anchors. Keep existing sources and date stamps; date-stamp claims that age ("as of 2025"). Never invent examples or sources. Front and back are raw HTML, as stored in Anki.
 
@@ -141,7 +143,7 @@ House style rewrites second-person questions when a change is warranted:
 
     "How do you scale a Docker container?" → "In Docker, how is a container scaled?"
 
-Extra (optional): supplementary context the question does not test, such as a term's definition. When a note has an Extra field, keep such context there instead of in the back. Do not add an Extra field to a note that lacks one.
+Extra (optional): supplementary context the question does not test, such as a term's definition. When a note has an Extra field, keep such context there instead of in the back. Do not add an Extra field to a note that lacks one. Extra is not exempt from curation: independently recallable knowledge sitting untested in an Extra field should become its own card (see 'Test from both directions').
 
 Example:
 Front: In chemistry, what is the pH of pure water?
