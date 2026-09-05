@@ -54,7 +54,7 @@ def open_review_editor() -> None:
     # Create button layout with manual buttons
     button_layout = QHBoxLayout()
     save_button = QPushButton("Save")
-    save_keep_flag_button = QPushButton("Save & Keep Flagged")
+    save_keep_flag_button = QPushButton("Save && Keep Flagged")
     skip_button = QPushButton("Skip")
     cancel_button = QPushButton("Cancel")
 
