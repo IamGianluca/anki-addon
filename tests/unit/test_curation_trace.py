@@ -53,6 +53,7 @@ def _session() -> CurationSession:
             {"role": "assistant", "content": finish_step},
         ],
         summary="Added a tag.",
+        duration_seconds=37.25,
     )
 
 
@@ -85,7 +86,7 @@ def test_save_writes_full_record_with_outcome(tmp_path: Path) -> None:
     assert record["instruction"] == "focus on tags"
     assert record["passed"] is True
     assert record["summary"] == "Added a tag."
-    assert record["stats"] == {"steps": 2}
+    assert record["stats"] == {"steps": 2, "duration_seconds": 37.2}
     assert record["cluster"] == [
         {
             "id": 42,

@@ -6,6 +6,7 @@ from tests.evals.viewer import (
     RunSummary,
     TrialRecord,
     _failure_mode_cards,
+    _format_duration,
     batch_items,
     coverage,
     failure_modes,
@@ -40,6 +41,7 @@ def _trial(
     *,
     outcome: dict | None = None,
     summary: str = "",
+    stats: dict | None = None,
 ) -> TrialRecord:
     """A production trial with just the fields the batch reads."""
     return TrialRecord(
@@ -49,7 +51,7 @@ def _trial(
         score=1.0,
         checks=[],
         judge_verdicts=[],
-        stats={},
+        stats=stats or {},
         summary=summary,
         cluster=[],
         change_set=[],
@@ -699,3 +701,30 @@ def test_load_batch_absent_file_is_empty(tmp_path) -> None:
 
     # Then
     assert loaded == []
+
+
+def test_format_duration_renders_compact_strings() -> None:
+    # Given / When / Then
+    assert _format_duration(None) == "—"
+    assert _format_duration(0.0) == "0s"
+    assert _format_duration(42.3) == "42s"
+    assert _format_duration(59.6) == "1m 00s"
+    assert _format_duration(83.5) == "1m 24s"
+    assert _format_duration(125) == "2m 05s"
+    assert _format_duration(497.1) == "8m 17s"
+
+
+def test_duration_seconds_reads_from_stats() -> None:
+    # Given
+    trial = _trial("note_1", stats={"steps": 3, "duration_seconds": 42.3})
+
+    # When / Then
+    assert trial.duration_seconds == 42.3
+
+
+def test_duration_seconds_is_none_without_stats() -> None:
+    # Given
+    trial = _trial("note_1", stats={})
+
+    # When / Then
+    assert trial.duration_seconds is None

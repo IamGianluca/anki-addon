@@ -216,7 +216,10 @@ def write_trial_record(
         ],
         "failures": grade.failures,  # backward compat
         "unknowns": grade.unknowns,  # backward compat
-        "stats": grade.stats,
+        "stats": {
+            **grade.stats,
+            "duration_seconds": round(outcome.session.duration_seconds, 1),
+        },
         "summary": outcome.session.summary,
         "cluster": [
             {"id": note_id, **render_note(note)}

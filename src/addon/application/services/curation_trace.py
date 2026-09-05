@@ -119,7 +119,10 @@ class CurationTraceStore:
             "trial": 0,
             "passed": outcome.status != "failed",
             "score": 1.0 if outcome.status != "failed" else 0.0,
-            "stats": {"steps": _count_steps(session.transcript)},
+            "stats": {
+                "steps": _count_steps(session.transcript),
+                "duration_seconds": round(session.duration_seconds, 1),
+            },
             "summary": session.summary,
             "cluster": [{"id": seed_note_id, **render_note(seed_note)}],
             "change_set": [render_proposal(p) for p in session.change_set],

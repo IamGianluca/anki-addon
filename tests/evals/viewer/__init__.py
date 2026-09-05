@@ -134,6 +134,12 @@ class TrialRecord:
     instruction: str | None = None
     file_name: str = ""
 
+    @property
+    def duration_seconds(self) -> float | None:
+        """Wall-clock time of the session, if the record carries it."""
+        value = self.stats.get("duration_seconds")
+        return float(value) if value is not None else None
+
 
 def load_runs() -> list[RunSummary]:
     """Load all runs from the results directory, newest first."""
@@ -808,6 +814,27 @@ def _annotation_badge(run: RunSummary, trial: TrialRecord) -> str | Span:
     return _badge(ann["label"], "unknown")
 
 
+def _format_duration(seconds: float | None) -> str:
+    """Wall-clock duration as a compact string: '42s', '2m 05s'.
+
+    Returns a dash for records that predate duration tracking.
+    """
+    if seconds is None:
+        return "—"
+    total = round(seconds)
+    if total < 60:
+        return f"{total}s"
+    minutes, secs = divmod(total, 60)
+    return f"{minutes:.0f}m {secs:02.0f}s"
+
+
+def _stat_display(key: str, value: Any) -> tuple[str, str]:
+    """(label, formatted value) for one stats entry."""
+    if key == "duration_seconds":
+        return "Time", _format_duration(value)
+    return key.replace("_", " ").title(), str(value)
+
+
 def _nav() -> Header:
     return Header(
         A("Dashboard", href="/"),
@@ -848,7 +875,7 @@ async def get():  # noqa: F811
                     Td(_run_link(run)),
                     Td(f"{run.pass_rate:.0%}"),
                     Td(f"{run.passed_trials}/{run.total_trials}"),
-                    Td(f"{run.elapsed:.0f}s"),
+                    Td(_format_duration(run.elapsed)),
                     Td(str(len(run.tasks))),
                 )
             )
@@ -894,6 +921,7 @@ async def get():  # noqa: F811
                     Td(run.model),
                     Td(_outcome_badge(status)),
                     Td(steps),
+                    Td(_format_duration(trial.duration_seconds)),
                     Td(summary or ""),
                     Td(_annotation_badge(run, trial)),
                 )
@@ -914,6 +942,7 @@ async def get():  # noqa: F811
                             Th("Model"),
                             Th("Outcome"),
                             Th("Steps"),
+                            Th("Time"),
                             Th("Summary"),
                             Th("Annotation"),
                         )
@@ -945,6 +974,7 @@ async def get(stamp: str):  # noqa: F811
                 _outcome_badge(outcome.get("status", "unknown")),
                 Span(f"  {trial.task_id}"),
                 Span(f"  |  Model: {run.model}"),
+                Span(f"  |  Time: {_format_duration(trial.duration_seconds)}"),
                 style="margin-bottom: 1rem;",
             ),
             Section(
@@ -990,7 +1020,7 @@ async def get(stamp: str):  # noqa: F811
     return Main(
         _nav(),
         H2(f"Run: {run.stamp}"),
-        P(f"Model: {run.model}  |  Elapsed: {run.elapsed:.0f}s"),
+        P(f"Model: {run.model}  |  Elapsed: {_format_duration(run.elapsed)}"),
         Div(
             _badge(
                 f"{run.pass_rate:.0%} pass",
@@ -1045,6 +1075,16 @@ async def get(stamp: str, task_id: str):  # noqa: F811
                 )
             )
 
+        stats_entries = []
+        for k, v in t.stats.items():
+            label, value = _stat_display(k, v)
+            stats_entries.append(
+                Div(
+                    Span(f"{label}:", style="font-weight: 600;"),
+                    Span(f" {value}", style="color: var(--text-muted);"),
+                )
+            )
+
         trial_cards.append(
             Div(
                 Div(
@@ -1055,16 +1095,7 @@ async def get(stamp: str, task_id: str):  # noqa: F811
                     Span(f"  score: {t.score:.0%}"),
                     style="display: flex; align-items: center; gap: 0.5rem;",
                 ),
-                Div(
-                    *[
-                        Div(
-                            Span(f"{k}:", style="font-weight: 600;"),
-                            Span(f" {v}", style="color: var(--text-muted);"),
-                        )
-                        for k, v in t.stats.items()
-                    ],
-                    cls="stats-grid",
-                ),
+                Div(*stats_entries, cls="stats-grid"),
                 P(
                     f"Summary: {t.summary}",
                     style="margin: 0.5rem 0; font-style: italic;",
@@ -1105,10 +1136,11 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
     # Stats
     stats_items = []
     for k, v in trial.stats.items():
+        label, value = _stat_display(k, v)
         stats_items.append(
             Div(
-                Div(str(v), cls="stat-value"),
-                Div(k.replace("_", " ").title(), cls="stat-label"),
+                Div(value, cls="stat-value"),
+                Div(label, cls="stat-label"),
                 cls="stat-box",
             )
         )

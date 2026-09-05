@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -35,11 +36,14 @@ class CurationSession:
         transcript: The full message history, for review and debugging.
         summary: The agent's closing summary, or None if the loop hit
             max_steps without the agent calling finish.
+        duration_seconds: Wall-clock time the run took, including LLM
+            calls.
     """
 
     change_set: ProposedChangeSet
     transcript: list[dict]
     summary: str | None
+    duration_seconds: float = 0.0
 
 
 class CuratorAgent:
@@ -73,6 +77,7 @@ class CuratorAgent:
         editing, plus an optional free-text instruction."""
         messages = self._initial_messages(seed_note_id, instruction)
         summary = None
+        started = time.monotonic()
         for _ in range(self._max_steps):
             response = self._client.run(
                 prompt=messages,
@@ -105,7 +110,12 @@ class CuratorAgent:
                 break
             observation = self._dispatch(step.action)
             messages.append({"role": "user", "content": observation})
-        return CurationSession(self._tools.change_set, messages, summary)
+        return CurationSession(
+            self._tools.change_set,
+            messages,
+            summary,
+            duration_seconds=time.monotonic() - started,
+        )
 
     def _initial_messages(
         self, seed_note_id: NoteId, instruction: str | None

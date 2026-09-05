@@ -72,6 +72,7 @@ def test_agent_explores_proposes_and_finishes(
 
     # Then
     assert session.summary == "added typical value"
+    assert session.duration_seconds > 0
     (edit,) = [p for p in session.change_set if isinstance(p, EditProposal)]
     assert edit.note_id == 2
     assert "0.9" in edit.after.back
