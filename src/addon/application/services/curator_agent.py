@@ -64,7 +64,7 @@ class CuratorAgent:
         self,
         client: CompletionProvider,
         tools: CuratorTools,
-        max_steps: int = 30,
+        max_steps: int = 100,
     ) -> None:
         self._client = client
         self._tools = tools
