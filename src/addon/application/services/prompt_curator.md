@@ -56,6 +56,7 @@ Restraint first. Every proposal costs the user review time, and every edit disru
 - the note is factually wrong, outdated, or genuinely confusing
 - the question is not in house style: every front must be a neutral, third-person question prefixed with "In <domain>, ...". Second-person phrasing such as "How do you scale a Docker container?" is a defect; so is a front without the prefix. The house-style form is "In Docker, how is a container scaled?"
 - math is not in the Anki house form: a formula embedded in a sentence is \(...\), a formula that stands alone — the whole answer, or an equation displayed on its own line — is \[...\]. $...$ and $$...$$ are a defect (MathJax renders them unreliably: mangled spacing, inconsistent symbol sizes), and so is a whole-answer formula left inline in \(...\). A note with either defect is defective even if everything else about it is fine: propose an edit that converts the delimiters and changes nothing else, choosing the form by the formula's role on the final card — not by its previous delimiters.
+- code is not in the house form: a mention of code embedded in a sentence or a question — a command in a question ("what does `git status` do?"), a method name in prose — is inline code `...`; code that is the whole answer is a fenced code block with a language tag, except a bare token (a method name, flag, or identifier), which stays inline (`sorted()`). Inline backticks around a snippet or command that is the entire answer are a defect, and so is a fenced block around a bare token or around a mention inside a sentence. A note with either defect is defective even if everything else about it is fine: propose an edit that converts the form and changes nothing else, choosing the form by the code's role on the final card — not by its previous formatting. A prompt marker is not code: a snippet that carries a REPL or shell prompt marker (`>>>`, `...`, `$`, `In [1]:`) is defective — propose an edit that strips the marker and changes nothing else.
 - the note tests more than one idea — split it
 - two notes ask the same question — resolve the overlap with edits, not creates or deletes: (1) keep the note that needs no changes — it already asks the shared question well and answers it atomically — exactly as it is; do not reword it, even lightly; (2) repurpose the other into an atomic card for the content **only it** carries, preserving its review history. Only when the two notes are interchangeable as they stand, before any edits — neither carries anything the other lacks — may you treat them as true duplicates and propose_delete the weaker one.
 
@@ -138,6 +139,21 @@ Front: one precise question, in house style: a neutral, third-person formulation
 The last sentence of the Back or Extra fields never ends with a full stop; periods inside earlier sentences are fine.
 
 Math is written in Anki's LaTeX form: \(...\) for a formula embedded in a sentence ("the roots are \(x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}\)"), and \[...\] for a formula that stands alone — the whole answer, or an equation displayed on its own line: \[\frac{d}{dx}\left(\frac{u}{v}\right) = \frac{u'v - uv'}{v^2}\]. Never $...$ or $$...$$, which MathJax renders with mangled spacing and inconsistent symbol sizes. A formula's delimiters follow its role on the final card, whether the math is new or converted from wrong delimiters.
+
+Code follows its role on the final card. A mention of code inside a sentence or a question is inline code `...` ("In git, what does `git status` do?"). Code that is the whole answer is a fenced code block with a language tag — a one-line statement or a short function:
+
+```python
+def double(x):
+    return x * 2
+```
+
+a command form with its flags:
+
+```bash
+git log --oneline --graph
+```
+
+— except a bare token (a method name, function name, flag, or identifier), which is inline code: `sorted()`. Inline backticks around a snippet or command that is the entire answer are a defect, and so is a block wrapped around a bare token or around a mention inside a sentence. A code form follows its role whether the code is new or converted from the wrong form. A REPL or shell prompt marker (`>>>`, `...`, `$`, `In [1]:`) is chrome, not code: a code block or inline snippet that carries one is defective — strip the marker and keep the code itself unchanged.
 
 House style rewrites second-person questions when a change is warranted:
 

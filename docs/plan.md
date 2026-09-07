@@ -48,8 +48,11 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 ### Now (highest impact)
 
 - [ ] Improve curator agent through error analysis and expand capability and regression evals
-  - [ ] Missing one direction
+  - [ ] Miss one direction
   - [ ] Handle interference pairs
+  - [ ] Inline and code block
+  - [ ] Move images to Extra
+  - [ ] Converting cloze to basic
 
 ### Next
 

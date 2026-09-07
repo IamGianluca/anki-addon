@@ -1,0 +1,107 @@
+{
+  "id": "fix_code_formatting_1",
+  "suite": "capability",
+  "desc": "The cluster mixes correct and incorrect code formatting. House style: a mention of code embedded in a sentence or a question is inline code `...` (e.g. 'what does the `print` function do?'); code that is the whole answer is a fenced code block with a language tag — a one-line runnable statement (```lua\n{name = \"Ada\"}\n```), a command form (```bash\nlua game.lua\n```) — except a bare token (a method name, flag, or identifier), which stays inline (`table.sort`). Inline backticks around a snippet or command that is the entire answer are a defect, and so is a fenced block around a bare token or around a mention inside a sentence. The seed note's back is an inline one-line statement, so it must become a fenced block; note 2's back is an inline command form, so it must become a fenced block; note 3's back is a bare function name wrapped in a fenced block, so it must become inline code; note 4 mentions the `print` function inside its question and is already correct. All four notes share the 'lua' and 'programming' tags, so the cluster surfaces through the agent's normal cluster exploration (tag and content queries); no exhaustive collection-wide search is needed. The agent should convert every defective form to the form matching its role on its final card — never by its previous formatting — keeping the code itself intact, and leave note 4 untouched.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In Lua, how is a table with the name field set to Ada created?",
+      "back": "`{name = \"Ada\"}`",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "In Lua, what command runs the script file `game.lua`?",
+      "back": "`lua game.lua`",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 3,
+      "front": "In Lua, what function sorts a table in place?",
+      "back": "```lua\ntable.sort\n```",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 4,
+      "front": "In Lua, what does the `print` function do?",
+      "back": "Writes its arguments to the standard output",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [
+      3,
+      3
+    ],
+    "creates": [
+      0,
+      0
+    ],
+    "deletes": [
+      0,
+      0
+    ],
+    "must_touch": [
+      1,
+      2,
+      3
+    ],
+    "must_not_touch": [
+      4
+    ],
+    "facts": [
+      "{name = \"Ada\"}",
+      "lua game.lua",
+      "table.sort"
+    ],
+    "must_not_contain": [
+      "`{name = \"Ada\"}`",
+      "`lua game.lua",
+      "```lua\ntable.sort\n```"
+    ]
+  },
+  "judge_assertions": [
+    "Every proposed note whose whole answer is a runnable statement or a command — the table constructor `{name = \"Ada\"}` or `lua game.lua` — writes that answer as a fenced code block with a language tag, the code on its own lines; it is not inline backticks and not bare text. The code's content is unchanged.",
+    "The proposed note whose whole answer is a bare function name (`table.sort`) writes it as inline code, not wrapped in a fenced code block.",
+    "The card whose question mentions the `print` function in inline code stays exactly as it is: a mention of code inside a question remains inline and is not converted to a fenced block; no note other than the three with the formatting defects is changed."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "back": "```lua\n{name = \"Ada\"}\n```",
+      "rationale": "the one-line statement is the whole answer: convert the inline backticks to a fenced code block with a language tag"
+    },
+    {
+      "type": "edit",
+      "note_id": 2,
+      "back": "```bash\nlua game.lua\n```",
+      "rationale": "the command form is the whole answer: convert the inline backticks to a fenced code block with a language tag"
+    },
+    {
+      "type": "edit",
+      "note_id": 3,
+      "back": "`table.sort`",
+      "rationale": "a bare function name is a token: the whole-answer form is inline code, not a fenced block"
+    }
+  ]
+}

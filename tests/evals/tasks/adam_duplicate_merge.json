@@ -1,7 +1,7 @@
 {
   "id": "adam_duplicate_merge_1",
   "suite": "regression",
-  "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should resolve the overlap by keeping one note as the role card and repurposing the other into an atomic typical-value card (preserving its review history), leaving the unrelated beta_1 note untouched.",
+  "desc": "Two notes ask the same question about beta_2's role in Adam; one of them also carries the typical value (0.999). The agent should resolve the overlap by keeping one note as the role card and repurposing the other into an atomic typical-value card (preserving its review history). The two beta_1 notes — its role and its typical value (0.9) — are already in the collection, atomic and correctly formatted; they must be left untouched, and no new cards are warranted.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -26,14 +26,21 @@
       "back": "Decay rate of the first moment estimate",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
+    },
+    {
+      "id": 4,
+      "front": "In Adam, what is the typical value of beta_1?",
+      "back": "0.9",
+      "tags": ["ml", "optimizers"],
+      "notetype": "basic"
     }
   ],
   "expect": {
     "edits": [1, 2],
     "creates": [0, 0],
     "deletes": [0, 0],
-    "must_not_touch": [3],
-    "facts": ["second moment", "0.999"]
+    "must_not_touch": [3, 4],
+    "facts": ["second moment", "0.999", "0.9"]
   },
   "judge_assertions": [
     "After the changes, no two notes ask the same question, and each resulting note tests exactly one fact.",

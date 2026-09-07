@@ -1,22 +1,29 @@
 {
   "id": "split_non_atomic_note_1",
   "suite": "regression",
-  "desc": "The seed note tests two unrelated facts in a single card (two Python built-in functions), and its front lacks the mandatory 'In <domain>, ...' house-style prefix. The agent should split it into two atomic house-style notes — one per fact — and leave the unrelated third note untouched.",
+  "desc": "The seed note tests two unrelated facts in a single card (two Python built-in functions, in correct inline-code formatting). The agent should split it into two atomic house-style notes — one per fact. The cluster's other notes — `enumerate()`'s return type and the shape of its elements — are already atomic and correctly formatted; they must be left untouched.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
   "notes": [
     {
       "id": 1,
-      "front": "What do len() and range() do in Python?",
-      "back": "len() returns the number of items in an object. range() generates a sequence of integers",
+      "front": "In Python, what do `len()` and `range()` do?",
+      "back": "`len()` returns the number of items in an object. `range()` generates a sequence of integers",
       "tags": ["python", "builtins"],
       "notetype": "basic"
     },
     {
       "id": 2,
-      "front": "In Python, what does enumerate() return?",
-      "back": "An iterator of (index, item) pairs",
+      "front": "In Python, what type does `enumerate()` return?",
+      "back": "An iterator, not a list",
+      "tags": ["python", "builtins"],
+      "notetype": "basic"
+    },
+    {
+      "id": 3,
+      "front": "In Python, what does each element of an `enumerate()` sequence consist of?",
+      "back": "An (index, item) pair",
       "tags": ["python", "builtins"],
       "notetype": "basic"
     }
@@ -26,28 +33,28 @@
     "creates": [1, 1],
     "deletes": [0, 0],
     "must_touch": [1],
-    "must_not_touch": [2],
-    "facts": ["len", "range"]
+    "must_not_touch": [2, 3],
+    "facts": ["len", "range", "iterator", "index"]
   },
   "judge_assertions": [
-    "After the split, each resulting note tests exactly one idea."
+    "After the changes, every note in the cluster tests exactly one idea."
   ],
   "reference": [
     {
       "type": "edit",
       "note_id": 1,
-      "front": "In Python, what does len() do?",
+      "front": "In Python, what does `len()` do?",
       "back": "Returns the number of items in an object",
       "tags": ["python", "builtins"],
-      "rationale": "keep the len() fact on the original note"
+      "rationale": "keep the `len()` fact on the original note"
     },
     {
       "type": "create",
-      "front": "In Python, what does range() do?",
+      "front": "In Python, what does `range()` do?",
       "back": "Generates a sequence of integers",
       "tags": ["python", "builtins"],
       "notetype": "basic",
-      "rationale": "range() is a separate fact that deserves its own card"
+      "rationale": "`range()` is a separate fact that deserves its own card"
     }
   ]
 }

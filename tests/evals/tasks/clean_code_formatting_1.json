@@ -1,0 +1,55 @@
+{
+  "id": "clean_code_formatting_1",
+  "suite": "capability",
+  "desc": "A well-formed cluster that already follows the code-formatting house rule: a mention of code inside a question is inline code (`print`), a bare method name as the whole answer is inline code (`table.sort`), and a whole-answer command and a whole-answer one-line statement are fenced code blocks with language tags (`lua game.lua`, `{name = \"Ada\"}`). Every note is atomic and in house style. The correct behavior is to propose nothing and finish. Negative task guarding against an over-eager curator applying the code-formatting rule to already-correct usage.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In Lua, what does the `print` function do?",
+      "back": "Writes its arguments to the standard output",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "In Lua, what command runs the script file `game.lua`?",
+      "back": "```bash\nlua game.lua\n```",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 3,
+      "front": "In Lua, what function sorts a table in place?",
+      "back": "`table.sort`",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 4,
+      "front": "In Lua, how is a table with the name field set to Ada created?",
+      "back": "```lua\n{name = \"Ada\"}\n```",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "empty": true
+  },
+  "judge_assertions": [],
+  "reference": []
+}
