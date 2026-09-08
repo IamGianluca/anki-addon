@@ -50,7 +50,7 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 - [ ] Improve curator agent through error analysis and expand capability and regression evals
   - [ ] Miss one direction
   - [ ] Handle interference pairs
-  - [ ] Inline and code block
+  - [x] Inline and code block
   - [ ] Move images to Extra
   - [ ] Converting cloze to basic
 
@@ -63,7 +63,7 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
 ### Later
 
 - [ ] Use semantic search instead of lexical search in search bar
-- [ ] Explore using EXL3 quants to improve model performance ― no reason in doing this now since capability evals already score 100% reliably
+- [ ] Explore using EXL3 quants to improve model performance
 - [ ] Expose token usage (`prompt_tokens`, `completion_tokens`) from the OpenAI API response in `OpenAIClient.run()` — **Goal 3**
 
 ### Icebox (ideas, not commitments)
