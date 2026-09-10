@@ -1,7 +1,7 @@
 {
   "id": "fix_code_formatting_command_1",
   "suite": "capability",
-  "desc": "The seed note's back is a command form written as inline code. House style: code that is the whole answer is a fenced code block with a language tag — including a command form with flags and placeholders like `jj squash -r <rev> <path>` — never inline backticks. A mention of code embedded in a sentence or a question, by contrast, is inline code `...`; this note's question mentions 'jj' only in prose, not as code, and the command is the entire answer. The agent should convert the seed's back from inline backticks to a fenced code block with a language tag, keeping the command itself — flags and `<rev>` / `<path>` placeholders included — exactly as it is, and change nothing else.",
+  "desc": "The seed note's back is a command form written as inline code. House style: code that is the whole answer is a fenced code block with a language tag — including a command form with flags and placeholders like `jj squash -r &lt;rev&gt; &lt;path&gt;` (the field stores `<` and `>` as the entities `&lt;` and `&gt;`, which the renderer decodes back, so the escaped storage must be kept) — never inline backticks. A mention of code embedded in a sentence or a question, by contrast, is inline code `...`; this note's question mentions 'jj' only in prose, not as code, and the command is the entire answer. The agent should convert the seed's back from inline backticks to a fenced code block with a language tag, keeping the command itself — flags and the `&lt;rev&gt;` / `&lt;path&gt;` placeholders included — exactly as it is, entities still escaped, and change nothing else.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -9,28 +9,46 @@
     {
       "id": 1,
       "front": "In jj, how is a revision squashed into its parent?",
-      "back": "`jj squash -r <rev> <path>`",
-      "tags": ["jj", "cli"],
+      "back": "`jj squash -r &lt;rev&gt; &lt;path&gt;`",
+      "tags": [
+        "jj",
+        "cli"
+      ],
       "notetype": "basic"
     }
   ],
   "expect": {
-    "edits": [1, 1],
-    "creates": [0, 0],
-    "deletes": [0, 0],
-    "must_touch": [1],
-    "facts": ["jj squash -r"],
-    "must_not_contain": ["`jj squash -r"]
+    "edits": [
+      1,
+      1
+    ],
+    "creates": [
+      0,
+      0
+    ],
+    "deletes": [
+      0,
+      0
+    ],
+    "must_touch": [
+      1
+    ],
+    "facts": [
+      "jj squash -r"
+    ],
+    "must_not_contain": [
+      "`jj squash -r"
+    ]
   },
   "judge_assertions": [
-    "The proposed note's whole answer is the command form `jj squash -r <rev> <path>` and it is written as a fenced code block with a language tag, not as inline backticks and not as bare text; the command's text — including the `<rev>` and `<path>` placeholders — is unchanged."
+    "The proposed note's whole answer is the command form `jj squash -r <rev> <path>` and it is written as a fenced code block with a language tag, not as inline backticks and not as bare text; the command's text is unchanged — flags and the `<rev>` / `<path>` placeholders included, which stay stored escaped as `&lt;rev&gt;` and `&lt;path&gt;` rather than raw."
   ],
   "reference": [
     {
       "type": "edit",
       "note_id": 1,
-      "back": "```bash\njj squash -r <rev> <path>\n```",
-      "rationale": "the command form is the whole answer: convert the inline backticks to a fenced code block with a language tag, keeping the placeholders intact"
+      "back": "```bash<br>jj squash -r &lt;rev&gt; &lt;path&gt;<br>```",
+      "rationale": "the command form is the whole answer: convert the inline backticks to a fenced code block with a language tag, keeping the placeholders intact and still escaped"
     }
   ]
 }

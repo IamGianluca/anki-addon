@@ -14,6 +14,7 @@ production sessions instead of eval results.
 
 from __future__ import annotations
 
+import difflib
 import json
 import os
 import re
@@ -28,8 +29,10 @@ from fasthtml.common import (  # noqa: F401
     H3,
     H4,
     A,
+    B,
     Button,
     Datalist,
+    Details,
     Div,
     FastHTML,
     Form,
@@ -48,6 +51,7 @@ from fasthtml.common import (  # noqa: F401
     Section,
     Span,
     Style,
+    Summary,
     Table,
     Tbody,
     Td,
@@ -58,6 +62,8 @@ from fasthtml.common import (  # noqa: F401
     Tr,
     Ul,
 )
+
+from addon.infrastructure.ui.curation_review import display_text
 
 
 def _results_dir() -> Path:
@@ -744,53 +750,120 @@ def _outcome_badge(status: str) -> Span:
     return _badge(status.replace("_", " ").upper(), cls)
 
 
+def _note_review_text(note: dict) -> str:
+    """Decoded, line-oriented content of a note in the trace shape.
+
+    Field HTML is decoded for review (`display_text`: `<br>` as
+    newlines, entities decoded), so a card reads as text, not as a
+    run of markup symbols. The byte-exact HTML is one toggle away.
+    """
+    lines = [f"Front: {display_text(note.get('front', ''))}"]
+    lines.append(f"Back: {display_text(note.get('back', ''))}")
+    for name, value in sorted((note.get("extra_fields") or {}).items()):
+        lines.append(f"{name}: {display_text(value)}")
+    tags = " ".join(note.get("tags") or []) or "(none)"
+    lines.append(f"Tags: {tags}  |  Type: {note.get('notetype', '')}")
+    return "\n".join(lines)
+
+
+def _field_diff(label: str, before: str, after: str) -> Div:
+    """One changed field as a decoded unified diff.
+
+    `display_text` turns `<br>` into newlines and `&lt;` into `<`, so
+    the diff reads like a text diff instead of a run of symbols.
+    """
+    return Div(
+        B(label),
+        Pre(
+            "\n".join(
+                difflib.unified_diff(
+                    display_text(before).splitlines(),
+                    display_text(after).splitlines(),
+                    lineterm="",
+                )
+            )
+            or "(no change)",
+            style=_PRE_STYLE,
+        ),
+        style="margin-bottom: 0.5rem;",
+    )
+
+
+def _raw_json(data: dict, title: str) -> Details:
+    """Collapsed byte-exact JSON of a proposal payload."""
+    return Details(
+        Summary(title),
+        Pre(
+            json.dumps(data, indent=2, ensure_ascii=False),
+            style=_PRE_STYLE,
+        ),
+    )
+
+
 def _proposal_block(p: dict, show_rationale: bool = True) -> Div:
     """Render one change-set proposal (edit/create/delete).
+
+    Edit proposals show a per-field unified diff of the decoded HTML
+    (`<br>` as newlines, entities decoded), so the review reads like a
+    text diff instead of a run of markup symbols; the byte-exact
+    proposal payload is one toggle away.
 
     `show_rationale=False` drops the rationale line — used in the
     outcome card, where the rationale is the agent's, not the user's:
     the user never explains why they approved or rejected.
     """
     ptype = p.get("type", "edit").upper()
+    rationale = (
+        P(f"Rationale: {p.get('rationale', '')}") if show_rationale else ""
+    )
     if ptype == "EDIT":
+        before, after = p.get("before", {}), p.get("after", {})
+        pairs: list[tuple[str, str, str]] = [
+            ("Front", before.get("front", ""), after.get("front", "")),
+            ("Back", before.get("back", ""), after.get("back", "")),
+            (
+                "Tags",
+                " ".join(before.get("tags") or []),
+                " ".join(after.get("tags") or []),
+            ),
+        ]
+        extra_names = set(before.get("extra_fields") or {}) | set(
+            after.get("extra_fields") or {}
+        )
+        for name in sorted(extra_names):
+            pairs.append(
+                (
+                    name,
+                    (before.get("extra_fields") or {}).get(name, ""),
+                    (after.get("extra_fields") or {}).get(name, ""),
+                )
+            )
+        diffs = [
+            _field_diff(label, old, new)
+            for label, old, new in pairs
+            if old != new
+        ]
         return Div(
             H4(f"EDIT note {p.get('note_id')}"),
-            P(f"Rationale: {p.get('rationale', '')}")
-            if show_rationale
-            else "",
-            Div(
-                P("Before:"),
-                Pre(
-                    json.dumps(p.get("before", {}), indent=2),
-                    style="font-size: 0.8rem; margin: 0.25rem 0;",
-                ),
-                P("After:"),
-                Pre(
-                    json.dumps(p.get("after", {}), indent=2),
-                    style="font-size: 0.8rem; margin: 0.25rem 0;",
-                ),
-            ),
+            rationale,
+            *diffs if diffs else P("(no changes)"),
+            _raw_json({"before": before, "after": after}, "Show raw JSON"),
             cls="proposal-block",
         )
     if ptype == "CREATE":
+        note = p.get("note", {})
         return Div(
             H4("CREATE"),
-            P(f"Rationale: {p.get('rationale', '')}")
-            if show_rationale
-            else "",
-            Pre(
-                json.dumps(p.get("note", {}), indent=2),
-                style="font-size: 0.8rem;",
-            ),
+            rationale,
+            Pre(_note_review_text(note), style=_PRE_STYLE),
+            _raw_json(note, "Show raw JSON"),
             cls="proposal-block",
         )
     return Div(
         H4(f"DELETE note {p.get('note_id')}"),
-        P(f"Rationale: {p.get('rationale', '')}") if show_rationale else "",
-        Pre(
-            json.dumps(p.get("before", {}), indent=2),
-            style="font-size: 0.8rem;",
-        ),
+        rationale,
+        Pre(_note_review_text(p.get("before", {})), style=_PRE_STYLE),
+        _raw_json(p.get("before", {}), "Show raw JSON"),
         cls="proposal-block",
     )
 
@@ -1157,7 +1230,7 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
         check_items.append(
             Li(
                 _badge(check["verdict"].upper(), cls),
-                Span(f"<b>{check['name']}</b>"),
+                B(check["name"]),
                 reason,
             )
         )
@@ -1289,22 +1362,10 @@ async def get(stamp: str, task_id: str, trial_idx: int):  # noqa: F811
     # Seed notes (the collection the agent started from)
     seed_blocks = []
     for note in trial.cluster:
-        extra = (
-            P(f"Extra fields: {json.dumps(note.get('extra_fields'))}")
-            if note.get("extra_fields")
-            else ""
-        )
         seed_blocks.append(
             Div(
                 H4(f"Note {note.get('id')}"),
-                P(f"Front: {note.get('front', '')}"),
-                P(f"Back: {note.get('back', '')}"),
-                P(
-                    "Tags: "
-                    + (", ".join(note.get("tags", [])) or "(none)")
-                    + f"  |  Type: {note.get('notetype', '')}"
-                ),
-                extra,
+                Pre(_note_review_text(note), style=_PRE_STYLE),
                 cls="proposal-block",
             )
         )

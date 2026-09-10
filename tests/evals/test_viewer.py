@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+from html import unescape
+
 from tests.evals.viewer import (
     RunSummary,
     TrialRecord,
     _failure_mode_cards,
     _format_duration,
+    _note_review_text,
+    _proposal_block,
     batch_items,
     coverage,
     failure_modes,
@@ -397,6 +401,88 @@ def test_parse_annotation_key_rejects_other_names() -> None:
 
     # Then
     assert parsed is None
+
+
+def test_proposal_block_decodes_edit_diff() -> None:
+    # Given an edit whose back drops a prompt marker and gains a line
+    proposal = {
+        "type": "edit",
+        "note_id": 1,
+        "rationale": "strip the marker",
+        "before": {
+            "front": "Q?",
+            "back": "<pre><code>&gt;&gt;&gt; grad.std()</code></pre>",
+            "tags": ["python"],
+            "notetype": "basic",
+        },
+        "after": {
+            "front": "Q?",
+            "back": ("<pre><code>grad.std()<br>t.clamp(0, 1)</code></pre>"),
+            "tags": ["python"],
+            "notetype": "basic",
+        },
+    }
+
+    # When the block is rendered
+    html = unescape(str(_proposal_block(proposal)))
+
+    # Then the diff shows decoded lines — the marker and the new line
+    # as text, not as <pre>/&gt;&gt;&gt;/<br> symbols — and the
+    # byte-exact payload stays one toggle away
+    assert ">>> grad.std()" in html
+    assert "+grad.std()" in html
+    assert "+t.clamp(0, 1)" in html
+    assert "Show raw JSON" in html
+    assert "<details>" in html
+
+
+def test_proposal_block_decodes_create_content() -> None:
+    # Given a create proposal whose back holds escaped placeholders
+    proposal = {
+        "type": "create",
+        "rationale": "r",
+        "note": {
+            "front": "Q?",
+            "back": (
+                "<pre><code>jj squash -r &lt;rev&gt; &lt;path&gt;</code></pre>"
+            ),
+            "tags": ["jj"],
+            "notetype": "basic",
+        },
+    }
+
+    # When the block is rendered
+    html = unescape(str(_proposal_block(proposal)))
+
+    # Then the content shows the command with real angle brackets
+    # (the review text prefix of the block, before the raw-JSON toggle)
+    review_text = html.split("<details>", 1)[0]
+    assert "jj squash -r <rev> <path>" in review_text
+    assert "&lt;" not in review_text
+    assert "Show raw JSON" in html
+
+
+def test_seed_note_review_text_decodes_html() -> None:
+    # Given a seed note with markup, entities, and a <br> line break
+    note = {
+        "id": 1,
+        "front": (
+            "In PyTorch, what does the <code>.grad</code> attribute hold?"
+        ),
+        "back": "<pre><code>&gt;&gt;&gt; grad.std()</code></pre>",
+        "tags": ["python"],
+        "notetype": "basic",
+        "extra_fields": {"Extra": "a<br>b"},
+    }
+
+    # When its review text is built
+    text = _note_review_text(note)
+
+    # Then the markup is decoded and block lines become newlines
+    assert "Front: In PyTorch, what does the .grad attribute hold?" in text
+    assert ">>> grad.std()" in text
+    assert "Extra: a\nb" in text
+    assert "Tags: python  |  Type: basic" in text
 
 
 def test_coverage_counts_annotations_and_trials_per_run() -> None:

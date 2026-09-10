@@ -9,9 +9,19 @@ import requests.exceptions
 
 from .protocols import HttpClient, HttpResponse
 
+# Connect quickly, then allow a long read: a reasoning model can spend
+# minutes on one completion, but the client must never block forever.
+# Without a read timeout `requests` waits indefinitely, and a server
+# that accepts the connection but never answers stalls the caller for
+# hours (a stalled eval run, a frozen Anki review).
+DEFAULT_TIMEOUT = (10.0, 600.0)
+
 
 class RequestsHttpClient:
     """Adapter that wraps the requests library to implement HttpClient."""
+
+    def __init__(self, timeout: tuple[float, float] = DEFAULT_TIMEOUT) -> None:
+        self._timeout = timeout
 
     def post(
         self,
@@ -22,7 +32,9 @@ class RequestsHttpClient:
         # requests.Response provides the full HttpResponse surface; the cast
         # is needed because ty infers status_code as None from requests'
         # untyped __init__.
-        response = requests.post(url, json=json, headers=headers)
+        response = requests.post(
+            url, json=json, headers=headers, timeout=self._timeout
+        )
         return cast(HttpResponse, response)
 
 
@@ -43,6 +55,12 @@ def post_json(
         raise ConnectionError(
             f"Cannot reach LLM server at {url}. "
             "Check if the inference server is running."
+        ) from e
+    except requests.exceptions.Timeout as e:
+        raise TimeoutError(
+            f"LLM server at {url} did not respond in time. "
+            "The server may be overloaded or stuck; "
+            "check the inference server."
         ) from e
 
     if response.status_code != 200:

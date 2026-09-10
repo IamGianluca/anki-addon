@@ -1,7 +1,7 @@
 {
   "id": "fix_code_formatting_prompt_markers_1",
   "suite": "capability",
-  "desc": "The cluster contains two whole-answer code blocks that carry a `>>>` REPL prompt marker. House style: a code block or inline snippet is the code itself — a REPL or shell prompt marker (`>>>`, `...`, `$`, `In [1]:`) is chrome, not code, and a snippet that carries one is defective; the fix strips the marker and changes nothing else, keeping the code exactly as it was. The seed note's back block starts with `>>>`, so the marker must be stripped; note 2's back block starts with `>>>` too, so the marker must be stripped there as well; note 3 mentions the `.grad` attribute inline in its question and is already correct. All three notes share the 'python' and 'pytorch' tags, so the cluster surfaces through the agent's normal cluster exploration (tag and content queries); no exhaustive collection-wide search is needed. The agent should convert every defective block and leave note 3 untouched.",
+  "desc": "The cluster contains two whole-answer code blocks that carry a `>>>` REPL prompt marker. House style: a code block or inline snippet is the code itself — a REPL or shell prompt marker (`>>>`, `...`, `$`, `In [1]:`) is chrome, not code, and a snippet that carries one is defective; the fix strips the marker and changes nothing else, keeping the code exactly as it was. HTML-significant characters are stored as entities, so the marker sits in the field as `&gt;&gt;&gt;` and renders as `>>>` on the card. The seed note's back block starts with the marker, so it must be stripped; note 2's back block does too; note 3 mentions the `.grad` attribute inline in its question and is already correct. All three notes share the 'python' and 'pytorch' tags, so the cluster surfaces through the agent's normal cluster exploration (tag and content queries); no exhaustive collection-wide search is needed. The agent should convert every defective block and leave note 3 untouched.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -9,33 +9,61 @@
     {
       "id": 1,
       "front": "In PyTorch, how is the gradient scaled by the parameter scale?",
-      "back": "```python\n>>> grad.std() / param.std()\n```",
-      "tags": ["python", "pytorch"],
+      "back": "```python<br>&gt;&gt;&gt; grad.std() / param.std()<br>```",
+      "tags": [
+        "python",
+        "pytorch"
+      ],
       "notetype": "basic"
     },
     {
       "id": 2,
       "front": "In PyTorch, how is a tensor clipped to the range [0, 1]?",
-      "back": "```python\n>>> t.clamp(0, 1)\n```",
-      "tags": ["python", "pytorch"],
+      "back": "```python<br>&gt;&gt;&gt; t.clamp(0, 1)<br>```",
+      "tags": [
+        "python",
+        "pytorch"
+      ],
       "notetype": "basic"
     },
     {
       "id": 3,
       "front": "In PyTorch, what does the `.grad` attribute of a tensor hold?",
       "back": "The gradient of the tensor accumulated by autograd",
-      "tags": ["python", "pytorch"],
+      "tags": [
+        "python",
+        "pytorch"
+      ],
       "notetype": "basic"
     }
   ],
   "expect": {
-    "edits": [2, 2],
-    "creates": [0, 0],
-    "deletes": [0, 0],
-    "must_touch": [1, 2],
-    "must_not_touch": [3],
-    "facts": ["grad.std() / param.std()", "t.clamp(0, 1)"],
-    "must_not_contain": [">>>"]
+    "edits": [
+      2,
+      2
+    ],
+    "creates": [
+      0,
+      0
+    ],
+    "deletes": [
+      0,
+      0
+    ],
+    "must_touch": [
+      1,
+      2
+    ],
+    "must_not_touch": [
+      3
+    ],
+    "facts": [
+      "grad.std() / param.std()",
+      "t.clamp(0, 1)"
+    ],
+    "must_not_contain": [
+      ">>>"
+    ]
   },
   "judge_assertions": [
     "Every proposed note whose whole answer is code writes that answer as a fenced code block with a language tag containing only the code itself — the `>>>` REPL prompt marker is stripped and nothing else about the code is changed.",
@@ -45,13 +73,13 @@
     {
       "type": "edit",
       "note_id": 1,
-      "back": "```python\ngrad.std() / param.std()\n```",
+      "back": "```python<br>grad.std() / param.std()<br>```",
       "rationale": "strip the `>>>` REPL prompt marker from the block; the code itself is unchanged"
     },
     {
       "type": "edit",
       "note_id": 2,
-      "back": "```python\nt.clamp(0, 1)\n```",
+      "back": "```python<br>t.clamp(0, 1)<br>```",
       "rationale": "strip the `>>>` REPL prompt marker from the block; the code itself is unchanged"
     }
   ]

@@ -509,6 +509,11 @@ def _proposal_text(proposals: list[Proposal]) -> str:
 
 def _plain(front: str, back: str, extra_fields: dict[str, str]) -> str:
     text = f"{front} {back} {' '.join(extra_fields.values())}"
+    # Break tags separate words in the stored HTML flavour; without a
+    # replacement `<br>` would glue "lua" to "{name" and break the
+    # word-boundary fact matching.
+    text = re.sub(r"<br\s*/?>", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"</?div[^>]*>", " ", text, flags=re.IGNORECASE)
     return html.unescape(_TAG_RE.sub("", text))
 
 

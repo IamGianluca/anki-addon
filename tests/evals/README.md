@@ -46,7 +46,10 @@ The LLM is configured from the same env vars as the integration tests
 
 The client is built through the same `create_completion_provider`
 factory the addon uses, so an eval run measures the model, settings,
-and provider wiring the addon actually ships with. Point the vars at a
+and provider wiring the addon actually ships with. Provider calls are
+bounded by the HTTP client's timeout (10 s to connect, 10 min to
+read) — a server that goes silent fails the trial with an actionable
+error instead of stalling the whole run for hours. Point the vars at a
 different server/model to compare candidates on the same suite:
 
 ```bash
@@ -188,13 +191,42 @@ formatting: ✗ 17 violation(s) across 18 trials (no_trailing_period: 17)
 ```
 
 Rules live in `tests/evals/formatting.py`, one function per rule, and
-apply to every field of the notes a change set writes — edited and
-created alike, with **no pass-through exemption**: the agent is
-responsible for the final text of every card it touches, and under
-the rule a trailing full stop is itself a defect. **Reference
-solutions must respect the same rules** — `test_task_files.py` checks
-it, because a reference that violates a standing rule contradicts the
-system prompt.
+apply to every field (front, back, and extras) of the notes a change
+set writes — edited and created alike, with **no pass-through
+exemption**: the agent is responsible for the final text of every card
+it touches. The rules follow the user's real render path: the Better
+Markdown addon reads each field's HTML and normalizes it back to
+Markdown — `<br>`/`<div>` become newlines, `&nbsp;` becomes a space,
+entities are decoded — and cards then render with ReactMarkdown, KaTeX,
+and react-syntax-highlighter. Fields therefore store Anki's HTML
+flavour, which is also what reads correctly in Anki's editor:
+
+- `no_trailing_period` — the last sentence of a back or Extra field
+  never ends with a full stop (a trailing stop is itself a defect).
+- `raw_newline` — a literal `\n` anywhere in a field (prose, code,
+  or math) is a defect. Anki renders fields as HTML, so a `\n` folds
+  to a space: the code block reads wrong in Anki's editor and the
+  line structure is lost. Every line break is `<br>` and a blank line
+  is `<br><br>`; the addon turns them back into newlines before it
+  parses.
+- `raw_spaces` — a run of two or more spaces, or a tab, is a defect:
+  HTML collapses it, so indentation written as raw spaces reads wrong
+  wherever the field is shown as HTML. Every space beyond one is
+  `&nbsp;`, which the addon turns back into a space.
+- `unescaped_html` — a raw `<`, `>`, or `&` anywhere in a field,
+  **code and math included**, is a defect. Because the addon decodes
+  entities before parsing, fields store HTML-significant characters as
+  entities (`&lt;`, `&gt;`, `&amp;`, with `&` escaped first) and the
+  renderer sees the raw character again — code fences render
+  `jj squash -r &lt;rev&gt;` as `jj squash -r <rev>`. A raw `<` never
+  reaches the renderer: Anki reads it as an HTML tag first, so a fence
+  holding `<rev>` loses the placeholder and gains a stray `</rev>`
+  after the closing fence, and the whole block renders mangled. The
+  checker flags raw characters wherever they appear.
+
+**Reference solutions must respect the same rules** —
+`test_task_files.py` checks it, because a reference that violates a
+standing rule contradicts the system prompt.
 
 ## Production traces: the human as grader
 

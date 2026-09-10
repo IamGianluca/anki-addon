@@ -19,7 +19,7 @@
     {
       "id": 2,
       "front": "In Lua, what command runs the script file `game.lua`?",
-      "back": "```bash\nlua game.lua\n```",
+      "back": "```bash<br>lua game.lua<br>```",
       "tags": [
         "lua",
         "programming"
@@ -39,7 +39,7 @@
     {
       "id": 4,
       "front": "In Lua, how is a table with the name field set to Ada created?",
-      "back": "```lua\n{name = \"Ada\"}\n```",
+      "back": "```lua<br>{name = \"Ada\"}<br>```",
       "tags": [
         "lua",
         "programming"
