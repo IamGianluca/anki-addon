@@ -53,6 +53,7 @@ Sub-optimal decks — cards with factual mistakes, open-ended questions, or inco
   - [x] Inline and code block
   - [ ] Move images to Extra
   - [ ] Converting cloze to basic
+  - [ ] Ensure changeset is review for duplicates with existing notes
 
 ### Next
 
