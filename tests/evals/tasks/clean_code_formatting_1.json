@@ -1,7 +1,7 @@
 {
   "id": "clean_code_formatting_1",
   "suite": "capability",
-  "desc": "A well-formed cluster that already follows the code-formatting house rule: a mention of code inside a question is inline code (`print`), a bare method name as the whole answer is inline code (`table.sort`), and a whole-answer command and a whole-answer one-line statement are fenced code blocks with language tags (`lua game.lua`, `{name = \"Ada\"}`). Every note is atomic and in house style. The correct behavior is to propose nothing and finish. Negative task guarding against an over-eager curator applying the code-formatting rule to already-correct usage.",
+  "desc": "A well-formed cluster that already follows the code-formatting house rule: a mention of code inside a question is inline code (`print`), a bare method name as the whole answer is inline code (`table.sort`), and a whole-answer command and a whole-answer one-line statement are fenced code blocks with language tags (`lua game.lua`, `{name = \"Ada\"}`). Every note is atomic and in house style. The `print` note's canonical confusable counterpart `io.write` is already present as its own note, so no new cards are warranted. The correct behavior is to propose nothing and finish. Negative task guarding against an over-eager curator applying the code-formatting rule to already-correct usage.",
   "seed_note_id": 1,
   "trials": 3,
   "max_steps": 15,
@@ -40,6 +40,16 @@
       "id": 4,
       "front": "In Lua, how is a table with the name field set to Ada created?",
       "back": "```lua<br>{name = \"Ada\"}<br>```",
+      "tags": [
+        "lua",
+        "programming"
+      ],
+      "notetype": "basic"
+    },
+    {
+      "id": 5,
+      "front": "In Lua, what does the `io.write` function do?",
+      "back": "Writes its arguments to the output as-is, without added formatting",
       "tags": [
         "lua",
         "programming"
