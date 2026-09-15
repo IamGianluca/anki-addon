@@ -8,14 +8,14 @@
   "notes": [
     {
       "id": 1,
-      "front": "In Adam, what does beta_1 control?",
+      "front": "In Adam, what does \\(\\beta_1\\) control?",
       "back": "Decay rate of the first moment estimate",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
     },
     {
       "id": 2,
-      "front": "In Adam, what does beta_2 control?",
+      "front": "In Adam, what does \\(\\beta_2\\) control?",
       "back": "Decay rate of the second moment estimate",
       "tags": ["ml", "optimizers"],
       "notetype": "basic"
