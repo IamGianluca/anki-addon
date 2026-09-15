@@ -1,0 +1,54 @@
+{
+  "id": "split_topic_label_grpc_1",
+  "suite": "capability",
+  "desc": "The seed note has a topic-label front — 'In system design, what is gRPC?' — whose back bundles three independently recallable facts into one answer: gRPC is an RPC framework, it serializes with binary Protocol Buffers, and it runs over HTTP/2. A card like this tests recognition, not recall: on review, half-recalling one of the three facts is easy to mistake for mastering the card. The agent should split the note so each fact gets its own card with a front that cues exactly it — the framework identity, the serialization format, and the transport protocol — preserving every fact from the original back. The seed is otherwise clean (house-style prefix, no formatting defects), so the split is the only change required.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In system design, what is gRPC?",
+      "back": "High-performance RPC framework using binary Protocol Buffers over HTTP/2",
+      "tags": ["system design", "grpc"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [1, 1],
+    "creates": [2, 2],
+    "deletes": [0, 0],
+    "must_touch": [1],
+    "facts": ["rpc framework", "high-performance", "protocol buffers", "binary", "http/2"]
+  },
+  "judge_assertions": [
+    "After applying the change set, the three facts bundled in the seed's back — that gRPC is an RPC framework, that it serializes with binary Protocol Buffers, and that it runs over HTTP/2 — are tested on separate cards: a card whose front asks what gRPC is and whose back gives only its identity as an RPC framework, a card for the serialization format (binary Protocol Buffers), and a card for the transport protocol (HTTP/2).",
+    "After applying the change set, every card in the cluster tests exactly one of the three facts: no card's front bundles two or more of them into one question, and no card's back chains two or more of them in one answer."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "In system design, what is gRPC?",
+      "back": "A high-performance RPC framework",
+      "tags": ["system design", "grpc"],
+      "rationale": "keep the identity fact on the original note, preserving its review history"
+    },
+    {
+      "type": "create",
+      "front": "In gRPC, what serialization format does it use?",
+      "back": "Binary Protocol Buffers",
+      "tags": ["system design", "grpc"],
+      "notetype": "basic",
+      "rationale": "the serialization format is an independently recallable fact of the bundled back"
+    },
+    {
+      "type": "create",
+      "front": "In gRPC, what transport protocol does it run over?",
+      "back": "HTTP/2",
+      "tags": ["system design", "grpc"],
+      "notetype": "basic",
+      "rationale": "the transport protocol is an independently recallable fact of the bundled back"
+    }
+  ]
+}
