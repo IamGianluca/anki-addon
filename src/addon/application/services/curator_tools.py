@@ -21,6 +21,29 @@ from ...domain.repositories.note_repository import (
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
+def _stored_field(text: str) -> str:
+    """Encode the agent's line breaks the way Anki stores a field.
+
+    The agent writes a field as text, where a line break is a literal
+    newline (its JSON output naturally carries `\n`). Anki stores and
+    edits fields as HTML, where a raw newline collapses to a space and
+    the line structure is lost, so every break is stored as `<br>`.
+    Doing the conversion here keeps the stored form correct no matter
+    how the model spells a break; no valid stored field contains a raw
+    newline, so re-encoding is a no-op.
+    """
+    return text.replace("\r\n", "\n").replace("\r", "\n").replace("\n", "<br>")
+
+
+def _stored_extra_fields(
+    fields: dict[str, str] | None,
+) -> dict[str, str]:
+    """The agent-provided extra fields in stored form."""
+    return {
+        name: _stored_field(value) for name, value in (fields or {}).items()
+    }
+
+
 class CuratorTools:
     """The tool surface exposed to the curation agent.
 
@@ -124,12 +147,15 @@ class CuratorTools:
         """
         pending = self._creates_by_id.get(note_id)
         if pending is not None:
-            merged = {**pending.note.extra_fields, **(extra_fields or {})}
+            merged = {
+                **pending.note.extra_fields,
+                **_stored_extra_fields(extra_fields),
+            }
             revised = CreateProposal(
                 dataclasses.replace(
                     pending.note,
-                    front=front,
-                    back=back,
+                    front=_stored_field(front),
+                    back=_stored_field(back),
                     tags=tags,
                     extra_fields=merged,
                 ),
@@ -142,11 +168,14 @@ class CuratorTools:
             before = self._repository.get(note_id)
         except NoteNotFoundError:
             return self._unknown_id(note_id)
-        merged_extra = {**before.extra_fields, **(extra_fields or {})}
+        merged_extra = {
+            **before.extra_fields,
+            **_stored_extra_fields(extra_fields),
+        }
         after = dataclasses.replace(
             before,
-            front=front,
-            back=back,
+            front=_stored_field(front),
+            back=_stored_field(back),
             tags=tags,
             extra_fields=merged_extra,
         )
@@ -178,11 +207,11 @@ class CuratorTools:
             )
         proposal = CreateProposal(
             AddonNote(
-                front=front,
-                back=back,
+                front=_stored_field(front),
+                back=_stored_field(back),
                 tags=tags,
                 notetype=note_type,
-                extra_fields=extra_fields or {},
+                extra_fields=_stored_extra_fields(extra_fields),
             ),
             rationale,
         )
@@ -343,21 +372,26 @@ class CuratorTools:
             creates.append(
                 CreateProposal(
                     AddonNote(
-                        front=fields["front"],
-                        back=fields["back"],
+                        front=_stored_field(fields["front"]),
+                        back=_stored_field(fields["back"]),
                         tags=fields.get("tags", []),
                         notetype=note_type,
-                        extra_fields=fields.get("extra_fields", {}),
+                        extra_fields=_stored_extra_fields(
+                            fields.get("extra_fields")
+                        ),
                     ),
                     rationale,
                 )
             )
 
-        merged_extra = {**before.extra_fields, **(kept_extra_fields or {})}
+        merged_extra = {
+            **before.extra_fields,
+            **_stored_extra_fields(kept_extra_fields),
+        }
         after = dataclasses.replace(
             before,
-            front=kept_front,
-            back=kept_back,
+            front=_stored_field(kept_front),
+            back=_stored_field(kept_back),
             tags=kept_tags,
             extra_fields=merged_extra,
         )

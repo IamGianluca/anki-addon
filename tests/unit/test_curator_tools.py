@@ -143,6 +143,41 @@ def test_propose_edit_records_before_and_after(
     assert edit.rationale == "tighter wording"
 
 
+def test_propose_edit_stores_raw_newlines_as_br(
+    tools: CuratorTools,
+) -> None:
+    # Given fields written as text, where a line break is a newline
+    # When
+    tools.propose_edit(
+        NoteId(1),
+        front="First line\nSecond line",
+        back="Line one\r\nLine two",
+        tags=["ml"],
+        rationale="r",
+        extra_fields={"Extra": "Note one\nNote two"},
+    )
+
+    # Then the stored form uses the HTML flavour
+    (edit,) = _edits(tools)
+    assert edit.after.front == "First line<br>Second line"
+    assert edit.after.back == "Line one<br>Line two"
+    assert edit.after.extra_fields["Extra"] == "Note one<br>Note two"
+
+
+def test_propose_edit_keeps_stored_line_breaks(
+    tools: CuratorTools,
+) -> None:
+    # Given a field already in stored form
+    front = "```python<br>def double(x):<br>    return x * 2<br>```"
+
+    # When
+    tools.propose_edit(NoteId(1), front, "b", [], "r")
+
+    # Then re-encoding leaves it unchanged
+    (edit,) = _edits(tools)
+    assert edit.after.front == front
+
+
 def test_propose_edit_reports_unknown_note(tools: CuratorTools) -> None:
     # When
     result = tools.propose_edit(
@@ -203,6 +238,23 @@ def test_propose_create_records_new_note(tools: CuratorTools) -> None:
     assert create.note.back == "1e-8"
     assert create.note.notetype.value == "basic"
     assert create.rationale == "cluster lacks epsilon coverage"
+
+
+def test_propose_create_stores_raw_newlines_as_br(
+    tools: CuratorTools,
+) -> None:
+    # When
+    tools.propose_create(
+        front="f",
+        back='```lua\n{name = "Ada"}\n```',
+        tags=[],
+        notetype="basic",
+        rationale="r",
+    )
+
+    # Then
+    (create,) = _creates(tools)
+    assert create.note.back == '```lua<br>{name = "Ada"}<br>```'
 
 
 def test_propose_create_rejects_invalid_notetype(
@@ -275,6 +327,32 @@ def test_propose_split_records_edit_and_creates(
     assert creates[0].note.tags == ["ml", "optimizers"]
     # notetype not given: inherits the original note's type
     assert creates[1].note.notetype == edit.before.notetype
+
+
+def test_propose_split_stores_raw_newlines_as_br(
+    tools: CuratorTools,
+) -> None:
+    # When
+    result = tools.propose_split(
+        NoteId(3),
+        kept_front="What does beta_1 do?\nOne role.",
+        kept_back="Smooths the gradient signal.",
+        kept_tags=["ml"],
+        new_notes=[
+            {
+                "front": "What does beta_2 do?",
+                "back": "Scales the step size.\nPer parameter.",
+            }
+        ],
+        rationale="r",
+    )
+
+    # Then
+    assert "Split proposal recorded for note 3" in result
+    (edit,) = _edits(tools)
+    assert edit.after.front == "What does beta_1 do?<br>One role."
+    (create,) = _creates(tools)
+    assert create.note.back == "Scales the step size.<br>Per parameter."
 
 
 def test_propose_split_reports_unknown_note_and_records_nothing(
