@@ -1,0 +1,47 @@
+{
+  "id": "fix_yes_no_question_1",
+  "suite": "capability",
+  "desc": "The seed note is otherwise clean — atomic, in house style, no formatting defects — but its front is a yes/no question ('In cell biology, does oxidative phosphorylation take place in the inner mitochondrial membrane?') whose back is 'Yes'. A binary card can be answered correctly by guessing half the time, so a pass does not show that the learner remembered anything: the agent should reframe the question so the learner produces the specific fact — here the location — instead of confirming a claim, keeping the tested knowledge (oxidative phosphorylation takes place in the inner mitochondrial membrane) intact and leaving the unrelated ribosome note untouched. Nothing in the task asks for the rewrite, so the trial measures whether the agent recognizes and fixes the binary form unprompted.",
+  "seed_note_id": 1,
+  "trials": 3,
+  "max_steps": 15,
+  "notes": [
+    {
+      "id": 1,
+      "front": "In cell biology, does oxidative phosphorylation take place in the inner mitochondrial membrane?",
+      "back": "Yes",
+      "tags": ["biology", "cells"],
+      "notetype": "basic"
+    },
+    {
+      "id": 2,
+      "front": "In cell biology, what do ribosomes assemble?",
+      "back": "Proteins",
+      "tags": ["biology", "cells"],
+      "notetype": "basic"
+    }
+  ],
+  "expect": {
+    "edits": [1, 1],
+    "creates": [0, 0],
+    "deletes": [0, 0],
+    "must_touch": [1],
+    "must_not_touch": [2],
+    "facts": ["oxidative phosphorylation", "membrane"],
+    "must_not_contain": ["yes", "no", "true", "false"]
+  },
+  "judge_assertions": [
+    "The seed's yes/no question has been reframed into a question the learner must answer by producing the specific fact: the new front does not ask whether the claim holds — it must not be answerable with a bare yes/no or true/false — and the new back states that fact (the location, or what takes place at that location if the direction is flipped) instead of confirming the claim.",
+    "The rewritten card stays atomic and tests the original knowledge: its front asks exactly one thing, its back answers exactly that thing, and the fact that oxidative phosphorylation takes place in the inner mitochondrial membrane is preserved."
+  ],
+  "reference": [
+    {
+      "type": "edit",
+      "note_id": 1,
+      "front": "In cell biology, where does oxidative phosphorylation take place?",
+      "back": "In the inner mitochondrial membrane",
+      "tags": ["biology", "cells"],
+      "rationale": "reframe the yes/no question so the learner produces the location instead of confirming the claim"
+    }
+  ]
+}
